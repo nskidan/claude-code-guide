@@ -1,0 +1,67 @@
+Build a comprehensive, multi-page HTML guide called "Claude Code Mastery: From Zero to Autonomous Agent Teams."
+
+## Who This Is For
+The reader is me — someone with zero formal coding or CS background, but who has already used Claude Code to build several small working projects (a Resy reservation sniper, an apartment listing scoring dashboard, a daily M&A deal newsletter). I understand what Claude Code does at a practical level, but I lack the underlying mental models for why things work the way they do. I am proficient on both macOS and Windows.
+
+## What I Want
+A structured progression from absolute fundamentals to fully autonomous multi-agent coding systems, organized as levels. Each level introduces ONE major concept or concept cluster, explains it deeply with intuition-first teaching, shows concrete examples, and ends with a standalone checkpoint project that proves I'm ready to advance.
+
+## Structure Requirements
+- Create an index.html (table of contents) and one HTML file per level
+- All pages share a single styles.css
+- Every page has top/bottom navigation (← Previous | Contents | Next →)
+- Follow all design and content rules in CLAUDE.md
+
+## Level Design
+Levels should progress roughly as follows (but YOU should refine, reorder, split, or merge these based on what makes the best pedagogical sense — I trust your judgment on ordering):
+
+### Foundation Tier (Levels 1–3ish)
+- Terminal & CLI fundamentals: navigating the filesystem, cd/ls/pwd/mkdir, PATH, environment variables, what a shell actually is, differences between PowerShell/CMD/bash/zsh
+- How Claude Code actually works: what happens when you type a command, the context window, how it reads/writes files, the tool-use loop, how it "thinks"
+- File systems, project structure, and why organization matters: what a directory tree looks like, naming conventions, common project layouts
+
+### Practitioner Tier (Levels 4–7ish)
+- CLAUDE.md and persistent context: what it is, why it matters enormously, how to write a great one, what to include vs. exclude, how Claude reads it
+- Prompt engineering for Claude Code: how prompting in CC differs from chat, plan mode vs. execution, how to break down tasks, the art of the follow-up, iterating on output
+- Git fundamentals and version control: why it exists, basic commands, branches, commits, how Claude Code uses git, recovering from mistakes
+- Understanding code at a conceptual level: what programming languages are, reading code without writing it, how to evaluate whether Claude's output is correct when you don't code
+
+### Intermediate Tier (Levels 8–11ish)
+- MCP (Model Context Protocol): what it is conceptually, why it's a big deal, how to install and configure MCP servers, practical examples (Todoist, Slack, browser automation, databases), building your own MCP server
+- Hooks: what they are, the lifecycle they tap into, practical examples (linting on save, auto-formatting, quality gates), when to use vs. not use them
+- APIs and SDKs: what an API actually is (intuition-first), REST basics, API keys, the Anthropic SDK, making Claude Code interact with external services
+- Configuration and customization deep-dive: settings.json, environment variables, permission modes, model selection, prompt caching, slash commands
+
+### Advanced Tier (Levels 12–14ish)
+- Subagents: what they are, the Task tool, when to use them, how to scope subagent work, practical patterns, context isolation
+- Headless mode and scripting: running Claude Code non-interactively, piping input/output, integrating into scripts and cron jobs, building automated pipelines
+- The Claude Code SDK: programmatic control, spawning agents from code, building custom tooling on top of Claude Code
+
+### Mastery Tier (Levels 15+)
+- Agent Teams: the full mental model (lead + teammates, shared task lists, inter-agent messaging), when to use teams vs. subagents, configuring and monitoring teams, hooks for quality gates (TeammateIdle, TaskCompleted), cost management
+- Building fully autonomous coding systems: combining everything — CLAUDE.md for context, hooks for quality enforcement, subagents for focused tasks, agent teams for parallel collaboration, MCP for external integrations, headless execution for automation
+- What's beyond: emerging patterns, the frontier of agentic development, how to stay current as Claude Code evolves, the skill of "managing AI workers" as a discipline
+
+## Content Quality Standards
+- Every code block MUST have a plain-English explanation before it (what it does and why) and after it (what happened and what to notice)
+- Code blocks should be visually clean: proper indentation, syntax highlighting, no walls of uncommented code
+- Mark the highest-impact concepts throughout the guide with a distinct "HIGH IMPACT" callout — these are the 20% of concepts that deliver 80% of the value
+- Use analogies liberally: "Think of X like Y" before diving into technical definitions
+- When macOS and Windows commands differ, show both clearly (tabbed or side-by-side)
+- Each checkpoint project should include: what to build, step-by-step success criteria, and estimated completion time
+- Assume ZERO prior knowledge except Claude Code installation and basic usage
+
+## What NOT To Do
+- Don't produce any section that is just a code dump with no explanation
+- Don't use jargon without defining it first in plain English
+- Don't skip steps in explanations because they seem "obvious"
+- Don't make the checkpoint projects trivial — they should be genuinely challenging enough that completing them means real understanding
+- Don't stop at Agent Teams if there's more to learn — cover the full frontier
+
+## Execution Plan
+BEFORE writing any HTML:
+1. First, output a proposed outline showing every level with its title, core concept, and checkpoint project (just the name/description, not full content)
+2. Wait for my approval or adjustments
+3. Then build all files: styles.css first, then index.html, then each level page in order
+
+Start with the outline now.

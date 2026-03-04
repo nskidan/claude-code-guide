@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 16: Building Fully Autonomous Coding Systems &mdash; Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-15.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-17.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <span class="level-number">Level 16</span>
+    <h1>Building Fully Autonomous Coding Systems</h1>
+    <p class="level-subtitle">You've learned every tool in the workshop. Now you're building the factory. This level brings together CLAUDE.md, hooks, subagents, agent teams, MCP, headless mode, and the SDK into systems that build software without you touching the keyboard.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 1: The Full Picture                             -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">16.1</span> The Full Picture</h2>
+
+  <p>You've spent fifteen levels learning individual capabilities. CLAUDE.md gives Claude persistent context. Hooks let you enforce rules automatically. Subagents break work into focused pieces. Agent teams run tasks in parallel. MCP connects Claude to external services. Headless mode removes the need for a human at the terminal. The SDK gives you programmatic control over everything.</p>
+
+  <p>Each of those capabilities is useful on its own. But the real power &mdash; the reason this guide exists &mdash; is what happens when you combine all of them into a single, coordinated system.</p>
+
+  <div class="analogy">
+    <strong>The factory analogy:</strong> Think of it this way. Learning to use a drill, a saw, a sander, and a lathe makes you a capable woodworker. But Henry Ford didn't become Henry Ford by getting really good at using individual tools. He designed a <em>system</em> where raw materials went in one end and finished cars came out the other. The workers (agents) each had a defined role. Quality checks (hooks) happened at every station. The assembly line (orchestration) coordinated everything. And a manager (the lead agent) made sure the overall plan was being followed. That's what you're building now &mdash; except the raw material is a feature spec, and the finished product is tested, reviewed, production-ready code.
+  </div>
+
+  <p>Here's every piece and where it came from in this guide:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Level</th>
+        <th>Role in Autonomy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>CLAUDE.md</strong></td>
+        <td>Level 04</td>
+        <td>Project context, rules, and constraints that persist across every agent</td>
+      </tr>
+      <tr>
+        <td><strong>Git</strong></td>
+        <td>Level 06</td>
+        <td>Automatic version control, branching, and rollback safety net</td>
+      </tr>
+      <tr>
+        <td><strong>MCP</strong></td>
+        <td>Level 10</td>
+        <td>Connections to external services (GitHub, databases, APIs)</td>
+      </tr>
+      <tr>
+        <td><strong>Hooks</strong></td>
+        <td>Level 11</td>
+        <td>Quality enforcement at every step &mdash; lint, test, format, block</td>
+      </tr>
+      <tr>
+        <td><strong>Subagents</strong></td>
+        <td>Level 12</td>
+        <td>Focused, isolated workers that do one thing well</td>
+      </tr>
+      <tr>
+        <td><strong>Headless Mode</strong></td>
+        <td>Level 13</td>
+        <td>Non-interactive execution &mdash; no human at the terminal</td>
+      </tr>
+      <tr>
+        <td><strong>SDK</strong></td>
+        <td>Level 14</td>
+        <td>Programmatic control &mdash; spawning, streaming, orchestration</td>
+      </tr>
+      <tr>
+        <td><strong>Agent Teams</strong></td>
+        <td>Level 15</td>
+        <td>Parallel execution with a lead decomposer and focused teammates</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout high-impact">
+    <div class="callout-title">The Paradigm Shift</div>
+    <p>Up until now, you've been <em>using</em> Claude Code. After this level, you'll be <em>deploying</em> Claude Code. The difference: using means you're at the keyboard, prompting, reviewing, iterating. Deploying means you set up a system, launch it, and come back to review the finished output. Your role shifts from operator to architect.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 2: Architecture of an Autonomous System         -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">16.2</span> Architecture of an Autonomous System</h2>
+
+  <p>Before you build anything, you need to see the whole picture. Every autonomous coding system has the same fundamental architecture, regardless of what it's building. Here it is, from trigger to output:</p>
+
+  <div class="definition">
+    <p><span class="term">Autonomous coding system</span> &mdash; A pre-configured pipeline where a trigger (script, schedule, webhook) launches one or more Claude agents that decompose work, execute tasks in parallel, enforce quality at every step, and produce tested, version-controlled output &mdash; all without human intervention after the initial launch.</p>
+  </div>
+
+  <p>The architecture flows through seven layers. Each layer depends on the ones above it.</p>
+
+  <p>Here's the complete system diagram represented as a pipeline. Read it top to bottom &mdash; input flows down, output comes out the bottom.</p>
+
+  <span class="code-label">text</span>
+  <pre><code><span class="syn-comment">┌─────────────────────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-keyword">LAYER 1: TRIGGER</span>                                       <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Shell script / SDK launcher / Cron job / Webhook       <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Input: feature spec, bug report, or task description   <span class="syn-comment">│</span>
+<span class="syn-comment">└──────────────────────────┬──────────────────────────────┘</span>
+                           <span class="syn-comment">│</span>
+                           <span class="syn-comment">▼</span>
+<span class="syn-comment">┌─────────────────────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-keyword">LAYER 2: CONTEXT</span>                                       <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  CLAUDE.md &mdash; project rules, file structure, standards   <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Loaded automatically by every agent on startup          <span class="syn-comment">│</span>
+<span class="syn-comment">└──────────────────────────┬──────────────────────────────┘</span>
+                           <span class="syn-comment">│</span>
+                           <span class="syn-comment">▼</span>
+<span class="syn-comment">┌─────────────────────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-keyword">LAYER 3: LEAD AGENT</span>                                    <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Reads spec &rarr; decomposes into tasks &rarr; creates plan     <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Writes task list &rarr; spawns teammates                    <span class="syn-comment">│</span>
+<span class="syn-comment">└──────────────────────────┬──────────────────────────────┘</span>
+                           <span class="syn-comment">│</span>
+                    <span class="syn-comment">┌──────┼──────┐</span>
+                    <span class="syn-comment">▼      ▼      ▼</span>
+<span class="syn-comment">┌─────────────────────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-keyword">LAYER 4: TEAMMATE AGENTS</span>  (parallel execution)         <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Agent A: builds component X                            <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Agent B: builds component Y                            <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Agent C: writes tests for X and Y                      <span class="syn-comment">│</span>
+<span class="syn-comment">└──────────────────────────┬──────────────────────────────┘</span>
+                           <span class="syn-comment">│</span>
+                           <span class="syn-comment">▼</span>
+<span class="syn-comment">┌─────────────────────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-keyword">LAYER 5: QUALITY GATES</span>  (hooks at every step)          <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  PreToolUse  &rarr; block dangerous operations               <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  PostToolUse &rarr; auto-lint, auto-format after writes      <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  TaskCompleted &rarr; run tests after each task              <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Stop &rarr; final quality check before declaring done       <span class="syn-comment">│</span>
+<span class="syn-comment">└──────────────────────────┬──────────────────────────────┘</span>
+                           <span class="syn-comment">│</span>
+                           <span class="syn-comment">▼</span>
+<span class="syn-comment">┌─────────────────────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-keyword">LAYER 6: EXTERNAL INTEGRATION</span>  (MCP + Git)             <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Git: commit, branch, push                              <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  GitHub MCP: create PR, add labels                      <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Other MCP: Slack notifications, database access         <span class="syn-comment">│</span>
+<span class="syn-comment">└──────────────────────────┬──────────────────────────────┘</span>
+                           <span class="syn-comment">│</span>
+                           <span class="syn-comment">▼</span>
+<span class="syn-comment">┌─────────────────────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-keyword">LAYER 7: OUTPUT</span>                                        <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Tested code on a feature branch                        <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Pull request with description                          <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  Log files for review                                   <span class="syn-comment">│</span>
+<span class="syn-comment">└─────────────────────────────────────────────────────────┘</span></code></pre>
+
+  <p>That's the factory floor plan. Every section that follows teaches you how to build one layer, then wire them all together at the end.</p>
+
+  <p>The critical insight: each layer acts as both a capability and a constraint. CLAUDE.md doesn't just inform the agents &mdash; it constrains them. Hooks don't just check quality &mdash; they enforce it. Git doesn't just track changes &mdash; it provides a rollback safety net. When something goes wrong in Layer 4, Layer 5 catches it. When Layer 5 catches it, Layer 6 ensures the bad code never reaches the remote. Every layer protects the layers below it.</p>
+
+  <!-- ====================================================== -->
+  <!-- Section 3: Designing the CLAUDE.md for Autonomy         -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">16.3</span> Designing the CLAUDE.md for Autonomy</h2>
+
+  <p>You wrote your first CLAUDE.md back in Level 4. That one was designed for interactive use &mdash; you were there to clarify ambiguities, course-correct, and answer questions. An autonomy-grade CLAUDE.md is fundamentally different. There's no human in the loop. Every rule has to be explicit. Every edge case has to be anticipated.</p>
+
+  <div class="analogy">
+    <strong>The instruction manual analogy:</strong> Your Level 4 CLAUDE.md was like giving verbal directions to a friend driving you somewhere &mdash; "turn left here, no wait, the next one." An autonomy-grade CLAUDE.md is like writing directions that someone follows alone at 3 AM with no cell service. Every detail matters. Every ambiguity becomes a wrong turn.
+  </div>
+
+  <h3>What changes when there's no human</h3>
+
+  <p>In interactive mode, Claude can ask: "Should I use REST or GraphQL?" In autonomous mode, that question goes unanswered and Claude guesses. You need to eliminate the guesses by pre-answering every decision Claude might face. Here's what that means in practice:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Interactive CLAUDE.md</th>
+        <th>Autonomy-Grade CLAUDE.md</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"Use TypeScript"</td>
+        <td>"Use TypeScript with strict mode. Target ES2022. No <code>any</code> types. No type assertions except in test files."</td>
+      </tr>
+      <tr>
+        <td>"Follow good naming"</td>
+        <td>"Files: kebab-case. Functions: camelCase. Components: PascalCase. Constants: UPPER_SNAKE_CASE. No abbreviations."</td>
+      </tr>
+      <tr>
+        <td>"Write tests"</td>
+        <td>"Every function exported from src/ must have a corresponding test in tests/. Use Vitest. Minimum 80% branch coverage. No mocking of the database &mdash; use the test database."</td>
+      </tr>
+      <tr>
+        <td>"Handle errors"</td>
+        <td>"On error: log to stderr with timestamp, function name, and stack trace. Never swallow errors silently. If a task fails after 3 retries, write a failure report to .claude/failures/ and move to the next task."</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout high-impact">
+    <div class="callout-title">The Completeness Principle</div>
+    <p>An autonomy-grade CLAUDE.md should answer every question an agent might ask if a human were present. If you find yourself thinking "Claude will figure it out" &mdash; stop. Write the answer down. In autonomous mode, "figuring it out" means guessing, and guessing means inconsistency, wasted tokens, and broken code.</p>
+  </div>
+
+  <h3>The six sections of an autonomy-grade CLAUDE.md</h3>
+
+  <p>Here's the structure that works. Each section serves a specific purpose in autonomous operation.</p>
+
+  <p>The following CLAUDE.md is a complete, production-ready example for a Node.js web application. Study it section by section &mdash; the comments explain why each rule exists.</p>
+
+  <span class="code-label">markdown</span>
+  <pre><code><span class="syn-comment"># Project Context</span>
+
+<span class="syn-comment">## What This Project Is</span>
+<span class="syn-variable">A REST API for a real estate listing aggregator.</span>
+<span class="syn-variable">Built with Node.js 20, Express, Prisma ORM, PostgreSQL.</span>
+<span class="syn-variable">Deployed on Railway. CI/CD via GitHub Actions.</span>
+
+<span class="syn-comment">## File Structure</span>
+<span class="syn-variable">src/</span>
+<span class="syn-variable">  routes/        &mdash; Express route handlers (one file per resource)</span>
+<span class="syn-variable">  services/      &mdash; Business logic (called by routes, never by each other)</span>
+<span class="syn-variable">  models/        &mdash; Prisma schema and generated client</span>
+<span class="syn-variable">  middleware/    &mdash; Auth, logging, error handling</span>
+<span class="syn-variable">  utils/         &mdash; Pure utility functions (no side effects)</span>
+<span class="syn-variable">tests/</span>
+<span class="syn-variable">  unit/          &mdash; Unit tests (mirror src/ structure)</span>
+<span class="syn-variable">  integration/   &mdash; API endpoint tests</span>
+<span class="syn-variable">  fixtures/      &mdash; Test data factories</span>
+
+<span class="syn-comment">## Technology Decisions (DO NOT OVERRIDE)</span>
+<span class="syn-variable">- Language: TypeScript, strict mode, target ES2022</span>
+<span class="syn-variable">- Runtime: Node.js 20 (not Bun, not Deno)</span>
+<span class="syn-variable">- Framework: Express 4 (not Fastify, not Hono)</span>
+<span class="syn-variable">- ORM: Prisma (not TypeORM, not Drizzle)</span>
+<span class="syn-variable">- Testing: Vitest + Supertest for integration tests</span>
+<span class="syn-variable">- Linter: ESLint with @typescript-eslint</span>
+<span class="syn-variable">- Formatter: Prettier (2-space indent, single quotes, trailing commas)</span>
+
+<span class="syn-comment">## Coding Standards</span>
+<span class="syn-variable">- No `any` types. No type assertions except in test files.</span>
+<span class="syn-variable">- No classes. Use plain functions and objects.</span>
+<span class="syn-variable">- All async functions must have try/catch with proper error propagation.</span>
+<span class="syn-variable">- No console.log in production code. Use the logger from src/utils/logger.ts.</span>
+<span class="syn-variable">- File naming: kebab-case (e.g., listing-service.ts, not listingService.ts).</span>
+<span class="syn-variable">- Function naming: camelCase. Types/Interfaces: PascalCase.</span>
+<span class="syn-variable">- Maximum file length: 200 lines. If longer, split into modules.</span>
+<span class="syn-variable">- Every exported function must have a JSDoc comment.</span>
+
+<span class="syn-comment">## Error Handling Protocol</span>
+<span class="syn-variable">When encountering an error during autonomous execution:</span>
+<span class="syn-variable">1. Log the error with full context (function name, inputs, stack trace).</span>
+<span class="syn-variable">2. If the error is in YOUR code: fix it immediately and re-run.</span>
+<span class="syn-variable">3. If the error is environmental (network, permissions): retry up to 3 times</span>
+<span class="syn-variable">   with 5-second delays.</span>
+<span class="syn-variable">4. If still failing after retries: write a detailed failure report to</span>
+<span class="syn-variable">   .claude/failures/[timestamp]-[task-name].md and move to the next task.</span>
+<span class="syn-variable">5. NEVER silently skip a failing task without logging.</span>
+
+<span class="syn-comment">## Quality Gates (enforced by hooks, documented here for context)</span>
+<span class="syn-variable">- Every file write triggers auto-format (Prettier) and auto-lint (ESLint).</span>
+<span class="syn-variable">- Every completed task triggers the test suite.</span>
+<span class="syn-variable">- PRs require: all tests passing, no lint errors, no type errors.</span>
+<span class="syn-variable">- Branch protection: never push directly to main.</span>
+
+<span class="syn-comment">## Forbidden Actions</span>
+<span class="syn-variable">- DO NOT modify .env files or any file matching *.secret*</span>
+<span class="syn-variable">- DO NOT delete or overwrite database migration files</span>
+<span class="syn-variable">- DO NOT install new dependencies without documenting why in the PR body</span>
+<span class="syn-variable">- DO NOT modify CI/CD configuration (.github/workflows/)</span>
+<span class="syn-variable">- DO NOT push to main or master branches directly</span></code></pre>
+
+  <p>Notice what's different from a casual CLAUDE.md. Every rule is binary &mdash; yes or no, do or don't. There are no "try to" or "ideally" qualifiers. There are explicit error handling instructions. There are forbidden actions. This is the level of precision that autonomous operation demands.</p>
+
+  <h3>Testing your CLAUDE.md for completeness</h3>
+
+  <p>Before you trust your CLAUDE.md to govern autonomous agents, run this mental test. Imagine handing a feature spec to a competent but literal-minded developer who has never seen your project. Would your CLAUDE.md answer every question they'd ask in the first hour? If not, add the answers.</p>
+
+  <p>Common gaps people miss:</p>
+
+  <ul>
+    <li>Which package manager to use (<code>npm</code>, <code>yarn</code>, <code>pnpm</code>)</li>
+    <li>How to run the test suite (the exact command)</li>
+    <li>What the PR description should look like</li>
+    <li>Whether to create new files or modify existing ones for a given type of change</li>
+    <li>How to handle conflicts between agents working on the same codebase</li>
+  </ul>
+
+  <!-- ====================================================== -->
+  <!-- Section 4: Quality Gates via Hooks                      -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">16.4</span> Quality Gates via Hooks</h2>
+
+  <p>In interactive mode, <em>you</em> are the quality gate. You read the code, spot issues, ask for fixes. In autonomous mode, hooks replace you. They're the automated inspectors on the assembly line, checking every piece before it moves to the next station.</p>
+
+  <p>You learned the hook types in Level 11. Now you're going to configure a complete quality pipeline &mdash; four hooks working together to guarantee that autonomous agents produce code that meets your standards.</p>
+
+  <h3>The four-hook quality pipeline</h3>
+
+  <p>Each hook fires at a different point in the agent's lifecycle. Together, they form an airtight quality net.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Hook</th>
+        <th>When It Fires</th>
+        <th>What It Does</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>PreToolUse</strong></td>
+        <td>Before Claude executes any tool</td>
+        <td>Blocks dangerous operations (deleting protected files, pushing to main)</td>
+      </tr>
+      <tr>
+        <td><strong>PostToolUse</strong></td>
+        <td>After Claude executes a tool</td>
+        <td>Auto-formats and auto-lints written files</td>
+      </tr>
+      <tr>
+        <td><strong>TaskCompleted</strong></td>
+        <td>After an agent finishes a task</td>
+        <td>Runs the test suite, fails the task if tests break</td>
+      </tr>
+      <tr>
+        <td><strong>Stop</strong></td>
+        <td>Before the agent fully stops</td>
+        <td>Final validation &mdash; type check, lint, test, coverage</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Here's the complete hooks configuration. This goes in your <code>.claude/settings.json</code> file.</p>
+
+  <span class="code-label">json</span>
+  <pre><code>{
+  <span class="syn-property">"hooks"</span>: {
+    <span class="syn-property">"PreToolUse"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Bash"</span>,
+        <span class="syn-property">"hooks"</span>: [
+          {
+            <span class="syn-property">"type"</span>: <span class="syn-string">"command"</span>,
+            <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/pre-bash-guard.sh \"$TOOL_INPUT\""</span>
+          }
+        ]
+      },
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Write|Edit"</span>,
+        <span class="syn-property">"hooks"</span>: [
+          {
+            <span class="syn-property">"type"</span>: <span class="syn-string">"command"</span>,
+            <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/pre-write-guard.sh \"$TOOL_INPUT\""</span>
+          }
+        ]
+      }
+    ],
+    <span class="syn-property">"PostToolUse"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Write|Edit"</span>,
+        <span class="syn-property">"hooks"</span>: [
+          {
+            <span class="syn-property">"type"</span>: <span class="syn-string">"command"</span>,
+            <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/post-write-format.sh \"$TOOL_INPUT\""</span>
+          }
+        ]
+      }
+    ],
+    <span class="syn-property">"TaskCompleted"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">""</span>,
+        <span class="syn-property">"hooks"</span>: [
+          {
+            <span class="syn-property">"type"</span>: <span class="syn-string">"command"</span>,
+            <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/task-completed-test.sh"</span>
+          }
+        ]
+      }
+    ],
+    <span class="syn-property">"Stop"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">""</span>,
+        <span class="syn-property">"hooks"</span>: [
+          {
+            <span class="syn-property">"type"</span>: <span class="syn-string">"command"</span>,
+            <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/final-quality-check.sh"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+  <p>That's the wiring. Now let's see what each hook script actually does.</p>
+
+  <h3>Hook 1: PreToolUse &mdash; The Guard</h3>
+
+  <p>This script runs before every Bash command the agent tries to execute. It checks for dangerous operations and blocks them by exiting with a non-zero code.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .claude/hooks/pre-bash-guard.sh</span>
+<span class="syn-comment"># Blocks dangerous commands before they execute</span>
+
+<span class="syn-variable">INPUT</span>=<span class="syn-string">"$1"</span>
+
+<span class="syn-comment"># Block pushes to protected branches</span>
+<span class="syn-keyword">if</span> echo <span class="syn-string">"$INPUT"</span> | grep -qE <span class="syn-string">'git\s+push.*\b(main|master|production)\b'</span>; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"BLOCKED: Cannot push directly to main/master/production"</span> &gt;&amp;2
+  <span class="syn-keyword">exit</span> <span class="syn-number">1</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Block destructive git operations</span>
+<span class="syn-keyword">if</span> echo <span class="syn-string">"$INPUT"</span> | grep -qE <span class="syn-string">'git\s+(reset\s+--hard|clean\s+-f|push\s+--force)'</span>; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"BLOCKED: Destructive git operation not allowed"</span> &gt;&amp;2
+  <span class="syn-keyword">exit</span> <span class="syn-number">1</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Block modifications to CI/CD and env files</span>
+<span class="syn-keyword">if</span> echo <span class="syn-string">"$INPUT"</span> | grep -qE <span class="syn-string">'(rm|mv|cp).*\.(env|secret|pem|key)'</span>; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"BLOCKED: Cannot modify secret/credential files"</span> &gt;&amp;2
+  <span class="syn-keyword">exit</span> <span class="syn-number">1</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Block npm publish (never auto-publish)</span>
+<span class="syn-keyword">if</span> echo <span class="syn-string">"$INPUT"</span> | grep -qE <span class="syn-string">'npm\s+publish'</span>; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"BLOCKED: Publishing packages requires human review"</span> &gt;&amp;2
+  <span class="syn-keyword">exit</span> <span class="syn-number">1</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Log all commands for audit trail</span>
+echo <span class="syn-string">"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] BASH: $INPUT"</span> &gt;&gt; .claude/logs/commands.log
+
+<span class="syn-keyword">exit</span> <span class="syn-number">0</span></code></pre>
+
+  <p>This hook is your first line of defense. It won't prevent every mistake, but it will catch the catastrophic ones &mdash; force-pushing over someone's work, deleting environment files, publishing packages without review.</p>
+
+  <h3>Hook 2: PostToolUse &mdash; The Formatter</h3>
+
+  <p>This script fires after every file write. It automatically formats and lints the file so agents don't produce inconsistent code styles.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .claude/hooks/post-write-format.sh</span>
+<span class="syn-comment"># Auto-formats and lints files after every write</span>
+
+<span class="syn-variable">INPUT</span>=<span class="syn-string">"$1"</span>
+
+<span class="syn-comment"># Extract the file path from the tool input</span>
+<span class="syn-variable">FILE_PATH</span>=$(<span class="syn-builtin">echo</span> <span class="syn-string">"$INPUT"</span> | jq -r <span class="syn-string">'.file_path // .path // empty'</span>)
+
+<span class="syn-keyword">if</span> [ -z <span class="syn-string">"$FILE_PATH"</span> ]; <span class="syn-keyword">then</span>
+  <span class="syn-keyword">exit</span> <span class="syn-number">0</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Only format TypeScript/JavaScript files</span>
+<span class="syn-keyword">if</span> [[ <span class="syn-string">"$FILE_PATH"</span> =~ \.(ts|tsx|js|jsx)$ ]]; <span class="syn-keyword">then</span>
+  <span class="syn-comment"># Run Prettier</span>
+  npx prettier --write <span class="syn-string">"$FILE_PATH"</span> <span class="syn-number">2</span>&gt;/dev/null
+
+  <span class="syn-comment"># Run ESLint with auto-fix</span>
+  npx eslint --fix <span class="syn-string">"$FILE_PATH"</span> <span class="syn-number">2</span>&gt;/dev/null
+
+  <span class="syn-comment"># Log the formatting action</span>
+  echo <span class="syn-string">"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] FORMATTED: $FILE_PATH"</span> \
+    &gt;&gt; .claude/logs/formatting.log
+<span class="syn-keyword">fi</span>
+
+<span class="syn-keyword">exit</span> <span class="syn-number">0</span></code></pre>
+
+  <p>Notice this hook always exits 0 (success). Formatting failures shouldn't block the agent &mdash; they're not critical. The final quality check will catch any remaining lint issues.</p>
+
+  <h3>Hook 3: TaskCompleted &mdash; The Tester</h3>
+
+  <p>This script runs after an agent finishes each task. It's the automated equivalent of you saying "run the tests before you move on."</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .claude/hooks/task-completed-test.sh</span>
+<span class="syn-comment"># Runs the test suite after every completed task</span>
+
+echo <span class="syn-string">"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Running post-task tests..."</span> \
+  &gt;&gt; .claude/logs/test-runs.log
+
+<span class="syn-comment"># Run the full test suite</span>
+npx vitest run --reporter=verbose <span class="syn-number">2</span>&gt;&amp;<span class="syn-number">1</span> | tee -a .claude/logs/test-runs.log
+<span class="syn-variable">TEST_EXIT</span>=<span class="syn-variable">${PIPESTATUS[0]}</span>
+
+<span class="syn-keyword">if</span> [ <span class="syn-variable">$TEST_EXIT</span> -ne <span class="syn-number">0</span> ]; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"TESTS FAILED after task completion"</span> &gt;&amp;2
+  echo <span class="syn-string">"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] TESTS FAILED"</span> \
+    &gt;&gt; .claude/logs/test-runs.log
+  <span class="syn-keyword">exit</span> <span class="syn-number">1</span>
+<span class="syn-keyword">fi</span>
+
+echo <span class="syn-string">"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] TESTS PASSED"</span> \
+  &gt;&gt; .claude/logs/test-runs.log
+
+<span class="syn-keyword">exit</span> <span class="syn-number">0</span></code></pre>
+
+  <p>When this hook fails (exit code 1), the agent is told that tests broke. A well-configured CLAUDE.md (like the one in Section 16.3) tells the agent to fix the failing tests before proceeding. Without that CLAUDE.md instruction, the agent might just move to the next task and leave broken code behind.</p>
+
+  <h3>Hook 4: Stop &mdash; The Final Inspector</h3>
+
+  <p>This is the last gate before the agent declares the work done. It runs a comprehensive quality check.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .claude/hooks/final-quality-check.sh</span>
+<span class="syn-comment"># Comprehensive quality check before agent stops</span>
+
+<span class="syn-variable">FAILED</span>=<span class="syn-number">0</span>
+<span class="syn-variable">REPORT</span>=<span class="syn-string">".claude/logs/final-report-$(date -u +%Y%m%d-%H%M%S).txt"</span>
+
+echo <span class="syn-string">"=== Final Quality Report ==="</span> &gt; <span class="syn-string">"$REPORT"</span>
+echo <span class="syn-string">"Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+echo <span class="syn-string">""</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+
+<span class="syn-comment"># Check 1: TypeScript compilation</span>
+echo <span class="syn-string">"--- TypeScript Check ---"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+npx tsc --noEmit <span class="syn-number">2</span>&gt;&gt; <span class="syn-string">"$REPORT"</span>
+<span class="syn-keyword">if</span> [ $? -ne <span class="syn-number">0</span> ]; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"FAIL: TypeScript errors found"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+  <span class="syn-variable">FAILED</span>=<span class="syn-number">1</span>
+<span class="syn-keyword">else</span>
+  echo <span class="syn-string">"PASS"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Check 2: Linting</span>
+echo <span class="syn-string">"--- Lint Check ---"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+npx eslint src/ <span class="syn-number">2</span>&gt;&gt; <span class="syn-string">"$REPORT"</span>
+<span class="syn-keyword">if</span> [ $? -ne <span class="syn-number">0</span> ]; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"FAIL: Lint errors found"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+  <span class="syn-variable">FAILED</span>=<span class="syn-number">1</span>
+<span class="syn-keyword">else</span>
+  echo <span class="syn-string">"PASS"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Check 3: Tests</span>
+echo <span class="syn-string">"--- Test Suite ---"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+npx vitest run <span class="syn-number">2</span>&gt;&gt; <span class="syn-string">"$REPORT"</span>
+<span class="syn-keyword">if</span> [ $? -ne <span class="syn-number">0</span> ]; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"FAIL: Tests failing"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+  <span class="syn-variable">FAILED</span>=<span class="syn-number">1</span>
+<span class="syn-keyword">else</span>
+  echo <span class="syn-string">"PASS"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Check 4: No uncommitted changes</span>
+echo <span class="syn-string">"--- Git Status ---"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+<span class="syn-keyword">if</span> [ -n <span class="syn-string">"$(git status --porcelain)"</span> ]; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"FAIL: Uncommitted changes remain"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+  git status --short &gt;&gt; <span class="syn-string">"$REPORT"</span>
+  <span class="syn-variable">FAILED</span>=<span class="syn-number">1</span>
+<span class="syn-keyword">else</span>
+  echo <span class="syn-string">"PASS"</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+<span class="syn-keyword">fi</span>
+
+echo <span class="syn-string">""</span> &gt;&gt; <span class="syn-string">"$REPORT"</span>
+echo <span class="syn-string">"=== Result: $([ $FAILED -eq 0 ] && echo 'ALL CHECKS PASSED' || echo 'CHECKS FAILED') ==="</span> \
+  &gt;&gt; <span class="syn-string">"$REPORT"</span>
+
+<span class="syn-keyword">exit</span> <span class="syn-variable">$FAILED</span></code></pre>
+
+  <p>This hook produces a detailed report in <code>.claude/logs/</code> that you can review after the autonomous run. Even if you don't look at it immediately, it's there when you need to understand what happened.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p>Hooks run in the same environment as the agents. If your test suite takes 10 minutes, the TaskCompleted hook will add 10 minutes to every task. For autonomous systems, keep your test suite fast (under 60 seconds) or configure the TaskCompleted hook to run only a subset of tests relevant to the changed files. Save the full suite for the Stop hook.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 5: The Trigger Mechanism                        -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">16.5</span> The Trigger Mechanism</h2>
+
+  <p>You have context (CLAUDE.md), quality enforcement (hooks), and execution capability (agent teams). Now you need the ignition switch &mdash; the trigger that starts the whole machine.</p>
+
+  <p>There are four common trigger patterns. Each serves a different use case.</p>
+
+  <h3>Pattern 1: Shell Script Trigger</h3>
+
+  <p>The simplest approach. A bash script that takes a feature spec as a file path and launches Claude in headless mode. This is what you'll use most often when you're manually kicking off autonomous runs.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># launch-autonomous.sh</span>
+<span class="syn-comment"># Usage: ./launch-autonomous.sh specs/add-search-filter.md</span>
+
+<span class="syn-keyword">set</span> -euo pipefail
+
+<span class="syn-variable">SPEC_FILE</span>=<span class="syn-string">"${1:?Usage: $0 &lt;spec-file&gt;}"</span>
+<span class="syn-variable">BRANCH_NAME</span>=<span class="syn-string">"auto/$(basename "$SPEC_FILE" .md)-$(date +%Y%m%d-%H%M%S)"</span>
+<span class="syn-variable">LOG_DIR</span>=<span class="syn-string">".claude/logs"</span>
+
+<span class="syn-comment"># Validate the spec file exists</span>
+<span class="syn-keyword">if</span> [ ! -f <span class="syn-string">"$SPEC_FILE"</span> ]; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"Error: Spec file not found: $SPEC_FILE"</span> &gt;&amp;2
+  <span class="syn-keyword">exit</span> <span class="syn-number">1</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Ensure clean working directory</span>
+<span class="syn-keyword">if</span> [ -n <span class="syn-string">"$(git status --porcelain)"</span> ]; <span class="syn-keyword">then</span>
+  echo <span class="syn-string">"Error: Working directory not clean. Commit or stash changes first."</span> &gt;&amp;2
+  <span class="syn-keyword">exit</span> <span class="syn-number">1</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Create a fresh feature branch</span>
+git checkout -b <span class="syn-string">"$BRANCH_NAME"</span>
+echo <span class="syn-string">"Created branch: $BRANCH_NAME"</span>
+
+<span class="syn-comment"># Ensure log directory exists</span>
+mkdir -p <span class="syn-string">"$LOG_DIR"</span>
+
+<span class="syn-comment"># Read the spec</span>
+<span class="syn-variable">SPEC</span>=$(<span class="syn-builtin">cat</span> <span class="syn-string">"$SPEC_FILE"</span>)
+
+<span class="syn-comment"># Build the prompt</span>
+<span class="syn-variable">PROMPT</span>=<span class="syn-string">"You are operating autonomously. Read CLAUDE.md for project context and rules.
+
+Here is the feature specification:
+
+$SPEC
+
+Execute this feature completely:
+1. Read the spec and create a task decomposition.
+2. Implement each task, committing after each one.
+3. Write tests for all new functionality.
+4. Run the full test suite and fix any failures.
+5. Create a PR with a clear title and description summarizing the changes.
+
+If you encounter errors, follow the error handling protocol in CLAUDE.md.
+Do not stop until the PR is created or you've exhausted retries on a blocking error."</span>
+
+<span class="syn-comment"># Launch Claude in headless mode</span>
+echo <span class="syn-string">"Launching autonomous agent at $(date)"</span>
+echo <span class="syn-string">"Spec: $SPEC_FILE"</span>
+echo <span class="syn-string">"Branch: $BRANCH_NAME"</span>
+echo <span class="syn-string">"Logs: $LOG_DIR/"</span>
+
+claude -p <span class="syn-string">"$PROMPT"</span> \
+  --allowedTools <span class="syn-string">"Bash,Read,Write,Edit,Glob,Grep,Task,mcp__github"</span> \
+  --max-turns <span class="syn-number">200</span> \
+  <span class="syn-number">2</span>&gt;&amp;<span class="syn-number">1</span> | tee <span class="syn-string">"$LOG_DIR/run-$(date +%Y%m%d-%H%M%S).log"</span>
+
+echo <span class="syn-string">"Autonomous run completed at $(date)"</span></code></pre>
+
+  <p>The script does several important things: it validates inputs, creates a feature branch (so autonomous work never touches main), sets up logging, and passes a structured prompt that tells the agent exactly what to do from start to finish. The <code>--max-turns 200</code> flag gives the agent plenty of room to work without running forever.</p>
+
+  <h3>Pattern 2: SDK-Based Launcher</h3>
+
+  <p>For more control over the autonomous process, use the TypeScript SDK. This gives you programmatic access to the agent's output, progress, and costs.</p>
+
+  <span class="code-label">typescript</span>
+  <pre><code><span class="syn-comment">// launch-autonomous.ts</span>
+<span class="syn-comment">// A full SDK-based autonomous launcher with monitoring</span>
+
+<span class="syn-keyword">import</span> { claude } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+<span class="syn-keyword">import</span> { readFileSync, mkdirSync, appendFileSync } <span class="syn-keyword">from</span> <span class="syn-string">'fs'</span>;
+<span class="syn-keyword">import</span> { execSync } <span class="syn-keyword">from</span> <span class="syn-string">'child_process'</span>;
+
+<span class="syn-keyword">interface</span> <span class="syn-function">LaunchOptions</span> {
+  <span class="syn-property">specFile</span>: <span class="syn-builtin">string</span>;
+  <span class="syn-property">maxTurns</span>?: <span class="syn-builtin">number</span>;
+  <span class="syn-property">costLimitUsd</span>?: <span class="syn-builtin">number</span>;
+}
+
+<span class="syn-keyword">async function</span> <span class="syn-function">launchAutonomous</span>(<span class="syn-variable">options</span>: <span class="syn-function">LaunchOptions</span>) {
+  <span class="syn-keyword">const</span> { <span class="syn-variable">specFile</span>, <span class="syn-variable">maxTurns</span> = <span class="syn-number">200</span>, <span class="syn-variable">costLimitUsd</span> = <span class="syn-number">5.0</span> } = <span class="syn-variable">options</span>;
+
+  <span class="syn-comment">// Read the spec</span>
+  <span class="syn-keyword">const</span> <span class="syn-variable">spec</span> = <span class="syn-function">readFileSync</span>(<span class="syn-variable">specFile</span>, <span class="syn-string">'utf-8'</span>);
+  <span class="syn-keyword">const</span> <span class="syn-variable">timestamp</span> = <span class="syn-keyword">new</span> <span class="syn-function">Date</span>().<span class="syn-function">toISOString</span>().<span class="syn-function">replace</span>(<span class="syn-string">/[:.]/g</span>, <span class="syn-string">'-'</span>);
+  <span class="syn-keyword">const</span> <span class="syn-variable">logFile</span> = <span class="syn-string">`.claude/logs/sdk-run-<span class="syn-variable">${timestamp}</span>.log`</span>;
+
+  <span class="syn-comment">// Ensure log directory</span>
+  <span class="syn-function">mkdirSync</span>(<span class="syn-string">'.claude/logs'</span>, { <span class="syn-property">recursive</span>: <span class="syn-keyword">true</span> });
+
+  <span class="syn-comment">// Create feature branch</span>
+  <span class="syn-keyword">const</span> <span class="syn-variable">branchName</span> = <span class="syn-string">`auto/<span class="syn-variable">${timestamp}</span>`</span>;
+  <span class="syn-function">execSync</span>(<span class="syn-string">`git checkout -b <span class="syn-variable">${branchName}</span>`</span>);
+
+  <span class="syn-keyword">function</span> <span class="syn-function">log</span>(<span class="syn-variable">msg</span>: <span class="syn-builtin">string</span>) {
+    <span class="syn-keyword">const</span> <span class="syn-variable">line</span> = <span class="syn-string">`[<span class="syn-variable">${<span class="syn-keyword">new</span> Date().toISOString()}</span>] <span class="syn-variable">${msg}</span>\n`</span>;
+    <span class="syn-function">appendFileSync</span>(<span class="syn-variable">logFile</span>, <span class="syn-variable">line</span>);
+    <span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-variable">line</span>.<span class="syn-function">trim</span>());
+  }
+
+  <span class="syn-function">log</span>(<span class="syn-string">`Starting autonomous run`</span>);
+  <span class="syn-function">log</span>(<span class="syn-string">`Spec: <span class="syn-variable">${specFile}</span>`</span>);
+  <span class="syn-function">log</span>(<span class="syn-string">`Branch: <span class="syn-variable">${branchName}</span>`</span>);
+  <span class="syn-function">log</span>(<span class="syn-string">`Max turns: <span class="syn-variable">${maxTurns}</span>`</span>);
+  <span class="syn-function">log</span>(<span class="syn-string">`Cost limit: $<span class="syn-variable">${costLimitUsd}</span>`</span>);
+
+  <span class="syn-keyword">let</span> <span class="syn-variable">totalCost</span> = <span class="syn-number">0</span>;
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>({
+    <span class="syn-property">prompt</span>: <span class="syn-string">`You are operating autonomously. Read CLAUDE.md for project rules.
+
+Feature spec:
+<span class="syn-variable">${spec}</span>
+
+Execute completely: decompose, implement, test, commit, create PR.
+Follow the error handling protocol in CLAUDE.md.`</span>,
+    <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Bash'</span>, <span class="syn-string">'Read'</span>, <span class="syn-string">'Write'</span>, <span class="syn-string">'Edit'</span>, <span class="syn-string">'Glob'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Task'</span>],
+    <span class="syn-property">maxTurns</span>,
+    <span class="syn-property">onMessage</span>: (<span class="syn-variable">msg</span>) =&gt; {
+      <span class="syn-keyword">if</span> (<span class="syn-variable">msg</span>.<span class="syn-property">type</span> === <span class="syn-string">'usage'</span>) {
+        <span class="syn-variable">totalCost</span> += <span class="syn-variable">msg</span>.<span class="syn-property">costUsd</span> || <span class="syn-number">0</span>;
+        <span class="syn-function">log</span>(<span class="syn-string">`Cost so far: $<span class="syn-variable">${totalCost.toFixed(4)}</span>`</span>);
+
+        <span class="syn-comment">// Kill switch: stop if cost exceeds limit</span>
+        <span class="syn-keyword">if</span> (<span class="syn-variable">totalCost</span> &gt; <span class="syn-variable">costLimitUsd</span>) {
+          <span class="syn-function">log</span>(<span class="syn-string">`COST LIMIT EXCEEDED. Stopping.`</span>);
+          <span class="syn-keyword">throw new</span> <span class="syn-function">Error</span>(<span class="syn-string">`Cost limit of $<span class="syn-variable">${costLimitUsd}</span> exceeded`</span>);
+        }
+      }
+      <span class="syn-keyword">if</span> (<span class="syn-variable">msg</span>.<span class="syn-property">type</span> === <span class="syn-string">'assistant'</span>) {
+        <span class="syn-function">log</span>(<span class="syn-string">`Agent: <span class="syn-variable">${msg.content?.substring(0, 100)}</span>...`</span>);
+      }
+    }
+  });
+
+  <span class="syn-function">log</span>(<span class="syn-string">`Run completed. Total cost: $<span class="syn-variable">${totalCost.toFixed(4)}</span>`</span>);
+  <span class="syn-keyword">return</span> <span class="syn-variable">result</span>;
+}
+
+<span class="syn-comment">// Run it</span>
+<span class="syn-function">launchAutonomous</span>({
+  <span class="syn-property">specFile</span>: <span class="syn-variable">process</span>.<span class="syn-property">argv</span>[<span class="syn-number">2</span>],
+  <span class="syn-property">costLimitUsd</span>: <span class="syn-number">5.0</span>
+});</code></pre>
+
+  <p>The SDK launcher has a major advantage over the shell script: cost tracking. The <code>onMessage</code> callback monitors costs in real-time and can kill the process if costs exceed a threshold. When you're running autonomous agents that could potentially loop forever, this is essential.</p>
+
+  <h3>Pattern 3: Scheduled Execution (Cron)</h3>
+
+  <p>For recurring autonomous tasks &mdash; like nightly code quality sweeps or automated dependency updates &mdash; use a cron job to trigger the launcher on a schedule.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment"># Add to crontab with: crontab -e</span>
+
+<span class="syn-comment"># Run dependency update check every Monday at 6 AM</span>
+<span class="syn-number">0</span> <span class="syn-number">6</span> * * <span class="syn-number">1</span> <span class="syn-builtin">cd</span> /home/user/my-project &amp;&amp; ./launch-autonomous.sh specs/update-deps.md
+
+<span class="syn-comment"># Run code quality audit every night at midnight</span>
+<span class="syn-number">0</span> <span class="syn-number">0</span> * * * <span class="syn-builtin">cd</span> /home/user/my-project &amp;&amp; ./launch-autonomous.sh specs/quality-audit.md</code></pre>
+
+  <p>Cron triggers are the simplest form of scheduled autonomy. The key is keeping the spec files specific and the cost limits tight. A nightly job that accidentally burns $50 in API costs will ruin your morning.</p>
+
+  <h3>Pattern 4: Webhook-Triggered (GitHub Push)</h3>
+
+  <p>For event-driven autonomy, use webhooks. The most common pattern: a GitHub Action that triggers Claude when certain events occur (new issue, PR review requested, push to a specific branch).</p>
+
+  <span class="code-label">yaml</span>
+  <pre><code><span class="syn-comment"># .github/workflows/auto-implement.yml</span>
+<span class="syn-property">name</span>: <span class="syn-string">Auto-Implement Feature</span>
+
+<span class="syn-keyword">on</span>:
+  <span class="syn-property">issues</span>:
+    <span class="syn-property">types</span>: [<span class="syn-string">labeled</span>]
+
+<span class="syn-property">jobs</span>:
+  <span class="syn-property">implement</span>:
+    <span class="syn-comment"># Only trigger when the "auto-implement" label is added</span>
+    <span class="syn-keyword">if</span>: <span class="syn-string">github.event.label.name == 'auto-implement'</span>
+    <span class="syn-property">runs-on</span>: <span class="syn-string">ubuntu-latest</span>
+    <span class="syn-property">steps</span>:
+      - <span class="syn-property">uses</span>: <span class="syn-string">actions/checkout@v4</span>
+
+      - <span class="syn-property">name</span>: <span class="syn-string">Setup Node.js</span>
+        <span class="syn-property">uses</span>: <span class="syn-string">actions/setup-node@v4</span>
+        <span class="syn-keyword">with</span>:
+          <span class="syn-property">node-version</span>: <span class="syn-string">'20'</span>
+
+      - <span class="syn-property">name</span>: <span class="syn-string">Install dependencies</span>
+        <span class="syn-property">run</span>: <span class="syn-string">npm ci</span>
+
+      - <span class="syn-property">name</span>: <span class="syn-string">Install Claude Code</span>
+        <span class="syn-property">run</span>: <span class="syn-string">npm install -g @anthropic-ai/claude-code</span>
+
+      - <span class="syn-property">name</span>: <span class="syn-string">Run autonomous implementation</span>
+        <span class="syn-property">env</span>:
+          <span class="syn-property">ANTHROPIC_API_KEY</span>: <span class="syn-string">${{ secrets.ANTHROPIC_API_KEY }}</span>
+        <span class="syn-property">run</span>: |
+          <span class="syn-comment"># Extract issue body as the spec</span>
+          <span class="syn-variable">ISSUE_BODY</span>=<span class="syn-string">'${{ github.event.issue.body }}'</span>
+
+          claude -p <span class="syn-string">"You are operating autonomously on a GitHub Actions runner.
+          Read CLAUDE.md for project rules.
+
+          Implement the following feature request from issue #${{ github.event.issue.number }}:
+          $ISSUE_BODY
+
+          1. Create a feature branch from main.
+          2. Implement the feature.
+          3. Write tests.
+          4. Push the branch and create a PR referencing issue #${{ github.event.issue.number }}."</span> \
+            --allowedTools <span class="syn-string">"Bash,Read,Write,Edit,Glob,Grep,Task"</span> \
+            --max-turns <span class="syn-number">150</span></code></pre>
+
+  <p>This is the most powerful trigger pattern. Label an issue with "auto-implement," and a fully autonomous agent spins up in CI, builds the feature, and creates a PR &mdash; all without you touching a terminal. You review the PR when you're ready.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">Choose Your Trigger Based on Risk</div>
+    <p>Shell scripts are best for one-off autonomous runs where you're experimenting. SDK launchers are best when you need cost controls and monitoring. Cron is best for predictable, recurring tasks. Webhooks are best for event-driven workflows where the trigger is external. Start with shell scripts. Graduate to webhooks only after you've validated your hooks and CLAUDE.md are bulletproof.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 6: Monitoring and Intervention Patterns         -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">16.6</span> Monitoring and Intervention Patterns</h2>
+
+  <p>You've launched the machine. Now what? You don't just walk away. Autonomous doesn't mean unmonitored. It means the system runs without needing you to operate it &mdash; but you still observe, and you intervene when necessary.</p>
+
+  <div class="analogy">
+    <strong>The air traffic controller analogy:</strong> An airplane on autopilot flies itself. But there's still a pilot monitoring the instruments, and an air traffic controller watching the radar. Most of the time, they do nothing. But when something goes wrong, they're ready to take over. That's your role with autonomous coding systems.
+  </div>
+
+  <h3>What to monitor</h3>
+
+  <p>Your hooks are already generating logs. Here's how to interpret them in real-time.</p>
+
+  <h4>1. Command Logs (from PreToolUse hook)</h4>
+
+  <p>The <code>.claude/logs/commands.log</code> file shows every bash command the agent runs. Tail it during a run to see what the agent is doing.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment"># Watch the command log in real-time</span>
+tail -f .claude/logs/commands.log</code></pre>
+
+  <p>You're looking for patterns: is the agent making progress (new files being created, tests running) or is it looping (same commands repeating, same errors appearing)?</p>
+
+  <h4>2. Test Run Logs (from TaskCompleted hook)</h4>
+
+  <p>The <code>.claude/logs/test-runs.log</code> file shows every test run and its result. A healthy run looks like alternating "Running post-task tests..." and "TESTS PASSED" entries. Multiple consecutive "TESTS FAILED" entries mean the agent is struggling.</p>
+
+  <h4>3. Cost Tracking</h4>
+
+  <p>If you're using the SDK launcher, costs are logged automatically. If you're using the shell script trigger, you can check costs through the Anthropic dashboard or API. Set up cost alerts so a runaway agent doesn't drain your budget.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment"># Quick cost check from logs (SDK launcher)</span>
+grep <span class="syn-string">"Cost so far"</span> .claude/logs/sdk-run-*.log | tail -1</code></pre>
+
+  <p>This shows the most recent cost entry from the current run.</p>
+
+  <h4>4. Git Activity</h4>
+
+  <p>Watch the commit log to see how the agent is progressing through tasks.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment"># Watch for new commits on the feature branch</span>
+<span class="syn-keyword">while</span> <span class="syn-builtin">true</span>; <span class="syn-keyword">do</span>
+  git log --oneline -5
+  sleep <span class="syn-number">30</span>
+<span class="syn-keyword">done</span></code></pre>
+
+  <p>Commits appearing at regular intervals means the agent is completing tasks. Long gaps might mean it's stuck.</p>
+
+  <h3>When to intervene vs. let it run</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Situation</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Agent is making steady progress, tests passing</td>
+        <td><strong>Let it run.</strong> Don't touch it.</td>
+      </tr>
+      <tr>
+        <td>Same test failing 3+ times in a row</td>
+        <td><strong>Consider intervening.</strong> The agent may be stuck in a fix-break loop.</td>
+      </tr>
+      <tr>
+        <td>Cost is climbing faster than expected</td>
+        <td><strong>Monitor closely.</strong> If it passes 80% of your budget with work remaining, stop it.</td>
+      </tr>
+      <tr>
+        <td>Agent is creating files in unexpected directories</td>
+        <td><strong>Intervene.</strong> It may have misunderstood the project structure.</td>
+      </tr>
+      <tr>
+        <td>No activity for 5+ minutes</td>
+        <td><strong>Check.</strong> It might be waiting on a long process, or it might be hung.</td>
+      </tr>
+      <tr>
+        <td>Agent commits code with TODO comments</td>
+        <td><strong>Let it finish, then review.</strong> TODOs might be planned for a later task.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Kill switches and safety valves</h3>
+
+  <p>Always have a way to stop the machine. Here are the mechanisms you should have in place before you launch any autonomous run.</p>
+
+  <p><strong>Hard kill:</strong> The simplest &mdash; kill the process.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment"># Find and kill the Claude process</span>
+pkill -f <span class="syn-string">"claude -p"</span></code></pre>
+
+  <p>This terminates the agent immediately. Any in-progress work will be left incomplete, but your hooks have been committing after each task, so you won't lose completed work.</p>
+
+  <p><strong>Soft kill:</strong> Let the agent finish its current task, then stop. You can achieve this with the SDK by throwing an error in the <code>onMessage</code> callback (as shown in the SDK launcher example with cost limits).</p>
+
+  <p><strong>Cost ceiling:</strong> Set a maximum cost in the SDK launcher's <code>costLimitUsd</code> parameter. The shell script version doesn't have this built in, which is one reason to prefer the SDK for production autonomous runs.</p>
+
+  <p><strong>Turn limit:</strong> The <code>--max-turns</code> flag limits how many agent turns Claude can take. A turn is roughly one tool use. 200 turns is generous for most features; 50 is appropriate for smaller tasks.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p>Always have at least two kill switches: a cost ceiling and a turn limit. Either one failing is survivable. Both failing simultaneously means a potentially expensive runaway process. Belt and suspenders &mdash; always.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 7: When Autonomy Is Appropriate                 -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">16.7</span> When Autonomy Is Appropriate vs. Dangerous</h2>
+
+  <p>Not every task should be autonomous. In fact, most tasks shouldn't be &mdash; at least not yet. The skill of autonomy isn't just knowing how to build the system. It's knowing when to use it.</p>
+
+  <h3>The trust spectrum</h3>
+
+  <p>Think of autonomy as a spectrum, not a binary. You can grant more or less autonomy based on the risk and clarity of the task.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Autonomy Level</th>
+        <th>Your Role</th>
+        <th>Best For</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Supervised</strong></td>
+        <td>You review every action</td>
+        <td>Learning, novel problems, critical code</td>
+      </tr>
+      <tr>
+        <td><strong>Semi-autonomous</strong></td>
+        <td>You review after each major task</td>
+        <td>Well-understood features with some ambiguity</td>
+      </tr>
+      <tr>
+        <td><strong>Autonomous with review</strong></td>
+        <td>You review the final PR</td>
+        <td>Clearly specified features, strong test coverage</td>
+      </tr>
+      <tr>
+        <td><strong>Fully autonomous</strong></td>
+        <td>You review only if tests fail</td>
+        <td>Repetitive, well-defined tasks with clear success criteria</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Good candidates for full autonomy</h3>
+
+  <ul>
+    <li><strong>Clearly defined, repeatable tasks:</strong> Adding CRUD endpoints for a new resource, generating TypeScript types from an API schema, updating test fixtures after a database migration.</li>
+    <li><strong>Tasks with clear success criteria:</strong> "All tests pass" is a clear criterion. "The UI looks good" is not.</li>
+    <li><strong>Tasks with strong test coverage:</strong> If the test suite catches regressions, the agent can iterate until tests pass.</li>
+    <li><strong>Low-stakes changes:</strong> Internal tools, development utilities, documentation generation.</li>
+  </ul>
+
+  <h3>Risky for autonomy</h3>
+
+  <ul>
+    <li><strong>Novel architecture decisions:</strong> The agent will make a choice, but it might not be the right one, and undoing architecture decisions is expensive.</li>
+    <li><strong>Ambiguous specifications:</strong> "Make the dashboard more intuitive" &mdash; the agent will interpret this, and its interpretation will differ from yours.</li>
+    <li><strong>Cross-cutting refactors:</strong> Changes that touch many files in subtle ways are hard for hooks to validate.</li>
+    <li><strong>Performance-critical code:</strong> Tests can verify correctness but rarely verify performance characteristics.</li>
+  </ul>
+
+  <h3>Never autonomous</h3>
+
+  <div class="callout high-impact">
+    <div class="callout-title">The Hard No List</div>
+    <p>Never grant full autonomy for these tasks, no matter how good your system is:</p>
+    <ul>
+      <li><strong>Production deployments.</strong> A human must review and approve the final deployment.</li>
+      <li><strong>Security-critical changes.</strong> Auth, encryption, access control &mdash; always human-reviewed.</li>
+      <li><strong>Database migrations on production data.</strong> One wrong migration can destroy data that's impossible to recover.</li>
+      <li><strong>Financial transactions or billing logic.</strong> Bugs here cost real money to real people.</li>
+      <li><strong>Deletion of user data.</strong> Irreversible operations require human judgment.</li>
+    </ul>
+  </div>
+
+  <p>The rule of thumb: the harder it is to undo, the more human review it needs. Autonomous systems are excellent at generating work for you to review. They're dangerous when given the power to deploy that work without review.</p>
+
+  <!-- ====================================================== -->
+  <!-- Section 8: Complete End-to-End Example                  -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">16.8</span> Complete End-to-End Example</h2>
+
+  <p>Theory is done. Let's build it. This section walks you through an actual autonomous system from spec to pull request. You'll see every file, every configuration, and every decision.</p>
+
+  <h3>The scenario</h3>
+
+  <p>You have a real estate listing API. You want to add a "saved searches" feature: users can save search criteria and get notified when new listings match. You write a one-paragraph spec and the machine does the rest.</p>
+
+  <h3>Step 1: Write the spec</h3>
+
+  <p>The spec is the input to the machine. It needs to be clear enough for an autonomous agent to act on without clarification.</p>
+
+  <span class="code-label">markdown</span>
+  <pre><code><span class="syn-comment"># Feature: Saved Searches</span>
+
+<span class="syn-variable">Users should be able to save search criteria (location, price range,</span>
+<span class="syn-variable">bedrooms, bathrooms) and receive notifications when new listings match.</span>
+<span class="syn-variable">Implement as a REST API with the following endpoints:</span>
+<span class="syn-variable">- POST /api/saved-searches (create a saved search)</span>
+<span class="syn-variable">- GET /api/saved-searches (list user's saved searches)</span>
+<span class="syn-variable">- DELETE /api/saved-searches/:id (remove a saved search)</span>
+<span class="syn-variable">- POST /api/saved-searches/check (manually trigger matching against</span>
+<span class="syn-variable">  current listings &mdash; returns matching listings per saved search)</span>
+
+<span class="syn-variable">Database: add a saved_searches table with columns for user_id,</span>
+<span class="syn-variable">location (text), min_price (integer), max_price (integer),</span>
+<span class="syn-variable">min_bedrooms (integer), min_bathrooms (integer), created_at, updated_at.</span>
+
+<span class="syn-variable">All endpoints require authentication. Include input validation.</span>
+<span class="syn-variable">Write integration tests for all endpoints.</span></code></pre>
+
+  <p>Save this as <code>specs/saved-searches.md</code> in your project root. Notice how the spec is concrete: specific endpoints, specific database columns, specific validation requirements. This is the level of detail autonomous agents need.</p>
+
+  <h3>Step 2: Verify the CLAUDE.md</h3>
+
+  <p>Before launching, check that your CLAUDE.md covers the decisions the agent will face. For this feature, the agent will need to:</p>
+
+  <ul>
+    <li>Create a Prisma migration (does CLAUDE.md say how to run migrations?)</li>
+    <li>Create new route files (does it say where routes go and how they're named?)</li>
+    <li>Write tests (does it specify the test framework and location?)</li>
+    <li>Handle auth in endpoints (does it say which auth middleware to use?)</li>
+  </ul>
+
+  <p>If any of these are ambiguous, update your CLAUDE.md before launching.</p>
+
+  <h3>Step 3: Verify hooks are in place</h3>
+
+  <p>Make sure all four hook scripts exist and are executable.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment"># Verify hook scripts exist and are executable</span>
+ls -la .claude/hooks/
+<span class="syn-comment"># Should show:</span>
+<span class="syn-comment"># pre-bash-guard.sh</span>
+<span class="syn-comment"># pre-write-guard.sh</span>
+<span class="syn-comment"># post-write-format.sh</span>
+<span class="syn-comment"># task-completed-test.sh</span>
+<span class="syn-comment"># final-quality-check.sh</span>
+
+<span class="syn-comment"># Make them executable if needed</span>
+chmod +x .claude/hooks/*.sh</code></pre>
+
+  <p>If any hook is missing, the corresponding quality gate won't fire. Always verify before launching.</p>
+
+  <h3>Step 4: Create the log directory</h3>
+
+  <span class="code-label">bash</span>
+  <pre><code>mkdir -p .claude/logs .claude/failures</code></pre>
+
+  <p>The hooks write to these directories. If they don't exist, the hooks will fail silently.</p>
+
+  <h3>Step 5: Launch</h3>
+
+  <span class="code-label">bash</span>
+  <pre><code>./launch-autonomous.sh specs/saved-searches.md</code></pre>
+
+  <p>That's it. The machine starts. Here's what happens inside:</p>
+
+  <ol>
+    <li>The launch script validates the spec file and creates a feature branch (<code>auto/saved-searches-20260303-141522</code>).</li>
+    <li>Claude starts in headless mode, reads CLAUDE.md, and receives the spec in its prompt.</li>
+    <li>The lead agent decomposes the feature into tasks:
+      <ul>
+        <li>Task 1: Create the Prisma schema for saved_searches</li>
+        <li>Task 2: Run the database migration</li>
+        <li>Task 3: Create the saved search service (business logic)</li>
+        <li>Task 4: Create the route handlers</li>
+        <li>Task 5: Write integration tests</li>
+        <li>Task 6: Run full test suite and fix any issues</li>
+        <li>Task 7: Commit all changes and create a PR</li>
+      </ul>
+    </li>
+    <li>As each file is written, the PostToolUse hook auto-formats it.</li>
+    <li>After each task completes, the TaskCompleted hook runs the test suite.</li>
+    <li>If tests fail, the agent reads the failure output and fixes the issue.</li>
+    <li>When all tasks are done, the agent creates a PR with a description summarizing the changes.</li>
+    <li>The Stop hook runs the final quality check: TypeScript compilation, linting, full test suite, uncommitted changes check.</li>
+    <li>A final quality report is written to <code>.claude/logs/</code>.</li>
+  </ol>
+
+  <h3>Step 6: Review the output</h3>
+
+  <p>When the machine stops, you should have:</p>
+
+  <ul>
+    <li>A feature branch with clean, committed code</li>
+    <li>A pull request on GitHub with a clear description</li>
+    <li>All tests passing</li>
+    <li>A final quality report in <code>.claude/logs/</code></li>
+    <li>A full command log showing everything the agent did</li>
+  </ul>
+
+  <p>Your job now is to review the PR like you would review any other developer's work. Read the code, check the test coverage, verify the business logic makes sense. The agent did the construction; you do the inspection.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment"># Check the final quality report</span>
+cat .claude/logs/final-report-*.txt
+
+<span class="syn-comment"># Review the PR on GitHub</span>
+gh pr view --web</code></pre>
+
+  <p>That second command opens the PR in your browser for a standard code review.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>After your first few autonomous runs, you'll notice patterns in what the agent gets right and wrong. Use these patterns to improve your CLAUDE.md and hooks. Autonomy is an iterative process &mdash; each run teaches you how to make the next run better.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 9: Debugging Autonomous Systems                 -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">16.9</span> Debugging Autonomous Systems</h2>
+
+  <p>Things will go wrong. The agent will misunderstand the spec. A hook will fail unexpectedly. Tests will break and the agent will spiral trying to fix them. This is normal. The difference between a fragile autonomous system and a robust one is how well you can diagnose and recover from failures.</p>
+
+  <h3>Common failure modes and how to diagnose them</h3>
+
+  <h4>Failure: Agent loops on the same error</h4>
+
+  <p>Symptoms: the test-runs.log shows the same tests failing repeatedly, the command log shows the agent making similar changes and reverting.</p>
+
+  <p>Diagnosis: read the test failure output. Is the agent trying to fix a real bug, or is it changing the right code but missing a deeper issue (like a missing database table)?</p>
+
+  <p>Fix: update your CLAUDE.md with more specific error handling instructions. If the error involves environment setup (like running migrations), add explicit instructions for that. If the agent is genuinely stuck, add a retry limit to your CLAUDE.md: "If the same test fails 3 times with the same error, write a failure report and move to the next task."</p>
+
+  <h4>Failure: Agent drifts from the spec</h4>
+
+  <p>Symptoms: the PR includes changes you didn't ask for &mdash; refactored files, new dependencies, architectural changes beyond the scope.</p>
+
+  <p>Diagnosis: the spec was probably too vague, or the CLAUDE.md didn't have clear boundaries.</p>
+
+  <p>Fix: make specs more explicit about scope. Add a "Scope Boundaries" section: "ONLY modify files in src/routes/ and src/services/. Do NOT refactor existing code that isn't directly related to this feature. Do NOT install new dependencies without justification."</p>
+
+  <h4>Failure: Hooks block legitimate operations</h4>
+
+  <p>Symptoms: the command log shows "BLOCKED:" messages for things the agent legitimately needs to do.</p>
+
+  <p>Diagnosis: your PreToolUse guard is too aggressive. Maybe the regex matches too broadly.</p>
+
+  <p>Fix: refine the hook patterns. Use more specific regexes. Test your hook scripts manually with the exact commands the agent would run before deploying them.</p>
+
+  <span class="code-label">bash</span>
+  <pre><code><span class="syn-comment"># Test a hook script manually</span>
+echo <span class="syn-string">'git push origin auto/saved-searches'</span> | bash .claude/hooks/pre-bash-guard.sh
+echo <span class="syn-string">"Exit code: $?"</span>
+<span class="syn-comment"># Should be 0 (allowed) since it's not pushing to main</span></code></pre>
+
+  <p>This manual testing catches overly aggressive hooks before they break an autonomous run.</p>
+
+  <h4>Failure: Cost overrun</h4>
+
+  <p>Symptoms: the run used significantly more tokens (and money) than expected.</p>
+
+  <p>Diagnosis: check the command log for loops, excessive file reads, or long conversations with subagents. Often caused by the agent reading large files repeatedly or running into retry loops.</p>
+
+  <p>Fix: lower the <code>--max-turns</code> limit. Add cost limits to the SDK launcher. Review and simplify your CLAUDE.md &mdash; a shorter CLAUDE.md means fewer tokens per turn. Ensure your test suite runs fast so the TaskCompleted hook doesn't eat your budget.</p>
+
+  <h4>Failure: Merge conflicts</h4>
+
+  <p>Symptoms: the agent created a PR that can't be merged because main has moved forward since the branch was created.</p>
+
+  <p>Diagnosis: someone pushed to main while the autonomous run was in progress.</p>
+
+  <p>Fix: this is expected in active projects. Either rebase the branch manually, or add rebase instructions to your CLAUDE.md: "Before creating the PR, rebase the feature branch onto the latest main."</p>
+
+  <h3>The post-mortem checklist</h3>
+
+  <p>After every autonomous run &mdash; successful or not &mdash; run through this checklist to improve the system for next time:</p>
+
+  <ol>
+    <li><strong>Read the final quality report.</strong> Did all checks pass? If not, why?</li>
+    <li><strong>Scan the command log.</strong> Were there any unexpected patterns? Loops? Unnecessary operations?</li>
+    <li><strong>Review the PR diff.</strong> Did the agent stay within scope? Is the code quality acceptable?</li>
+    <li><strong>Check the cost.</strong> Was it reasonable for the scope of work?</li>
+    <li><strong>Identify one improvement.</strong> What's the single most impactful thing you could change in your CLAUDE.md, hooks, or spec template to make the next run better?</li>
+  </ol>
+
+  <div class="callout high-impact">
+    <div class="callout-title">The Iteration Principle</div>
+    <p>Your first autonomous run will be rough. Your tenth will be smooth. The system improves because <em>you</em> improve it &mdash; tightening the CLAUDE.md, refining the hooks, writing better specs. Every failure is a lesson that makes the system more robust. Don't expect perfection on day one. Expect progress on every run.</p>
+  </div>
+
+  <hr>
+
+  <h2>Putting It All Together</h2>
+
+  <p>This level taught you to build a system where code writes itself. But the deeper lesson is about a new way of working with AI. You're not a user anymore. You're not even just a developer. You're an architect of autonomous systems.</p>
+
+  <p>Your responsibilities have shifted:</p>
+
+  <ul>
+    <li><strong>From writing code</strong> to writing specs, rules, and quality gates.</li>
+    <li><strong>From executing tasks</strong> to designing systems that execute tasks.</li>
+    <li><strong>From debugging code</strong> to debugging processes.</li>
+    <li><strong>From reviewing diffs</strong> to reviewing system behavior.</li>
+  </ul>
+
+  <p>The machine you've built is powerful, but it's only as good as the rules you give it, the quality gates you enforce, and the judgment you apply when reviewing its output. Autonomy without oversight is just automated chaos. Autonomy with thoughtful guardrails is genuine leverage.</p>
+
+  <p>One last thing: everything in this level will improve as Claude gets better. The hooks will need fewer edge cases. The CLAUDE.md can get shorter as Claude's default behavior improves. The specs can get vaguer as Claude's reasoning gets stronger. But the architecture &mdash; the trigger, context, execution, quality, and review pipeline &mdash; that structure is permanent. Learn it once, use it forever.</p>
+
+  <!-- ====================================================== -->
+  <!-- Checkpoint Project                                      -->
+  <!-- ====================================================== -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#127937;</span>
+      <h3>Checkpoint Project: The Machine</h3>
+    </div>
+
+    <h4>What to Build</h4>
+    <p>Design and deploy a fully autonomous coding system. The system must: take a one-paragraph feature spec as input, create a feature branch, decompose the work into tasks, implement all tasks with an agent team, run automated tests and quality checks via hooks, integrate with GitHub via MCP to create a pull request, and produce the finished PR without any human intervention after launch.</p>
+
+    <p>Specifically, you need to create:</p>
+    <ol>
+      <li>An autonomy-grade <strong>CLAUDE.md</strong> with explicit rules, error handling, file structure docs, forbidden actions, and quality standards.</li>
+      <li>A complete <strong>hooks pipeline</strong>: PreToolUse guard, PostToolUse formatter, TaskCompleted test runner, and Stop final quality check.</li>
+      <li>An <strong>MCP configuration</strong> that connects Claude to at least one external service (GitHub for PR creation is the minimum).</li>
+      <li>A <strong>trigger script</strong> (shell script or SDK launcher) that takes a spec file path, creates a branch, and launches Claude in headless mode with the right tools and turn limits.</li>
+      <li>A <strong>feature spec</strong> for a small but complete application feature (at least 3 files to create, with tests).</li>
+    </ol>
+
+    <p>Then launch it. Let it run. Don't touch the keyboard until it stops.</p>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>Your CLAUDE.md has at least the six sections from this level: project context, file structure, technology decisions, coding standards, error handling protocol, and forbidden actions.</li>
+      <li>All four hook scripts exist, are executable, and are wired into <code>.claude/settings.json</code>.</li>
+      <li>The PreToolUse hook successfully blocks at least one dangerous operation (test this manually before launching).</li>
+      <li>The trigger script validates inputs, creates a feature branch, and launches Claude with appropriate tool permissions and turn limits.</li>
+      <li>The autonomous run completes without human intervention and produces a PR on GitHub (or a local branch with committed code if GitHub MCP is not available).</li>
+      <li>The final quality report in <code>.claude/logs/</code> exists and shows results for all quality checks.</li>
+      <li>You can explain every layer of the system &mdash; what it does, why it exists, and what would go wrong without it.</li>
+    </ul>
+
+    <h4>Estimated Time</h4>
+    <span class="time-estimate">&#9201; 2 &ndash; 3 hours</span>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-15.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-17.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+</body>
+</html>

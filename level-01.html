@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 1: The Terminal: Your New Home Base | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="index.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-02.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 01</div>
+    <h1>The Terminal: Your New Home Base</h1>
+    <p class="level-subtitle">You've already been using the terminal every time you open Claude Code. Now it's time to actually understand what's happening in that window &mdash; and why it matters for everything that comes next.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: What a Shell Actually Is -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">1.1</span> What a Shell Actually Is</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Every time you've launched Claude Code, typed a prompt, and watched it create files or run commands, you've been working inside a shell. You didn't need to understand it before because Claude handled the details. But as your projects get more complex &mdash; and as you start configuring Claude Code, setting environment variables, debugging issues, and building real systems &mdash; you need to know what's actually happening underneath. The shell is the foundational layer. Everything else in this guide sits on top of it.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Think of it like a restaurant.</strong> Your computer's operating system is the kitchen &mdash; it has all the equipment, ingredients, and staff to do real work. But you can't just walk into the kitchen and start giving orders to the line cooks. You need a waiter. The shell is that waiter. You tell the shell what you want (in a specific language it understands), and the shell walks into the kitchen (the operating system), relays your request, and comes back with the result. The "terminal" is the dining room &mdash; it's just the physical space (the window) where this conversation happens.
+  </div>
+
+  <h3>The Technical Reality</h3>
+
+  <p>Three terms get thrown around interchangeably, but they mean different things:</p>
+
+  <div class="definition">
+    <p><span class="term">Terminal</span> &mdash; The application (the window) that displays text. It's just a screen. On macOS this is Terminal.app or iTerm2. On Windows it's Windows Terminal, Command Prompt, or PowerShell's window. The terminal itself doesn't understand commands &mdash; it just passes your keystrokes to the shell and displays whatever comes back.</p>
+  </div>
+
+  <div class="definition">
+    <p><span class="term">Shell</span> &mdash; The program running <em>inside</em> the terminal that actually interprets your commands. When you type <code>ls</code> and press Enter, it's the shell (not the terminal) that figures out what <code>ls</code> means, asks the operating system to list files, and formats the result. Think of it as the translator between you and your computer's core.</p>
+  </div>
+
+  <div class="definition">
+    <p><span class="term">CLI (Command-Line Interface)</span> &mdash; A general term for any program you interact with by typing text commands instead of clicking buttons. Claude Code is a CLI. Git is a CLI. The shell itself is a CLI. When someone says "use the CLI," they usually mean "open a terminal and type a command."</p>
+  </div>
+
+  <h3>What Happens When You Type a Command</h3>
+
+  <p>Let's trace exactly what happens when you type a simple command and press Enter. This will demystify the entire process.</p>
+
+  <span class="code-label">Shell</span>
+  <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">ls</span> <span class="syn-flag">-la</span> <span class="syn-path">Documents/</span></code></pre>
+
+  <p>Here's the chain of events, step by step:</p>
+
+  <ol>
+    <li><strong>You type the command</strong> and press Enter. The terminal captures your keystrokes and sends them to the shell.</li>
+    <li><strong>The shell parses your input.</strong> It splits <code>ls -la Documents/</code> into three pieces: the command (<code>ls</code>), a flag (<code>-la</code>), and an argument (<code>Documents/</code>).</li>
+    <li><strong>The shell searches for the program.</strong> It looks through a list of directories (called <code>PATH</code> &mdash; we'll cover this in detail later) to find an executable file named <code>ls</code>.</li>
+    <li><strong>The shell asks the OS to run it.</strong> It hands the program and its arguments to the operating system kernel, which actually executes <code>ls</code>.</li>
+    <li><strong>The program runs and produces output.</strong> <code>ls</code> reads the filesystem, formats a listing, and writes it to "standard output" (stdout).</li>
+    <li><strong>The shell captures the output</strong> and sends it to the terminal window for you to see.</li>
+    <li><strong>The shell shows you a new prompt</strong> (<code>$</code> or <code>%</code> or <code>&gt;</code>), signaling it's ready for the next command.</li>
+  </ol>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>That <code>$</code> (or <code>%</code> or <code>&gt;</code>) at the beginning of a line in documentation is the <strong>shell prompt</strong>. It's not something you type. When you see an example like <code>$ cd my-project</code>, you only type <code>cd my-project</code>. The prompt symbol just tells you "this is a command to enter in your shell." You'll see this convention throughout this entire guide and in virtually every programming tutorial online.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Shell Differences -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">1.2</span> Shell Differences: bash, zsh, PowerShell, and CMD</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Not all shells speak the same language. A command that works perfectly on your Mac might fail on Windows &mdash; not because the concept is different, but because the shell expects different syntax. When Claude Code runs commands on your machine, it's using whatever shell is available. Knowing which shell you're running (and how they differ) saves you from a whole category of confusing errors.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Shells are like dialects of the same language.</strong> If your native language is English, you can mostly understand someone speaking British English, Australian English, or American English. The core ideas are the same, but specific words and expressions differ. "Trunk" vs. "boot." "Elevator" vs. "lift." Shells work the same way &mdash; they all let you navigate files, run programs, and set variables, but the exact commands and syntax vary.
+  </div>
+
+  <h3>The Four Shells You'll Encounter</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Shell</th>
+        <th>Where You'll Find It</th>
+        <th>Key Facts</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>bash</strong></td>
+        <td>Linux, older macOS, Windows (via Git Bash or WSL)</td>
+        <td>The most widely documented shell in tutorials and Stack Overflow answers. If a guide doesn't specify the shell, it probably assumes bash.</td>
+      </tr>
+      <tr>
+        <td><strong>zsh</strong></td>
+        <td>macOS (default since Catalina, 2019)</td>
+        <td>Almost identical to bash for everyday use. Adds quality-of-life features like better tab completion and themes. 99% of bash commands work in zsh without changes.</td>
+      </tr>
+      <tr>
+        <td><strong>PowerShell</strong></td>
+        <td>Windows (default in modern Windows Terminal)</td>
+        <td>A completely different language from bash/zsh. Uses "verb-noun" commands like <code>Get-ChildItem</code> instead of <code>ls</code>. However, it has aliases that make common commands feel familiar (<code>ls</code> is aliased to <code>Get-ChildItem</code>).</td>
+      </tr>
+      <tr>
+        <td><strong>CMD</strong></td>
+        <td>Windows (legacy Command Prompt)</td>
+        <td>The oldest and most limited. Uses <code>dir</code> instead of <code>ls</code>, backslashes in paths. Still shows up when you click "Command Prompt" in the Start menu. Avoid it when possible &mdash; use PowerShell or Git Bash instead.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>How to Check Which Shell You're Using</h3>
+
+  <p>Before you do anything else, find out which shell your terminal is running. This determines what syntax to follow for the rest of this level.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$SHELL</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-variable">$PSVersionTable</span></code></pre>
+    </div>
+  </div>
+
+  <p>On macOS, this prints something like <code>/bin/zsh</code> or <code>/bin/bash</code>. On Windows PowerShell, it shows version info confirming you're in PowerShell. If you see <code>Microsoft.PowerShell</code> in the output, you're in PowerShell. If you open Command Prompt instead, you'll see <code>C:\Users\YourName&gt;</code> as the prompt with no other indicators.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p><strong>For following this guide on Windows</strong>, we recommend using PowerShell (not CMD). It comes preinstalled, supports more modern features, and most Claude Code documentation assumes either bash/zsh or PowerShell. If you've installed Git for Windows, you also have Git Bash available, which lets you use bash commands on Windows.</p>
+  </div>
+
+  <h3>Quick Syntax Comparison</h3>
+
+  <p>Here's how the same basic operations look across shells. Don't memorize this &mdash; just use it as a reference when something doesn't work and you suspect it's a shell difference.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Task</th>
+        <th>bash / zsh</th>
+        <th>PowerShell</th>
+        <th>CMD</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>List files</td>
+        <td><code>ls</code></td>
+        <td><code>ls</code> (alias) or <code>Get-ChildItem</code></td>
+        <td><code>dir</code></td>
+      </tr>
+      <tr>
+        <td>Print working directory</td>
+        <td><code>pwd</code></td>
+        <td><code>pwd</code> (alias) or <code>Get-Location</code></td>
+        <td><code>cd</code> (with no arguments)</td>
+      </tr>
+      <tr>
+        <td>Change directory</td>
+        <td><code>cd folder</code></td>
+        <td><code>cd folder</code></td>
+        <td><code>cd folder</code></td>
+      </tr>
+      <tr>
+        <td>Set a variable</td>
+        <td><code>export MY_VAR="hi"</code></td>
+        <td><code>$env:MY_VAR = "hi"</code></td>
+        <td><code>set MY_VAR=hi</code></td>
+      </tr>
+      <tr>
+        <td>View a variable</td>
+        <td><code>echo $MY_VAR</code></td>
+        <td><code>echo $env:MY_VAR</code></td>
+        <td><code>echo %MY_VAR%</code></td>
+      </tr>
+      <tr>
+        <td>Clear screen</td>
+        <td><code>clear</code></td>
+        <td><code>cls</code> or <code>clear</code></td>
+        <td><code>cls</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: Core Navigation Commands -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">1.3</span> Core Navigation Commands</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>When you use a graphical file manager (Finder on macOS, File Explorer on Windows), you navigate by clicking folders, seeing their contents, and dragging things around. In the terminal, you do the exact same things &mdash; but by typing commands. Since Claude Code lives in the terminal, and since you'll be telling it where to find and create files, fluency with these commands is non-negotiable. This is like learning to walk before you run.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Imagine your filesystem is a building.</strong> Each folder is a room. You (the shell) are standing in one room at all times &mdash; your "current working directory." The <code>cd</code> command is walking through a door into another room. The <code>ls</code> command is looking around the room you're in. The <code>pwd</code> command is checking the sign on the wall that says "You are here." You can't interact with a file without either being in its room or specifying the exact hallway route to get there (the full path).
+  </div>
+
+  <!-- pwd -->
+  <h3><code>pwd</code> &mdash; "Where am I right now?"</h3>
+
+  <p><code>pwd</code> stands for "print working directory." It tells you exactly which folder the shell is currently sitting in. This is the first command you should run if you're ever disoriented.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">pwd</span>
+<span class="syn-path">/Users/yourname/Projects</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-builtin">pwd</span>
+
+Path
+----
+C:\Users\yourname\Projects</code></pre>
+    </div>
+  </div>
+
+  <p>The output is a <strong>path</strong> &mdash; the full address of the folder you're in, starting from the root of the filesystem. On macOS/Linux, paths start with <code>/</code> (the root). On Windows, they start with a drive letter like <code>C:\</code>. If the output says <code>/Users/yourname</code>, you're in your home directory. If it says <code>/Users/yourname/Projects/my-app</code>, you're inside the <code>my-app</code> folder within <code>Projects</code>.</p>
+
+  <!-- ls / dir -->
+  <h3><code>ls</code> / <code>dir</code> &mdash; "What's in this folder?"</h3>
+
+  <p>This command lists the contents of the directory you're currently in (or any directory you specify). It's the equivalent of opening a folder in your file manager.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">ls</span>
+Desktop    Documents  Downloads  Projects   Pictures</code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-builtin">ls</span>
+
+    Directory: C:\Users\yourname
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         1/15/2026   9:30 AM                Desktop
+d-----         1/15/2026   9:30 AM                Documents
+d-----         1/15/2026   9:30 AM                Downloads
+d-----         1/15/2026   9:30 AM                Projects</code></pre>
+    </div>
+  </div>
+
+  <p>Each item listed is either a file or a folder. On macOS, the basic <code>ls</code> just shows names. On PowerShell, <code>ls</code> shows more detail by default, including the mode (<code>d-----</code> means directory), last modified time, and name.</p>
+
+  <h4>Seeing Hidden Files and Details</h4>
+
+  <p>The basic <code>ls</code> hides files that start with a dot (like <code>.gitignore</code> or <code>.env</code>). These "dotfiles" are hidden by convention, not because they're secret &mdash; they're usually configuration files. To see everything, including hidden files and detailed information, add flags.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">ls</span> <span class="syn-flag">-la</span>
+total 32
+drwxr-xr-x   8 yourname  staff   256 Jan 15 09:30 <span class="syn-path">.</span>
+drwxr-xr-x   5 yourname  staff   160 Jan 10 14:22 <span class="syn-path">..</span>
+-rw-r--r--   1 yourname  staff    45 Jan 15 09:30 <span class="syn-path">.gitignore</span>
+-rw-r--r--   1 yourname  staff   220 Jan 15 09:30 <span class="syn-path">.env</span>
+drwxr-xr-x   3 yourname  staff    96 Jan 15 09:30 <span class="syn-path">src</span>
+-rw-r--r--   1 yourname  staff  1240 Jan 15 09:30 <span class="syn-path">package.json</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-builtin">ls</span> <span class="syn-flag">-Force</span>
+
+    Directory: C:\Users\yourname\my-project
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d--h--         1/15/2026   9:30 AM                .git
+-a-h--         1/15/2026   9:30 AM             45 .gitignore
+-a-h--         1/15/2026   9:30 AM            220 .env
+d-----         1/15/2026   9:30 AM                src
+-a----         1/15/2026   9:30 AM           1240 package.json</code></pre>
+    </div>
+  </div>
+
+  <p>On macOS, <code>-l</code> means "long format" (show details) and <code>-a</code> means "all" (include hidden files). Together as <code>-la</code>, you get the full picture. On PowerShell, <code>-Force</code> reveals hidden items. The <code>.</code> entry is "this directory" and <code>..</code> is "the parent directory" &mdash; both are special references you'll use with <code>cd</code>.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Flags modify commands.</strong> A flag (also called an option or switch) is a hyphenated add-on that changes what a command does. <code>ls</code> alone lists files. <code>ls -l</code> lists files with details. <code>ls -la</code> lists all files (including hidden) with details. Flags are one of the most common patterns in CLI work. On macOS/Linux they usually start with <code>-</code> (short) or <code>--</code> (long). On PowerShell they start with <code>-</code> and use full words like <code>-Force</code> or <code>-Recurse</code>.</p>
+  </div>
+
+  <!-- cd -->
+  <h3><code>cd</code> &mdash; "Take me to a different folder"</h3>
+
+  <p><code>cd</code> stands for "change directory." It's how you move around the filesystem. You'll use this constantly.</p>
+
+  <p>Move into a folder that exists inside your current directory (a child folder):</p>
+
+  <span class="code-label">Shell</span>
+  <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-path">Projects</span></code></pre>
+
+  <p>You've now moved into the <code>Projects</code> folder. Your prompt might change to reflect this, and <code>pwd</code> will now show a path ending in <code>/Projects</code>.</p>
+
+  <p>Move up one level (to the parent folder):</p>
+
+  <span class="code-label">Shell</span>
+  <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-path">..</span></code></pre>
+
+  <p>The <code>..</code> means "the folder above this one." If you were in <code>/Users/yourname/Projects</code>, you're now in <code>/Users/yourname</code>.</p>
+
+  <p>Jump straight to your home directory from anywhere:</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-path">~</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-builtin">cd</span> <span class="syn-path">~</span>
+<span class="syn-comment"># or equivalently:</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">cd</span> <span class="syn-variable">$HOME</span></code></pre>
+    </div>
+  </div>
+
+  <p>The tilde <code>~</code> is a shortcut that means "my home directory" (<code>/Users/yourname</code> on macOS, <code>C:\Users\yourname</code> on Windows). This works in bash, zsh, and PowerShell.</p>
+
+  <p>Navigate using a full (absolute) path:</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-path">/Users/yourname/Projects/my-app</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-builtin">cd</span> <span class="syn-path">C:\Users\yourname\Projects\my-app</span></code></pre>
+    </div>
+  </div>
+
+  <p>An absolute path starts from the very root of the filesystem and specifies the complete route. It works no matter which directory you're currently in. A <strong>relative path</strong> (like <code>cd Projects</code>) starts from wherever you are now.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p><strong>Use Tab to autocomplete.</strong> Start typing a folder name and press Tab. The shell will autocomplete it for you (or show options if there are multiple matches). This is the single biggest time saver in terminal navigation. If you type <code>cd Pro</code> and press Tab, the shell will complete it to <code>cd Projects/</code> (assuming there's a folder starting with "Pro").</p>
+  </div>
+
+  <!-- mkdir -->
+  <h3><code>mkdir</code> &mdash; "Create a new folder"</h3>
+
+  <p><code>mkdir</code> stands for "make directory." It creates a new empty folder.</p>
+
+  <p>Create a single folder in the current directory:</p>
+
+  <span class="code-label">Shell</span>
+  <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">mkdir</span> <span class="syn-path">my-new-project</span></code></pre>
+
+  <p>A folder named <code>my-new-project</code> now exists in whatever directory you were in when you ran the command. It's empty.</p>
+
+  <p>Create nested folders all at once (a folder inside a folder inside a folder):</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">mkdir</span> <span class="syn-flag">-p</span> <span class="syn-path">my-app/src/components</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-builtin">mkdir</span> <span class="syn-path">my-app\src\components</span></code></pre>
+    </div>
+  </div>
+
+  <p>The <code>-p</code> flag on macOS/Linux means "create parent directories as needed." Without it, <code>mkdir my-app/src/components</code> would fail because <code>my-app</code> and <code>src</code> don't exist yet. PowerShell creates intermediate directories automatically, so no flag is needed.</p>
+
+  <!-- touch / New-Item -->
+  <h3><code>touch</code> / <code>New-Item</code> &mdash; "Create an empty file"</h3>
+
+  <p>Sometimes you need to create a blank file &mdash; a placeholder, a config file, or a starting point for a new script.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">touch</span> <span class="syn-path">index.html</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-builtin">New-Item</span> <span class="syn-path">index.html</span> <span class="syn-flag">-ItemType</span> File</code></pre>
+    </div>
+  </div>
+
+  <p>This creates an empty file named <code>index.html</code> in the current directory. On macOS, if the file already exists, <code>touch</code> just updates its "last modified" timestamp without changing its contents &mdash; a useful trick for some build tools. On PowerShell, <code>New-Item</code> will throw an error if the file already exists unless you add the <code>-Force</code> flag.</p>
+
+  <!-- cp -->
+  <h3><code>cp</code> / <code>Copy-Item</code> &mdash; "Copy a file or folder"</h3>
+
+  <p>Make a duplicate of a file. The original stays where it is.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-comment"># Copy a single file</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cp</span> <span class="syn-path">config.json</span> <span class="syn-path">config-backup.json</span>
+
+<span class="syn-comment"># Copy an entire folder (and everything inside it)</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cp</span> <span class="syn-flag">-r</span> <span class="syn-path">src/</span> <span class="syn-path">src-backup/</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-comment"># Copy a single file</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">Copy-Item</span> <span class="syn-path">config.json</span> <span class="syn-path">config-backup.json</span>
+
+<span class="syn-comment"># Copy an entire folder (and everything inside it)</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">Copy-Item</span> <span class="syn-path">src\</span> <span class="syn-path">src-backup\</span> <span class="syn-flag">-Recurse</span></code></pre>
+    </div>
+  </div>
+
+  <p>The first argument is the source, the second is the destination. For folders, you need <code>-r</code> (recursive) on macOS/Linux or <code>-Recurse</code> on PowerShell &mdash; otherwise it only copies the folder itself, not its contents.</p>
+
+  <!-- mv -->
+  <h3><code>mv</code> / <code>Move-Item</code> &mdash; "Move or rename"</h3>
+
+  <p>This command does double duty: it moves files to a new location <em>and</em> renames files. Moving and renaming are the same operation to a computer &mdash; you're just changing the path.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-comment"># Rename a file</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">mv</span> <span class="syn-path">old-name.txt</span> <span class="syn-path">new-name.txt</span>
+
+<span class="syn-comment"># Move a file into a different folder</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">mv</span> <span class="syn-path">report.pdf</span> <span class="syn-path">Documents/</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-comment"># Rename a file</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">Move-Item</span> <span class="syn-path">old-name.txt</span> <span class="syn-path">new-name.txt</span>
+
+<span class="syn-comment"># Move a file into a different folder</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">Move-Item</span> <span class="syn-path">report.pdf</span> <span class="syn-path">Documents\</span></code></pre>
+    </div>
+  </div>
+
+  <p>In the first example, the file stays in the same folder but gets a new name. In the second, the file physically moves to the <code>Documents</code> folder. Unlike <code>cp</code>, the original is gone after a <code>mv</code> &mdash; it's a move, not a copy.</p>
+
+  <!-- rm / rmdir -->
+  <h3><code>rm</code> / <code>Remove-Item</code> &mdash; "Delete forever"</h3>
+
+  <p>This deletes files and folders. <strong>There is no recycle bin.</strong> When you <code>rm</code> something from the terminal, it's gone.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-comment"># Delete a single file</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">rm</span> <span class="syn-path">unwanted-file.txt</span>
+
+<span class="syn-comment"># Delete a folder and everything inside it</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">rm</span> <span class="syn-flag">-rf</span> <span class="syn-path">old-project/</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-comment"># Delete a single file</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">Remove-Item</span> <span class="syn-path">unwanted-file.txt</span>
+
+<span class="syn-comment"># Delete a folder and everything inside it</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">Remove-Item</span> <span class="syn-path">old-project\</span> <span class="syn-flag">-Recurse</span> <span class="syn-flag">-Force</span></code></pre>
+    </div>
+  </div>
+
+  <p>On macOS/Linux, <code>-r</code> means recursive (delete the folder and all its contents) and <code>-f</code> means force (don't ask for confirmation on each file). On PowerShell, <code>-Recurse</code> deletes contents and <code>-Force</code> suppresses confirmation prompts.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><strong>Terminal deletions are permanent.</strong> There is no undo, no recycle bin, no "recently deleted" folder. The command <code>rm -rf /</code> would attempt to delete your entire filesystem (operating systems have safeguards against this, but the point stands). Always double-check your path before running <code>rm</code>. A good habit: run <code>ls</code> on the path first to see what you'd be deleting before you actually delete it.</p>
+  </div>
+
+  <h3>Command Summary Table</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Action</th>
+        <th>macOS / Linux</th>
+        <th>PowerShell</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Where am I?</td>
+        <td><code>pwd</code></td>
+        <td><code>pwd</code></td>
+      </tr>
+      <tr>
+        <td>List contents</td>
+        <td><code>ls</code> or <code>ls -la</code></td>
+        <td><code>ls</code> or <code>ls -Force</code></td>
+      </tr>
+      <tr>
+        <td>Go into a folder</td>
+        <td><code>cd folder-name</code></td>
+        <td><code>cd folder-name</code></td>
+      </tr>
+      <tr>
+        <td>Go up one level</td>
+        <td><code>cd ..</code></td>
+        <td><code>cd ..</code></td>
+      </tr>
+      <tr>
+        <td>Go to home directory</td>
+        <td><code>cd ~</code></td>
+        <td><code>cd ~</code></td>
+      </tr>
+      <tr>
+        <td>Create a folder</td>
+        <td><code>mkdir name</code></td>
+        <td><code>mkdir name</code></td>
+      </tr>
+      <tr>
+        <td>Create nested folders</td>
+        <td><code>mkdir -p a/b/c</code></td>
+        <td><code>mkdir a\b\c</code></td>
+      </tr>
+      <tr>
+        <td>Create empty file</td>
+        <td><code>touch file.txt</code></td>
+        <td><code>New-Item file.txt</code></td>
+      </tr>
+      <tr>
+        <td>Copy file</td>
+        <td><code>cp src dest</code></td>
+        <td><code>Copy-Item src dest</code></td>
+      </tr>
+      <tr>
+        <td>Copy folder</td>
+        <td><code>cp -r src/ dest/</code></td>
+        <td><code>Copy-Item src\ dest\ -Recurse</code></td>
+      </tr>
+      <tr>
+        <td>Move / rename</td>
+        <td><code>mv old new</code></td>
+        <td><code>Move-Item old new</code></td>
+      </tr>
+      <tr>
+        <td>Delete file</td>
+        <td><code>rm file</code></td>
+        <td><code>Remove-Item file</code></td>
+      </tr>
+      <tr>
+        <td>Delete folder</td>
+        <td><code>rm -rf folder/</code></td>
+        <td><code>Remove-Item folder\ -Recurse -Force</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: PATH -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">1.4</span> PATH: How Your Shell Finds Programs</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>You've probably hit this error before: <code>command not found: node</code> or <code>'python' is not recognized as an internal or external command</code>. You <em>know</em> you installed the program. It's sitting on your hard drive. So why can't the shell find it? The answer is PATH. Understanding PATH is the single most useful thing you can learn for debugging "it's installed but won't run" problems &mdash; which you'll encounter regularly when setting up tools for Claude Code.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>PATH is your shell's contact list for programs.</strong> When you type a command like <code>node</code> or <code>python</code> or <code>claude</code>, the shell doesn't search your entire hard drive &mdash; that would take forever. Instead, it checks a specific list of folders, in order, to see if any of them contain a program with that name. This list is the PATH variable. If the program's folder isn't in the list, the shell says "not found" &mdash; even though the program is installed. Adding a folder to PATH is like adding a contact to your phone. The person existed before &mdash; your phone just didn't know their number.
+  </div>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Almost every "command not found" error is a PATH problem. Before googling the error, before reinstalling the tool, check your PATH. This single insight will save you hours of frustration over your career.</p>
+  </div>
+
+  <h3>Viewing Your PATH</h3>
+
+  <p>Let's look at what's currently in your PATH. This command prints out the list of directories your shell searches through when you type a command.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$PATH</span>
+<span class="syn-path">/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/yourname/.nvm/versions/node/v20.11.0/bin</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-variable">$env:PATH</span> <span class="syn-flag">-split</span> <span class="syn-string">';'</span>
+C:\Windows\system32
+C:\Windows
+C:\Program Files\nodejs\
+C:\Users\yourname\AppData\Roaming\npm
+C:\Program Files\Git\cmd</code></pre>
+    </div>
+  </div>
+
+  <p>On macOS/Linux, directories in PATH are separated by colons (<code>:</code>). On Windows, they're separated by semicolons (<code>;</code>). The PowerShell command above splits the PATH on semicolons so each directory appears on its own line, making it much easier to read.</p>
+
+  <p>When you type <code>node</code>, the shell walks through these directories one by one, looking for an executable file named <code>node</code>. The moment it finds one, it runs it. If it reaches the end of the list without finding one, you get "command not found."</p>
+
+  <h3>Finding Where a Program Lives</h3>
+
+  <p>If a command works, you can find out which exact file the shell is using with these commands:</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">which</span> node
+<span class="syn-path">/usr/local/bin/node</span>
+
+<span class="syn-prompt">$</span> <span class="syn-builtin">which</span> claude
+<span class="syn-path">/Users/yourname/.npm-global/bin/claude</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-builtin">Get-Command</span> node
+
+CommandType     Name          Version    Source
+-----------     ----          -------    ------
+Application     node.exe      20.11.0    C:\Program Files\nodejs\node.exe
+
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">Get-Command</span> claude</code></pre>
+    </div>
+  </div>
+
+  <p>This tells you the exact file path the shell uses when you run that command. Useful for confirming that the right version is being used, or that the program you think is installed is actually findable.</p>
+
+  <h3>Adding to PATH</h3>
+
+  <p>When you install a new tool and the shell can't find it, you need to add that tool's directory to your PATH. There are two ways: temporarily (just for this terminal session) and permanently (survives closing the terminal).</p>
+
+  <h4>Temporary (current session only)</h4>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">export</span> <span class="syn-variable">PATH</span>=<span class="syn-string">"$PATH:/path/to/new/program"</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-variable">$env:PATH</span> += <span class="syn-string">";C:\path\to\new\program"</span></code></pre>
+    </div>
+  </div>
+
+  <p>This appends the new directory to the end of your existing PATH. The <code>$PATH</code> (or <code>$env:PATH</code>) part means "whatever PATH is now" and you're adding a new entry to it. This change vanishes when you close the terminal.</p>
+
+  <h4>Permanent (survives restarts)</h4>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <p style="padding: 1rem 1.5rem; margin: 0;">To make the change permanent on macOS, you add the <code>export</code> line to your shell's configuration file. For zsh (the macOS default), that file is <code>~/.zshrc</code>. For bash, it's <code>~/.bashrc</code> or <code>~/.bash_profile</code>.</p>
+      <pre><code><span class="syn-comment"># Open the config file in a text editor</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">nano</span> <span class="syn-path">~/.zshrc</span>
+
+<span class="syn-comment"># Add this line at the end of the file:</span>
+<span class="syn-keyword">export</span> <span class="syn-variable">PATH</span>=<span class="syn-string">"$PATH:/path/to/new/program"</span>
+
+<span class="syn-comment"># Save (Ctrl+O, Enter) and exit (Ctrl+X)</span>
+<span class="syn-comment"># Then reload the config:</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">source</span> <span class="syn-path">~/.zshrc</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <p style="padding: 1rem 1.5rem; margin: 0;">On Windows, you modify the system PATH through System Settings, or use PowerShell:</p>
+      <pre><code><span class="syn-comment"># Add to PATH permanently for your user account</span>
+<span class="syn-prompt">&gt;</span> [Environment]::SetEnvironmentVariable(
+    <span class="syn-string">"PATH"</span>,
+    [Environment]::GetEnvironmentVariable(<span class="syn-string">"PATH"</span>, <span class="syn-string">"User"</span>) + <span class="syn-string">";C:\path\to\new\program"</span>,
+    <span class="syn-string">"User"</span>
+)</code></pre>
+      <p style="padding: 0 1.5rem 1rem; margin: 0;">Or use the GUI: search for <strong>"Environment Variables"</strong> in the Start menu, click <strong>"Edit the system environment variables"</strong>, click <strong>"Environment Variables"</strong>, find <code>Path</code> in the user variables, click <strong>"Edit"</strong>, and add a new entry.</p>
+    </div>
+  </div>
+
+  <p>After adding to PATH permanently, you'll need to open a new terminal window (or run <code>source ~/.zshrc</code> on macOS) for the change to take effect. Your current terminal session loaded PATH when it started; it won't see changes until it reloads.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Environment Variables -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">1.5</span> Environment Variables</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Claude Code uses environment variables constantly. Your API key (<code>ANTHROPIC_API_KEY</code>) is an environment variable. The model selection, proxy settings, debug flags &mdash; many of these are controlled by environment variables. When you see instructions that say "set <code>SOME_VARIABLE</code> to this value," you need to know what that means and how to do it on your machine.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Environment variables are sticky notes on the wall of the room your shell is in.</strong> Any program that launches from that shell can read those sticky notes. For example, you might put a note on the wall that says <code>ANTHROPIC_API_KEY = sk-ant-abc123...</code>. When Claude Code starts up, it looks at the wall, sees the note, and uses that key to authenticate. Different rooms (terminal sessions) can have different sticky notes. And the notes disappear when you leave the room (close the terminal) &mdash; unless you've written them into the building's permanent records (your shell config file).
+  </div>
+
+  <h3>The Technical Explanation</h3>
+
+  <p>An environment variable is a named value stored in your shell session's memory. It consists of a <strong>name</strong> (always UPPER_CASE by convention) and a <strong>value</strong> (a string). Programs you launch from the shell can read these values to configure their behavior. PATH, which we just covered, is itself an environment variable. So is <code>HOME</code> (your home directory), <code>USER</code> (your username), and dozens of others that your system sets automatically.</p>
+
+  <h3>Viewing Environment Variables</h3>
+
+  <p>See all environment variables currently set in your session:</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-comment"># Show all variables</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">env</span>
+
+<span class="syn-comment"># Show a specific variable</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$HOME</span>
+<span class="syn-path">/Users/yourname</span>
+
+<span class="syn-prompt">$</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$USER</span>
+yourname</code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-comment"># Show all variables</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">Get-ChildItem</span> env:
+
+<span class="syn-comment"># Show a specific variable</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$env:USERPROFILE</span>
+C:\Users\yourname
+
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$env:USERNAME</span>
+yourname</code></pre>
+    </div>
+  </div>
+
+  <p>The first command dumps every environment variable. The second shows a specific one. Note the syntax difference: on macOS/Linux you reference a variable with <code>$VARIABLE_NAME</code>, while on PowerShell you use <code>$env:VARIABLE_NAME</code>.</p>
+
+  <h3>Setting Environment Variables Temporarily</h3>
+
+  <p>A temporary variable lasts only until you close the terminal. This is useful for quick tests or one-off configurations.</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-comment"># Set a variable</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">export</span> <span class="syn-variable">MY_PROJECT</span>=<span class="syn-string">"claude-app"</span>
+
+<span class="syn-comment"># Verify it was set</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$MY_PROJECT</span>
+claude-app</code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-comment"># Set a variable</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-variable">$env:MY_PROJECT</span> = <span class="syn-string">"claude-app"</span>
+
+<span class="syn-comment"># Verify it was set</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$env:MY_PROJECT</span>
+claude-app</code></pre>
+    </div>
+  </div>
+
+  <p>The variable <code>MY_PROJECT</code> now exists in your current shell session. Any program you launch from this terminal can read it. Open a new terminal window and try <code>echo $MY_PROJECT</code> &mdash; it will be empty because that's a different session.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>On macOS/Linux, the <code>export</code> keyword matters.</strong> Writing <code>MY_VAR="hello"</code> (without <code>export</code>) creates a shell variable that only the shell can see. Writing <code>export MY_VAR="hello"</code> creates an environment variable that programs launched from the shell can also see. Since you almost always want programs (like Claude Code) to be able to read the variable, use <code>export</code>. This distinction doesn't exist in PowerShell &mdash; <code>$env:MY_VAR</code> is always visible to child processes.</p>
+  </div>
+
+  <h3>Setting Environment Variables Permanently</h3>
+
+  <p>To make a variable available every time you open a terminal, you need to add the <code>export</code> line to your shell config file (macOS) or set it through the system (Windows).</p>
+
+  <div class="os-tabs" data-os-tabs>
+    <div class="os-tab-buttons">
+      <button class="active" data-tab="mac">macOS</button>
+      <button data-tab="win">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-tab-content="mac">
+      <pre><code><span class="syn-comment"># Add the variable to your shell config</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">echo</span> <span class="syn-string">'export ANTHROPIC_API_KEY="sk-ant-your-key-here"'</span> &gt;&gt; <span class="syn-path">~/.zshrc</span>
+
+<span class="syn-comment"># Reload the config so it takes effect now</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">source</span> <span class="syn-path">~/.zshrc</span>
+
+<span class="syn-comment"># Verify</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$ANTHROPIC_API_KEY</span>
+sk-ant-your-key-here</code></pre>
+    </div>
+    <div class="os-tab-content" data-tab-content="win">
+      <pre><code><span class="syn-comment"># Set a permanent user-level environment variable</span>
+<span class="syn-prompt">&gt;</span> [Environment]::SetEnvironmentVariable(
+    <span class="syn-string">"ANTHROPIC_API_KEY"</span>,
+    <span class="syn-string">"sk-ant-your-key-here"</span>,
+    <span class="syn-string">"User"</span>
+)
+
+<span class="syn-comment"># Verify (you need to open a new terminal for it to take effect)</span>
+<span class="syn-comment"># Or reload in current session:</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-variable">$env:ANTHROPIC_API_KEY</span> = [Environment]::GetEnvironmentVariable(<span class="syn-string">"ANTHROPIC_API_KEY"</span>, <span class="syn-string">"User"</span>)
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">echo</span> <span class="syn-variable">$env:ANTHROPIC_API_KEY</span>
+sk-ant-your-key-here</code></pre>
+    </div>
+  </div>
+
+  <p>On macOS, the <code>&gt;&gt;</code> operator appends text to the end of a file (without overwriting what's already there). After adding the line, <code>source</code> re-reads the config file so the variable is available immediately. On Windows, <code>SetEnvironmentVariable</code> with <code>"User"</code> writes to the Windows registry, making it permanent for your user account. New terminal windows will see it automatically.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><strong>Never commit API keys to files tracked by git.</strong> Your <code>~/.zshrc</code> file is fine because it lives in your home directory and isn't part of any project repository. But don't put API keys in a file inside your project folder (like a <code>.env</code> file) unless that file is listed in <code>.gitignore</code>. We'll cover this in the git level, but keep it in mind now: secrets go in environment variables or gitignored config files, never in committed code.</p>
+  </div>
+
+  <h3>Shell Config Files Explained</h3>
+
+  <p>On macOS/Linux, every time you open a new terminal, the shell automatically reads a configuration file and runs every command inside it. This is where your permanent PATH additions and environment variables live.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Shell</th>
+        <th>Config File</th>
+        <th>Location</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>zsh (macOS default)</td>
+        <td><code>~/.zshrc</code></td>
+        <td><code>/Users/yourname/.zshrc</code></td>
+      </tr>
+      <tr>
+        <td>bash</td>
+        <td><code>~/.bashrc</code> or <code>~/.bash_profile</code></td>
+        <td><code>/Users/yourname/.bashrc</code></td>
+      </tr>
+      <tr>
+        <td>PowerShell</td>
+        <td><code>$PROFILE</code></td>
+        <td>Run <code>echo $PROFILE</code> to see the path</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>PowerShell has a profile file too. You can find its location by running <code>echo $PROFILE</code> in PowerShell. If the file doesn't exist, you can create it. But for permanent environment variables on Windows, using <code>SetEnvironmentVariable</code> (as shown above) or the System Properties GUI is more common and more reliable.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Common Gotchas -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">1.6</span> Common Gotchas</h2>
+
+  <p>These are the traps that catch even experienced developers. Knowing about them in advance will save you real debugging time.</p>
+
+  <h3>Gotcha 1: Spaces in File and Folder Names</h3>
+
+  <p>Spaces are the #1 source of confusion in the terminal. The shell uses spaces to separate parts of a command, so a filename with a space looks like two separate arguments.</p>
+
+  <p>Consider a folder called <code>My Projects</code>. If you try to <code>cd</code> into it without accounting for the space:</p>
+
+  <span class="code-label">Shell</span>
+  <pre><code><span class="syn-comment"># This will FAIL</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> My Projects
+<span class="syn-comment"># Error: cd: too many arguments</span></code></pre>
+
+  <p>The shell thinks <code>My</code> is the directory name and <code>Projects</code> is a separate, unexpected argument. To fix this, you have three options:</p>
+
+  <span class="code-label">Shell</span>
+  <pre><code><span class="syn-comment"># Option 1: Wrap in quotes</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-string">"My Projects"</span>
+
+<span class="syn-comment"># Option 2: Escape the space with a backslash</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> My\ Projects
+
+<span class="syn-comment"># Option 3: Use Tab completion (it auto-escapes for you)</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> My<span class="syn-comment">[press Tab]</span></code></pre>
+
+  <p>All three work. Quotes are the clearest and most reliable approach. Tab completion is the laziest (in a good way). This applies to every command, not just <code>cd</code> &mdash; any time a path contains spaces, you need quotes or backslash escaping.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Pro move: avoid spaces in project names entirely.</strong> Use hyphens (<code>my-project</code>) or underscores (<code>my_project</code>) instead. You'll see this convention in virtually every professional codebase. It eliminates an entire category of path-related bugs and makes terminal work much smoother.</p>
+  </div>
+
+  <h3>Gotcha 2: Case Sensitivity</h3>
+
+  <p>macOS and Windows handle uppercase/lowercase letters in filenames differently, and this causes real bugs when projects move between systems.</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>macOS (case-insensitive*)</h4>
+      <p><code>README.md</code>, <code>readme.md</code>, and <code>Readme.md</code> are treated as the <strong>same file</strong>. You can <code>cd documents</code> or <code>cd Documents</code> &mdash; both work.</p>
+      <p class="text-small text-muted">*By default. macOS can be configured for case-sensitive filesystems, but almost no one does this.</p>
+    </div>
+    <div class="comparison-col">
+      <h4>Linux (case-sensitive)</h4>
+      <p><code>README.md</code> and <code>readme.md</code> are <strong>two different files</strong>. <code>cd documents</code> will fail if the folder is named <code>Documents</code>.</p>
+    </div>
+  </div>
+
+  <p>Windows behaves like macOS here &mdash; it's case-insensitive by default. This matters because many servers run Linux. A file that works fine on your Mac or PC might break on a Linux server because of a capitalization mismatch. When in doubt, be consistent with casing and match exactly what you see.</p>
+
+  <h3>Gotcha 3: Line Endings (LF vs. CRLF)</h3>
+
+  <p>This one is invisible but can cause mysterious problems. macOS/Linux and Windows use different invisible characters to mark the end of a line in text files.</p>
+
+  <div class="definition">
+    <p><span class="term">LF (Line Feed)</span> &mdash; Used by macOS and Linux. Represented as <code>\n</code>. One character.</p>
+  </div>
+
+  <div class="definition">
+    <p><span class="term">CRLF (Carriage Return + Line Feed)</span> &mdash; Used by Windows. Represented as <code>\r\n</code>. Two characters.</p>
+  </div>
+
+  <p>You'll almost never see this difference visually. But when a file written on Windows is opened on macOS (or vice versa), you might see <code>^M</code> characters appearing at the end of lines, or scripts might fail with cryptic errors. Git usually handles this automatically (it has a setting called <code>core.autocrlf</code>), but if you see weird behavior in scripts, line endings are a prime suspect.</p>
+
+  <h3>Gotcha 4: Forward Slashes vs. Backslashes</h3>
+
+  <p>macOS/Linux uses forward slashes in paths (<code>/Users/yourname/Projects</code>). Windows traditionally uses backslashes (<code>C:\Users\yourname\Projects</code>). This affects every path you type.</p>
+
+  <p>Good news: PowerShell and most modern Windows tools accept forward slashes too. So <code>cd C:/Users/yourname</code> works in PowerShell. But CMD requires backslashes. If you're ever writing paths in configuration files, check what the tool expects.</p>
+
+  <h3>Gotcha 5: "Permission Denied"</h3>
+
+  <p>If you see a "permission denied" error when trying to run a script or access a file, it means either:</p>
+
+  <ol>
+    <li><strong>You don't have permission</strong> to read/write/execute that file (common on macOS/Linux where file permissions are enforced)</li>
+    <li><strong>The file isn't marked as executable</strong> (on macOS/Linux, scripts need to be explicitly marked as runnable)</li>
+  </ol>
+
+  <p>On macOS/Linux, you can make a file executable with this command, which adds "execute" permission:</p>
+
+  <span class="code-label">Shell</span>
+  <pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">chmod</span> <span class="syn-flag">+x</span> <span class="syn-path">my-script.sh</span></code></pre>
+
+  <p>This marks <code>my-script.sh</code> as executable. Without this step, trying to run <code>./my-script.sh</code> will give a permission denied error even if you wrote the file yourself.</p>
+
+  <p>On Windows, permission issues are less common in day-to-day use but can appear when running PowerShell scripts. If PowerShell blocks a script, you may need to adjust the execution policy:</p>
+
+  <span class="code-label">PowerShell</span>
+  <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-builtin">Set-ExecutionPolicy</span> <span class="syn-flag">-Scope</span> CurrentUser <span class="syn-flag">-ExecutionPolicy</span> RemoteSigned</code></pre>
+
+  <p>This allows locally-created scripts to run while still blocking unsigned scripts downloaded from the internet. You only need to run this once.</p>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT -->
+  <!-- ============================================================ -->
+
+  <hr>
+
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#127937;</span>
+      <h3>Checkpoint Project: The Folder Factory</h3>
+    </div>
+
+    <p>Prove you've internalized this level by building a complete project directory structure using only terminal commands. No file manager, no GUI &mdash; just your shell.</p>
+
+    <h4>What to Build</h4>
+    <p>Create the complete directory structure for a hypothetical web application called <code>stellar-app</code>. Then set a custom environment variable and verify it works.</p>
+
+    <p>Your final structure should look like this:</p>
+
+    <span class="code-label">Directory Tree</span>
+    <pre><code>stellar-app/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── utils/
+│   └── index.js
+├── tests/
+│   ├── unit/
+│   └── integration/
+├── docs/
+│   └── setup.md
+├── config/
+│   ├── dev.json
+│   └── prod.json
+├── .gitignore
+├── .env
+├── README.md
+└── package.json</code></pre>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Open your terminal.</li>
+      <li>Navigate to a directory where you want to create the project (e.g., <code>cd ~/Projects</code> or <code>cd ~/Desktop</code>).</li>
+      <li>Create the entire folder structure above using <code>mkdir</code> (with the appropriate flags for nested directories).</li>
+      <li>Create all the files listed above using <code>touch</code> (macOS) or <code>New-Item</code> (PowerShell).</li>
+      <li>Navigate into and out of the structure using <code>cd</code>, verifying at each step with <code>pwd</code> and <code>ls</code>.</li>
+      <li>Set a temporary environment variable: <code>STELLAR_ENV</code> with the value <code>development</code>.</li>
+      <li>Verify the variable is set by echoing it.</li>
+      <li>Set the same variable permanently (add it to your shell config file).</li>
+      <li>Open a <strong>new</strong> terminal window and verify the permanent variable persists.</li>
+    </ol>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>Running <code>ls</code> inside <code>stellar-app/</code> shows: <code>src</code>, <code>tests</code>, <code>docs</code>, <code>config</code>, <code>.gitignore</code>, <code>.env</code>, <code>README.md</code>, and <code>package.json</code> (use <code>ls -la</code> or <code>ls -Force</code> to see dotfiles).</li>
+      <li>Running <code>ls</code> inside <code>src/</code> shows: <code>components</code>, <code>pages</code>, <code>utils</code>, and <code>index.js</code>.</li>
+      <li>Running <code>ls</code> inside <code>tests/</code> shows: <code>unit</code> and <code>integration</code>.</li>
+      <li>Running <code>ls</code> inside <code>config/</code> shows: <code>dev.json</code> and <code>prod.json</code>.</li>
+      <li>Running <code>echo $STELLAR_ENV</code> (macOS) or <code>echo $env:STELLAR_ENV</code> (PowerShell) prints <code>development</code>.</li>
+      <li>After opening a brand-new terminal window, <code>echo $STELLAR_ENV</code> still prints <code>development</code> (confirming the permanent setting).</li>
+      <li>You can navigate from <code>stellar-app/</code> to <code>stellar-app/src/components/</code> and back to <code>stellar-app/</code> using only <code>cd</code> commands (both relative and absolute paths).</li>
+    </ul>
+
+    <span class="time-estimate">&#9202; Estimated time: 30&ndash;45 minutes</span>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="index.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-02.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+<!-- OS Tab Switching Script -->
+<script>
+function initOSTabs() {
+  document.querySelectorAll('[data-os-tabs]').forEach(function(tabGroup) {
+    var buttons = tabGroup.querySelectorAll('.os-tab-buttons button');
+    var contents = tabGroup.querySelectorAll('.os-tab-content');
+
+    buttons.forEach(function(button) {
+      button.addEventListener('click', function() {
+        var targetTab = this.getAttribute('data-tab');
+
+        // Update buttons in this group
+        buttons.forEach(function(btn) { btn.classList.remove('active'); });
+        this.classList.add('active');
+
+        // Update content in this group
+        contents.forEach(function(content) {
+          content.classList.remove('active');
+          if (content.getAttribute('data-tab-content') === targetTab) {
+            content.classList.add('active');
+          }
+        });
+
+        // Sync all other tab groups on the page to the same OS
+        document.querySelectorAll('[data-os-tabs]').forEach(function(otherGroup) {
+          if (otherGroup === tabGroup) return;
+          var otherButtons = otherGroup.querySelectorAll('.os-tab-buttons button');
+          var otherContents = otherGroup.querySelectorAll('.os-tab-content');
+
+          otherButtons.forEach(function(btn) {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-tab') === targetTab) {
+              btn.classList.add('active');
+            }
+          });
+
+          otherContents.forEach(function(content) {
+            content.classList.remove('active');
+            if (content.getAttribute('data-tab-content') === targetTab) {
+              content.classList.add('active');
+            }
+          });
+        });
+      });
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initOSTabs);
+</script>
+
+</body>
+</html>

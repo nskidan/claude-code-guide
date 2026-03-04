@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 03: File Systems and Project Structure &mdash; Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-02.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-04.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 03</div>
+    <h1>File Systems and Project Structure</h1>
+    <p class="level-subtitle">Every project you build lives somewhere on your computer. Understanding where things live, how they're named, and how to organize them is the difference between a project that grows cleanly and one that collapses into chaos. This level gives you the mental model that makes everything else click.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: What a File System Is                             -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">3.1</span> What a File System Is</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Every time you tell Claude Code to create a file, edit a file, or read a file, it's navigating your file system. When you say "create a file called app.py in the src folder," Claude needs to know exactly where that folder is, whether it already exists, and how to get there. If you don't understand the file system, you can't tell Claude where to put things &mdash; and your projects become a mess of files scattered in random locations.</p>
+
+  <p>You've already experienced this. Think about any time you couldn't find a file you just downloaded, or a project file ended up in the wrong folder. That confusion evaporates once you understand what's actually going on under the hood.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Analogy: The Office Building.</strong> Think of your computer's file system as a tall office building. The building itself is your hard drive. Each floor is a top-level directory (like <code>Users</code>, <code>Program Files</code>, <code>Applications</code>). Each floor has rooms (subdirectories), and inside those rooms are filing cabinets (more subdirectories) and individual documents (files). The lobby &mdash; the ground floor where everything starts &mdash; is the <strong>root directory</strong>. Every single file on your computer can be located by describing the path from the lobby to the specific document: "Go to floor 3, room 12, cabinet B, third drawer, the document labeled report.pdf."
+  </div>
+
+  <h3>Technical Explanation</h3>
+
+  <p>A <strong>file system</strong> is how your operating system organizes and keeps track of every file and folder on your computer. It's a hierarchical structure &mdash; a tree that starts at one point (the root) and branches out into directories, which can contain files or more directories.</p>
+
+  <div class="definition">
+    <p><span class="term">File system</span> &mdash; The organizational structure your operating system uses to store, name, and retrieve files. It defines where things live and how to find them.</p>
+  </div>
+
+  <p>There are only two types of things in a file system:</p>
+  <ul>
+    <li><strong>Files</strong> &mdash; actual documents with content (code, text, images, data)</li>
+    <li><strong>Directories</strong> (also called <strong>folders</strong>) &mdash; containers that hold files or other directories</li>
+  </ul>
+
+  <p>That's it. Everything on your computer fits into one of those two categories. Every photo, every application, every config file, every line of code you've ever written &mdash; it's a file living inside a directory.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>When you work with Claude Code, you're <em>always</em> working inside a specific directory. Claude reads files relative to where you launched it. If you launched Claude Code from your Desktop, it sees your Desktop as its starting point. If you launched it from a project folder, that folder is its world. This is called the <strong>working directory</strong>, and it's the single most common source of "file not found" errors.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Directory Trees                                   -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">3.2</span> Directory Trees</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>When someone shows you a project or when Claude Code describes a file structure, they use a visual format called a <strong>directory tree</strong>. If you can't read one, you can't understand what a project looks like. If you can't describe one, you can't tell Claude Code how to organize your project.</p>
+
+  <h3>How to Read a Directory Tree</h3>
+
+  <p>A directory tree is a text representation of a folder structure. Here's a simple one:</p>
+
+  <div class="code-label">Directory Tree</div>
+<pre><code>my-project/
+├── index.html
+├── styles.css
+├── scripts/
+│   ├── main.js
+│   └── utils.js
+├── images/
+│   ├── logo.png
+│   └── hero.jpg
+└── README.md</code></pre>
+
+  <p>Here's how to read it:</p>
+  <ul>
+    <li><code>my-project/</code> is the top-level directory (the trailing <code>/</code> means it's a folder, not a file)</li>
+    <li><code>├──</code> means "there's another item after me at this same level"</li>
+    <li><code>└──</code> means "I'm the last item at this level"</li>
+    <li><code>│</code> is a vertical line connecting items in the same parent directory</li>
+    <li>Indentation shows depth &mdash; items indented under a folder live <em>inside</em> that folder</li>
+  </ul>
+
+  <p>So in the tree above: <code>main.js</code> and <code>utils.js</code> live inside the <code>scripts/</code> folder, which itself lives inside <code>my-project/</code>.</p>
+
+  <h3>Key Directories You Need to Know</h3>
+
+  <div class="definition">
+    <p><span class="term">Root directory</span> &mdash; The very top of the file system tree. On macOS/Linux, it's <code>/</code>. On Windows, it's typically <code>C:\</code>. Every path on your computer ultimately traces back here. Think of it as the lobby of the office building.</p>
+  </div>
+
+  <div class="definition">
+    <p><span class="term">Home directory</span> &mdash; Your personal space on the computer. On macOS, it's <code>/Users/yourname</code>. On Windows, it's <code>C:\Users\yourname</code>. On Linux, it's <code>/home/yourname</code>. The shortcut <code>~</code> (tilde) always means "my home directory." When you open a terminal, this is usually where you start.</p>
+  </div>
+
+  <div class="definition">
+    <p><span class="term">Working directory</span> &mdash; The directory your terminal (and Claude Code) is currently "standing in." Every command you run is relative to this location. You can check it with <code>pwd</code> (print working directory).</p>
+  </div>
+
+  <p>The tilde shortcut is one you'll use constantly. Instead of typing your full home directory path, you can just use <code>~</code>:</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'tilde-mac')">macOS / Linux</button>
+      <button onclick="switchTab(event, 'tilde-win')">Windows</button>
+    </div>
+    <div id="tilde-mac" class="os-tab-content active">
+<pre><code><span class="syn-comment"># These two commands do the exact same thing:</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-path">/Users/yourname/Documents/Projects</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-path">~/Documents/Projects</span></code></pre>
+    </div>
+    <div id="tilde-win" class="os-tab-content">
+<pre><code><span class="syn-comment"># In Git Bash or WSL, tilde works the same way:</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-path">/c/Users/yourname/Documents/Projects</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-path">~/Documents/Projects</span>
+
+<span class="syn-comment"># In PowerShell, tilde also works:</span>
+<span class="syn-prompt">PS&gt;</span> <span class="syn-builtin">cd</span> <span class="syn-path">~\Documents\Projects</span></code></pre>
+    </div>
+  </div>
+
+  <p>The tilde just saves you from typing the full path to your home directory. Simple as that.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: Absolute vs. Relative Paths                      -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">3.3</span> Absolute vs. Relative Paths</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Paths are how you tell your computer (and Claude Code) exactly which file you're talking about. Get the path wrong, and you get "file not found." Get it right, and everything works. This is one of the most common sources of frustration for people who haven't learned the difference between absolute and relative paths.</p>
+
+  <div class="analogy">
+    <strong>Analogy: Giving directions.</strong> Imagine someone asks you where a coffee shop is. You could give them the <strong>full street address</strong>: "147 Main Street, Anytown, USA." That works no matter where they're standing &mdash; that's an <strong>absolute path</strong>. Or you could say "walk two blocks north and turn left" &mdash; that only works if they're standing where you think they are. That's a <strong>relative path</strong>.
+  </div>
+
+  <h3>Absolute Paths</h3>
+
+  <p>An absolute path starts from the root of the file system and spells out the complete location. It works no matter where you currently are.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'abs-mac')">macOS / Linux</button>
+      <button onclick="switchTab(event, 'abs-win')">Windows</button>
+    </div>
+    <div id="abs-mac" class="os-tab-content active">
+<pre><code><span class="syn-comment"># Absolute paths always start with /</span>
+<span class="syn-path">/Users/yourname/Projects/my-app/index.html</span>
+<span class="syn-path">/usr/local/bin/node</span>
+<span class="syn-path">/etc/hosts</span></code></pre>
+    </div>
+    <div id="abs-win" class="os-tab-content">
+<pre><code><span class="syn-comment"># Absolute paths start with a drive letter</span>
+<span class="syn-path">C:\Users\yourname\Projects\my-app\index.html</span>
+<span class="syn-path">C:\Program Files\nodejs\node.exe</span>
+<span class="syn-path">C:\Windows\System32\drivers\etc\hosts</span></code></pre>
+    </div>
+  </div>
+
+  <p>Notice the key difference: macOS and Linux use <strong>forward slashes</strong> (<code>/</code>) while Windows traditionally uses <strong>backslashes</strong> (<code>\</code>). This is one of the oldest and most annoying differences in computing. The good news: if you're using Git Bash or WSL on Windows, forward slashes work there too.</p>
+
+  <h3>Relative Paths</h3>
+
+  <p>A relative path describes a file's location <em>relative to where you currently are</em>. It does not start with <code>/</code> or a drive letter.</p>
+
+  <p>Imagine you're currently inside <code>/Users/yourname/Projects/my-app/</code>. Here's how relative paths work:</p>
+
+  <div class="code-label">Relative Paths</div>
+<pre><code><span class="syn-comment"># Refers to a file in the current directory</span>
+<span class="syn-path">index.html</span>
+
+<span class="syn-comment"># Refers to a file in a subdirectory</span>
+<span class="syn-path">scripts/main.js</span>
+
+<span class="syn-comment"># ".." means "go up one level" (to the parent directory)</span>
+<span class="syn-path">../other-project/README.md</span>
+
+<span class="syn-comment"># "." means "the current directory" (often seen in imports)</span>
+<span class="syn-path">./styles.css</span></code></pre>
+
+  <p>The two special symbols are crucial:</p>
+  <ul>
+    <li><code>.</code> (single dot) &mdash; means "right here" (current directory)</li>
+    <li><code>..</code> (double dot) &mdash; means "one level up" (parent directory)</li>
+  </ul>
+
+  <p>You can chain <code>..</code> to go up multiple levels: <code>../../some-file.txt</code> means "go up two directories, then find some-file.txt."</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Claude Code uses relative paths most of the time.</strong> When Claude creates or edits files, it typically works with paths relative to the directory where you launched it. This is why launching Claude Code from the correct directory is so important. If you launch Claude from your home directory and ask it to edit <code>src/app.py</code>, it's looking for <code>~/src/app.py</code>. If your project is actually at <code>~/Projects/my-app/src/app.py</code>, it won't find it.</p>
+  </div>
+
+  <h3>A Concrete Example</h3>
+
+  <p>Say you have this directory structure:</p>
+
+  <div class="code-label">Directory Tree</div>
+<pre><code>my-app/
+├── src/
+│   ├── index.js
+│   └── helpers/
+│       └── math.js
+├── public/
+│   └── index.html
+└── package.json</code></pre>
+
+  <p>If your terminal is currently inside <code>my-app/src/helpers/</code>, here's how different paths resolve:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Path you type</th>
+        <th>What it refers to</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>math.js</code></td>
+        <td><code>my-app/src/helpers/math.js</code></td>
+      </tr>
+      <tr>
+        <td><code>../index.js</code></td>
+        <td><code>my-app/src/index.js</code></td>
+      </tr>
+      <tr>
+        <td><code>../../public/index.html</code></td>
+        <td><code>my-app/public/index.html</code></td>
+      </tr>
+      <tr>
+        <td><code>../../package.json</code></td>
+        <td><code>my-app/package.json</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Each <code>..</code> goes up one level. From <code>helpers/</code>, one <code>..</code> takes you to <code>src/</code>, and another <code>..</code> takes you to <code>my-app/</code>.</p>
+
+  <h3>Common Mistakes</h3>
+
+  <div class="callout warning">
+    <div class="callout-title">Common Gotcha</div>
+    <p><strong>Mixing up absolute and relative paths.</strong> If you see a path that starts with <code>/</code>, it's absolute &mdash; it's going all the way back to the root of your file system, not the root of your project. A path like <code>/src/index.js</code> looks like it should be relative to your project, but that leading <code>/</code> makes it absolute &mdash; it's looking for a <code>src</code> folder at the very top of your file system. You almost certainly meant <code>src/index.js</code> or <code>./src/index.js</code>.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: File Extensions                                   -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">3.4</span> File Extensions and What They Signal</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>File extensions are the suffix after the last dot in a filename: <code>report.pdf</code>, <code>app.py</code>, <code>styles.css</code>. They tell your computer (and you, and Claude Code) what kind of file it is and what program should open it. Using the wrong extension &mdash; or no extension &mdash; can break things silently.</p>
+
+  <h3>The Extensions You'll See Constantly</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Extension</th>
+        <th>What It Is</th>
+        <th>When You'll See It</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>.html</code></td>
+        <td>HyperText Markup Language</td>
+        <td>Web pages &mdash; the structure of what you see in a browser</td>
+      </tr>
+      <tr>
+        <td><code>.css</code></td>
+        <td>Cascading Style Sheets</td>
+        <td>Styling rules &mdash; colors, fonts, layout</td>
+      </tr>
+      <tr>
+        <td><code>.js</code></td>
+        <td>JavaScript</td>
+        <td>Logic and interactivity for web pages (and server-side with Node.js)</td>
+      </tr>
+      <tr>
+        <td><code>.py</code></td>
+        <td>Python</td>
+        <td>Python scripts and applications</td>
+      </tr>
+      <tr>
+        <td><code>.json</code></td>
+        <td>JavaScript Object Notation</td>
+        <td>Configuration files, data storage, API responses</td>
+      </tr>
+      <tr>
+        <td><code>.md</code></td>
+        <td>Markdown</td>
+        <td>Documentation, README files, notes (including CLAUDE.md!)</td>
+      </tr>
+      <tr>
+        <td><code>.yml</code> / <code>.yaml</code></td>
+        <td>YAML</td>
+        <td>Configuration files (Docker, CI/CD pipelines, GitHub Actions)</td>
+      </tr>
+      <tr>
+        <td><code>.env</code></td>
+        <td>Environment variables</td>
+        <td>Secret keys, API tokens, configuration that changes between environments</td>
+      </tr>
+      <tr>
+        <td><code>.gitignore</code></td>
+        <td>Git ignore rules</td>
+        <td>Tells Git which files to not track (more on this later in this level)</td>
+      </tr>
+      <tr>
+        <td><code>.txt</code></td>
+        <td>Plain text</td>
+        <td>Simple text files with no formatting</td>
+      </tr>
+      <tr>
+        <td><code>.csv</code></td>
+        <td>Comma-Separated Values</td>
+        <td>Spreadsheet data exported as text</td>
+      </tr>
+      <tr>
+        <td><code>.sh</code></td>
+        <td>Shell script</td>
+        <td>Automation scripts for the terminal</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>You don't need to memorize this table. The pattern is simple: the extension tells you what language or format the file is written in. When you see an unfamiliar extension, just ask Claude Code: "What is a .toml file?" and it'll explain.</p>
+  </div>
+
+  <h3>What Happens Without the Right Extension</h3>
+
+  <p>File extensions are technically just part of the filename &mdash; they don't magically change the content of a file. But they matter for three practical reasons:</p>
+
+  <ol>
+    <li><strong>Your OS uses them</strong> to decide which program opens the file. Double-click <code>report.pdf</code> and a PDF reader opens. Rename it to <code>report.xyz</code> and your computer has no idea what to do with it.</li>
+    <li><strong>Code editors use them</strong> for syntax highlighting. Name a Python file <code>app.txt</code> and your editor won't color-code it properly, making it harder to read.</li>
+    <li><strong>Build tools and frameworks use them</strong> to know what to do with files. A web server treats <code>.html</code> files differently from <code>.css</code> files. Get the extension wrong and things break.</li>
+  </ol>
+
+  <div class="callout warning">
+    <div class="callout-title">Common Gotcha</div>
+    <p>Files with <strong>no extension at all</strong> are common and intentional in programming. Files like <code>Dockerfile</code>, <code>Makefile</code>, <code>.gitignore</code>, and <code>.env</code> don't have traditional extensions. They're recognized by their exact name, not their suffix. Don't add an extension to these &mdash; <code>Dockerfile.txt</code> will not work.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Naming Conventions                                -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">3.5</span> Naming Conventions</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>You might think naming is just cosmetic &mdash; call a file whatever you want. But naming conventions exist because inconsistent naming causes real problems: broken imports, confusing project structures, and bugs that are hard to track down. When you work with Claude Code, telling it to follow a naming convention means it can be consistent across your entire project.</p>
+
+  <h3>The Four Naming Conventions You Need to Know</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Convention</th>
+        <th>Example</th>
+        <th>Where It's Used</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>kebab-case</strong></td>
+        <td><code>my-cool-project</code></td>
+        <td>HTML files, CSS classes, URLs, folder names, npm packages</td>
+      </tr>
+      <tr>
+        <td><strong>snake_case</strong></td>
+        <td><code>my_cool_project</code></td>
+        <td>Python files, Python variables, Ruby, database columns</td>
+      </tr>
+      <tr>
+        <td><strong>camelCase</strong></td>
+        <td><code>myCoolProject</code></td>
+        <td>JavaScript variables and functions, Java variables</td>
+      </tr>
+      <tr>
+        <td><strong>PascalCase</strong></td>
+        <td><code>MyCoolProject</code></td>
+        <td>React components, class names in most languages, C# everything</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The names describe the visual pattern: kebab-case looks like words on a kebab skewer (hyphens). snake_case crawls along the ground (underscores). camelCase has humps in the middle. PascalCase is like camelCase but starts with a capital letter.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Never put spaces in file or folder names.</strong> Spaces in filenames cause endless problems in the terminal. A file called <code>my project</code> requires special handling every time you reference it (<code>"my project"</code> with quotes, or <code>my\ project</code> with an escape character). Use hyphens or underscores instead: <code>my-project</code> or <code>my_project</code>. This is non-negotiable for any file that will be part of a coding project.</p>
+  </div>
+
+  <h3>Practical Rules of Thumb</h3>
+
+  <ul>
+    <li><strong>Folder names:</strong> use kebab-case (<code>my-project</code>, <code>src</code>, <code>public</code>)</li>
+    <li><strong>HTML/CSS files:</strong> use kebab-case (<code>about-page.html</code>, <code>main-styles.css</code>)</li>
+    <li><strong>JavaScript files:</strong> use camelCase or kebab-case depending on the framework</li>
+    <li><strong>Python files:</strong> use snake_case (<code>data_processor.py</code>, <code>test_utils.py</code>)</li>
+    <li><strong>React component files:</strong> use PascalCase (<code>UserProfile.jsx</code>, <code>NavBar.tsx</code>)</li>
+    <li><strong>When in doubt:</strong> look at what the existing project already uses and match it</li>
+  </ul>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>When starting a new project with Claude Code, include your naming convention in your CLAUDE.md file. Something like: "Use kebab-case for file and folder names. Use camelCase for JavaScript variables." This ensures every file Claude creates follows the same pattern.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Common Project Layouts                            -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">3.6</span> Common Project Layouts</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Every type of project has a conventional structure &mdash; a standard way of organizing files that most developers follow. These aren't rules enforced by the computer. They're conventions that evolved because they work. When you follow them, anyone (including Claude Code) can immediately understand your project. When you don't, you create confusion.</p>
+
+  <p>You've probably already seen this in your own projects. When you asked Claude Code to build your Resy sniper or your apartment dashboard, it created files in specific folders with specific names. It wasn't arbitrary &mdash; it was following conventions.</p>
+
+  <h3>Layout 1: Simple Web Project (HTML/CSS/JS)</h3>
+
+  <p>This is the simplest project structure &mdash; just a website with some pages, styling, and interactivity. If you've built any of your projects as plain web pages, they probably look something like this.</p>
+
+  <div class="code-label">Directory Tree</div>
+<pre><code>my-website/
+├── index.html              <span class="syn-comment"># Homepage — the entry point</span>
+├── about.html              <span class="syn-comment"># Another page</span>
+├── contact.html            <span class="syn-comment"># Another page</span>
+├── css/
+│   └── styles.css          <span class="syn-comment"># All styling rules</span>
+├── js/
+│   ├── main.js             <span class="syn-comment"># Main logic</span>
+│   └── form-validation.js  <span class="syn-comment"># Logic specific to forms</span>
+├── images/
+│   ├── logo.png
+│   └── hero-banner.jpg
+├── favicon.ico             <span class="syn-comment"># The tiny icon in the browser tab</span>
+└── README.md               <span class="syn-comment"># What this project is and how to use it</span></code></pre>
+
+  <p>What each part does:</p>
+  <ul>
+    <li><strong>Root-level HTML files</strong> &mdash; These are the pages themselves. <code>index.html</code> is special: it's the default page that loads when you visit the site.</li>
+    <li><strong><code>css/</code></strong> &mdash; All stylesheets live here, separated from HTML so you can change how things look without touching the structure.</li>
+    <li><strong><code>js/</code></strong> &mdash; All JavaScript lives here. Separating JS from HTML keeps things organized and makes it easy to find logic.</li>
+    <li><strong><code>images/</code></strong> &mdash; All images, logos, and visual assets. Keeps the root directory clean.</li>
+    <li><strong><code>README.md</code></strong> &mdash; A document explaining what this project is. This is the first thing people read when they encounter your project.</li>
+  </ul>
+
+  <h3>Layout 2: Node.js / Python Application</h3>
+
+  <p>When you move beyond simple web pages into applications that run a server, process data, or talk to APIs (like your daily newsletter project likely does), the structure gets a bit more involved.</p>
+
+  <div class="code-label">Directory Tree — Node.js</div>
+<pre><code>newsletter-app/
+├── src/                    <span class="syn-comment"># Source code — the actual application</span>
+│   ├── index.js            <span class="syn-comment"># Entry point — where the app starts</span>
+│   ├── routes/             <span class="syn-comment"># URL handlers (what happens when you visit /api/news)</span>
+│   │   └── news.js
+│   ├── services/           <span class="syn-comment"># Business logic (fetching, filtering, sending)</span>
+│   │   ├── fetcher.js
+│   │   └── emailer.js
+│   └── utils/              <span class="syn-comment"># Helper functions used everywhere</span>
+│       └── format-date.js
+├── tests/                  <span class="syn-comment"># Automated tests</span>
+│   └── fetcher.test.js
+├── config/                 <span class="syn-comment"># Configuration files</span>
+│   └── default.json
+├── .env                    <span class="syn-comment"># Secret keys (API tokens, passwords) — NEVER commit this</span>
+├── .gitignore              <span class="syn-comment"># Tells Git what to ignore</span>
+├── package.json            <span class="syn-comment"># Project metadata + list of dependencies</span>
+├── package-lock.json       <span class="syn-comment"># Exact versions of all dependencies</span>
+└── README.md</code></pre>
+
+  <p>And the Python equivalent:</p>
+
+  <div class="code-label">Directory Tree — Python</div>
+<pre><code>newsletter-app/
+├── src/                    <span class="syn-comment"># Source code</span>
+│   ├── __init__.py         <span class="syn-comment"># Makes this directory a Python "package"</span>
+│   ├── main.py             <span class="syn-comment"># Entry point</span>
+│   ├── fetcher.py          <span class="syn-comment"># Fetch news from sources</span>
+│   ├── emailer.py          <span class="syn-comment"># Send the newsletter</span>
+│   └── utils.py            <span class="syn-comment"># Helper functions</span>
+├── tests/
+│   └── test_fetcher.py
+├── .env                    <span class="syn-comment"># Secret keys — NEVER commit this</span>
+├── .gitignore
+├── requirements.txt        <span class="syn-comment"># Python's dependency list (like package.json)</span>
+└── README.md</code></pre>
+
+  <p>Key patterns to notice:</p>
+  <ul>
+    <li><strong><code>src/</code></strong> &mdash; All application code goes here, separate from configuration, tests, and metadata</li>
+    <li><strong><code>tests/</code></strong> &mdash; Tests live in a parallel structure, not mixed with source code</li>
+    <li><strong><code>.env</code></strong> &mdash; Secrets and environment-specific configuration live here and must never be committed to Git</li>
+    <li><strong><code>package.json</code> / <code>requirements.txt</code></strong> &mdash; Lists the external libraries your project depends on</li>
+  </ul>
+
+  <h3>Layout 3: Multi-Component System</h3>
+
+  <p>Bigger projects have multiple pieces that work together. Maybe a web frontend, a backend API, and a shared database. This is closer to what production software looks like.</p>
+
+  <div class="code-label">Directory Tree</div>
+<pre><code>apartment-tracker/
+├── frontend/               <span class="syn-comment"># The web UI your users see</span>
+│   ├── src/
+│   │   ├── components/     <span class="syn-comment"># Reusable UI pieces</span>
+│   │   │   ├── ListingCard.jsx
+│   │   │   └── FilterBar.jsx
+│   │   ├── pages/          <span class="syn-comment"># Full page views</span>
+│   │   │   ├── Home.jsx
+│   │   │   └── Favorites.jsx
+│   │   ├── App.jsx         <span class="syn-comment"># Root component</span>
+│   │   └── index.js        <span class="syn-comment"># Entry point</span>
+│   ├── public/
+│   │   └── index.html
+│   └── package.json
+├── backend/                <span class="syn-comment"># The server that handles data and logic</span>
+│   ├── src/
+│   │   ├── routes/
+│   │   │   ├── listings.js
+│   │   │   └── users.js
+│   │   ├── models/         <span class="syn-comment"># Database schemas</span>
+│   │   │   └── listing.js
+│   │   ├── services/
+│   │   │   └── scraper.js
+│   │   └── index.js
+│   ├── .env
+│   └── package.json
+├── shared/                 <span class="syn-comment"># Code used by both frontend and backend</span>
+│   └── constants.js
+├── scripts/                <span class="syn-comment"># Automation scripts</span>
+│   ├── seed-database.sh
+│   └── deploy.sh
+├── .gitignore
+├── CLAUDE.md               <span class="syn-comment"># Instructions for Claude Code</span>
+└── README.md</code></pre>
+
+  <p>The key insight here is <strong>separation of concerns</strong>. The frontend doesn't know how the backend works, and the backend doesn't care about how things look. Each piece has its own <code>src/</code> folder, its own dependencies (<code>package.json</code>), and its own internal structure. The <code>shared/</code> folder holds anything both sides need.</p>
+
+  <div class="callout info">
+    <div class="callout-title">Note</div>
+    <p>Notice how CLAUDE.md sits at the project root, not inside any subfolder. This is intentional &mdash; it gives Claude Code a bird's-eye view of the entire project. You'll learn all about CLAUDE.md in Level 4.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Why Organization Matters at Scale                 -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">3.7</span> Why Organization Matters at Scale</h2>
+
+  <h3>What Happens Without Structure</h3>
+
+  <p>When a project is small &mdash; a few files, a single purpose &mdash; organization doesn't seem important. You can find everything because there's not much to find. But projects grow. Your Resy sniper started as maybe one or two files. What happens when you want to add notification support, a web dashboard, user accounts, and scheduled runs?</p>
+
+  <p>Without structure, here's what happens:</p>
+
+  <ul>
+    <li><strong>Files pile up in the root directory.</strong> You end up with 30 files all in one folder. Finding anything requires scrolling and guessing.</li>
+    <li><strong>Naming becomes inconsistent.</strong> Some files use hyphens, some use underscores, some use camelCase. Is it <code>send-email.js</code> or <code>emailSender.js</code> or <code>email_utils.py</code>?</li>
+    <li><strong>You duplicate code</strong> because you can't find the helper function you already wrote, so you write it again in a different file.</li>
+    <li><strong>Claude Code gets confused.</strong> When Claude reads your project structure, unclear organization means unclear instructions. It might create a file in the wrong directory, or miss an existing utility because it was buried in an unexpected location.</li>
+  </ul>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Claude Code reads your project structure to understand your project.</strong> When you ask Claude to add a feature, one of the first things it does is look at your directory tree. A clean structure tells Claude instantly where to put new code, what patterns to follow, and what already exists. A messy structure forces Claude to guess &mdash; and guessing means mistakes. Investing 10 minutes organizing your project saves hours of fixing misplaced files later.</p>
+  </div>
+
+  <h3>How Claude Code Navigates Your Project</h3>
+
+  <p>When you give Claude Code a task, here's roughly what happens behind the scenes:</p>
+
+  <ol>
+    <li>Claude looks at your project's file tree to understand the overall structure</li>
+    <li>It reads key files (like CLAUDE.md, package.json, or README.md) for context</li>
+    <li>It identifies which files are relevant to your request</li>
+    <li>It reads those specific files</li>
+    <li>It makes changes, following the patterns it observed</li>
+  </ol>
+
+  <p>If step 1 gives Claude a clear, conventional structure, everything else goes smoothly. If step 1 shows a jumbled mess, Claude has to spend more of its limited context window just figuring out where things are &mdash; which means less capacity for actually solving your problem.</p>
+
+  <h3>How CLAUDE.md References Structure</h3>
+
+  <p>In Level 4, you'll write a CLAUDE.md file that tells Claude how your project is organized. That file often includes something like:</p>
+
+  <div class="code-label">Markdown — CLAUDE.md excerpt</div>
+<pre><code><span class="syn-comment">## File Structure</span>
+<span class="syn-keyword">-</span> <span class="syn-path">src/</span> — All application source code
+<span class="syn-keyword">-</span> <span class="syn-path">src/routes/</span> — Express route handlers
+<span class="syn-keyword">-</span> <span class="syn-path">src/services/</span> — Business logic
+<span class="syn-keyword">-</span> <span class="syn-path">tests/</span> — Test files (mirror src/ structure)
+<span class="syn-keyword">-</span> <span class="syn-path">scripts/</span> — Build and deploy automation</code></pre>
+
+  <p>This only works if your project actually follows that structure. CLAUDE.md describes reality &mdash; it doesn't create it. You need to organize first, then document.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Hidden Files and .gitignore                       -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">3.8</span> Hidden Files and .gitignore</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>You've probably noticed that some files and folders in the directory trees above start with a dot: <code>.env</code>, <code>.gitignore</code>, <code>.git/</code>. These are <strong>hidden files</strong> and <strong>hidden directories</strong>. They won't show up in your regular file browser by default, and they won't show up with a basic <code>ls</code> command in the terminal. But they're critically important.</p>
+
+  <h3>What Makes a File "Hidden"</h3>
+
+  <p>On macOS and Linux, any file or folder whose name starts with a dot (<code>.</code>) is hidden. That's it &mdash; there's no special attribute or setting. Just the dot prefix. On Windows, hidden files work differently (it's a file property), but the dot-prefix convention is still followed for programming-related hidden files.</p>
+
+  <p>To see hidden files in the terminal, use <code>ls -a</code> (the <code>-a</code> flag means "all," including hidden files):</p>
+
+  <div class="code-label">Terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">ls</span> <span class="syn-flag">-a</span>
+<span class="syn-path">.</span>  <span class="syn-path">..</span>  <span class="syn-path">.git</span>  <span class="syn-path">.env</span>  <span class="syn-path">.gitignore</span>  <span class="syn-path">.claude</span>  <span class="syn-path">src</span>  <span class="syn-path">package.json</span>  <span class="syn-path">README.md</span></code></pre>
+
+  <p>Notice <code>.</code> and <code>..</code> in the output &mdash; those are the "current directory" and "parent directory" shortcuts you learned about in Section 3.3. They're technically hidden directory entries that exist in every single directory.</p>
+
+  <h3>Important Hidden Files and Directories</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>What It Is</th>
+        <th>Why It's Hidden</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>.git/</code></td>
+        <td>Git's internal database for your project</td>
+        <td>It's managed by Git, not you. Messing with it can corrupt your version history.</td>
+      </tr>
+      <tr>
+        <td><code>.env</code></td>
+        <td>Environment variables (secrets, API keys)</td>
+        <td>Contains sensitive information that should never be shared or committed.</td>
+      </tr>
+      <tr>
+        <td><code>.gitignore</code></td>
+        <td>Rules telling Git which files to ignore</td>
+        <td>It's project configuration, not project content.</td>
+      </tr>
+      <tr>
+        <td><code>.claude/</code></td>
+        <td>Claude Code's local configuration and state</td>
+        <td>Internal to Claude Code &mdash; you usually don't need to touch it.</td>
+      </tr>
+      <tr>
+        <td><code>.vscode/</code></td>
+        <td>VS Code editor settings for this project</td>
+        <td>Editor-specific configuration.</td>
+      </tr>
+      <tr>
+        <td><code>node_modules/</code></td>
+        <td>Downloaded dependencies for Node.js projects</td>
+        <td>Not hidden by the dot convention, but functionally treated as "don't touch" &mdash; it's auto-generated.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>What .gitignore Does</h3>
+
+  <p>The <code>.gitignore</code> file tells Git to pretend certain files don't exist. When you commit your code, Git will skip anything that matches a pattern in <code>.gitignore</code>.</p>
+
+  <p>Why would you want to ignore files? Several reasons:</p>
+
+  <ul>
+    <li><strong>Secrets</strong> &mdash; <code>.env</code> files contain API keys and passwords. Committing them means anyone with access to your Git history can see them. Ever.</li>
+    <li><strong>Generated files</strong> &mdash; <code>node_modules/</code> can contain thousands of files totaling hundreds of megabytes. They can be regenerated from <code>package.json</code> with a single command.</li>
+    <li><strong>System files</strong> &mdash; <code>.DS_Store</code> (macOS) and <code>Thumbs.db</code> (Windows) are OS-generated junk files that have no business in your code.</li>
+    <li><strong>Build output</strong> &mdash; Compiled or bundled files (like a <code>dist/</code> folder) can be regenerated and don't need to be tracked.</li>
+  </ul>
+
+  <p>Here's what a typical <code>.gitignore</code> looks like:</p>
+
+  <div class="code-label">.gitignore</div>
+<pre><code><span class="syn-comment"># Dependencies</span>
+<span class="syn-path">node_modules/</span>
+
+<span class="syn-comment"># Environment variables (secrets!)</span>
+<span class="syn-path">.env</span>
+<span class="syn-path">.env.local</span>
+
+<span class="syn-comment"># Build output</span>
+<span class="syn-path">dist/</span>
+<span class="syn-path">build/</span>
+
+<span class="syn-comment"># OS-generated files</span>
+<span class="syn-path">.DS_Store</span>
+<span class="syn-path">Thumbs.db</span>
+
+<span class="syn-comment"># Editor directories</span>
+<span class="syn-path">.vscode/</span>
+<span class="syn-path">.idea/</span>
+
+<span class="syn-comment"># Logs</span>
+<span class="syn-path">*.log</span></code></pre>
+
+  <p>Each line is a pattern. <code>node_modules/</code> ignores that entire directory. <code>*.log</code> ignores any file ending in <code>.log</code>. Lines starting with <code>#</code> are comments.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Always create a <code>.gitignore</code> before your first commit.</strong> If you accidentally commit your <code>.env</code> file with API keys in it, removing it later doesn't erase it from Git history &mdash; it's still there, visible to anyone who knows where to look. Prevention is far easier than cleanup. When you start a new project with Claude Code, one of your first instructions should be: "Create a .gitignore file appropriate for this project."</p>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>GitHub maintains a great collection of <code>.gitignore</code> templates for every language and framework at <code>github.com/github/gitignore</code>. You can also ask Claude Code to generate one: "Create a .gitignore for a Node.js project with React frontend" and it'll produce a comprehensive one.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT                                           -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <div class="checkpoint-icon">&#9997;</div>
+      <h3>Checkpoint Project: The Renovation</h3>
+    </div>
+
+    <p>Time to prove you understand project structure. You're going to take a deliberate disaster of a file listing and reorganize it into a clean, conventional structure using Claude Code &mdash; then explain every decision you made.</p>
+
+    <h4>The Scenario</h4>
+    <p>You've inherited a project from someone who dumped every file into a single folder with no organization, inconsistent naming, and zero structure. Your job is to turn this chaos into a professional project layout.</p>
+
+    <h4>The Messy File Listing</h4>
+    <p>Here are the 22 files you're starting with, all sitting in one flat directory called <code>messy-project/</code>:</p>
+
+<pre><code>messy-project/
+├── APP.JS
+├── homePage.HTML
+├── about page.html
+├── STYLES.CSS
+├── mobile styles.css
+├── contactform.js
+├── Logo.PNG
+├── hero_background.jpg
+├── Team Photo.jpeg
+├── README
+├── helpers.py
+├── dataParser.py
+├── test data parser.py
+├── API_KEY=sk-12345678
+├── config.json
+├── .DS_Store
+├── old_version_backup.html
+├── notes to self.txt
+├── UserModel.js
+├── database-setup.js
+├── package.json
+└── LICENCE</code></pre>
+
+    <h4>What to Build</h4>
+    <ol>
+      <li><strong>Create the messy project:</strong> Ask Claude Code to create a directory called <code>messy-project</code> with all 22 files listed above (they can have placeholder content).</li>
+      <li><strong>Plan the renovation:</strong> Before reorganizing, write out your planned directory tree. Decide what conventions you'll use, which files need renaming, which need to be in subdirectories, and which shouldn't exist at all.</li>
+      <li><strong>Reorganize with Claude Code:</strong> Tell Claude Code to restructure the project according to your plan. This means renaming files, creating directories, moving files, creating a proper <code>.gitignore</code>, and creating a proper <code>.env</code> file from that exposed API key.</li>
+      <li><strong>Write the explanation:</strong> Create a file called <code>renovation-notes.md</code> in the reorganized project that explains every choice: why you renamed each file, why you chose that folder structure, what naming convention you're using and why, what you deleted and why, and what you added (like <code>.gitignore</code>) and why.</li>
+    </ol>
+
+    <h4>Hints</h4>
+    <ul>
+      <li>That <code>API_KEY=sk-12345678</code> file is a problem on multiple levels &mdash; what should you do with it?</li>
+      <li>The project has both Python and JavaScript &mdash; how should you separate them?</li>
+      <li><code>.DS_Store</code> and <code>notes to self.txt</code> don't belong in a project &mdash; handle them differently though</li>
+      <li>Think about which file extensions are missing or wrong</li>
+      <li><code>old_version_backup.html</code> &mdash; is this something you need in a well-organized project with Git?</li>
+    </ul>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>All files follow a consistent naming convention (no spaces, no ALLCAPS, no mixed conventions)</li>
+      <li>Files are organized into logical subdirectories (not all in the root)</li>
+      <li>A <code>.gitignore</code> exists and correctly ignores <code>.env</code>, <code>node_modules/</code>, <code>.DS_Store</code>, and other non-source files</li>
+      <li>The exposed API key is moved into a proper <code>.env</code> file, and the original file is deleted</li>
+      <li><code>renovation-notes.md</code> explains the reasoning behind every structural and naming choice (not just what you did, but <em>why</em>)</li>
+      <li>The final directory tree is something a developer would immediately recognize as well-organized</li>
+      <li>File extensions are correct for every file (no missing <code>.md</code>, no <code>.HTML</code> uppercase extensions)</li>
+    </ul>
+
+    <div class="time-estimate">Estimated time: 30 &ndash; 45 minutes</div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-02.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-04.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+<script>
+function switchTab(event, tabId) {
+  const tabContainer = event.target.closest('.os-tabs');
+  tabContainer.querySelectorAll('.os-tab-buttons button').forEach(btn => btn.classList.remove('active'));
+  tabContainer.querySelectorAll('.os-tab-content').forEach(content => content.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 11: Hooks — Automation at Every Step | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-10.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-12.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 11</div>
+    <h1>Hooks: Automation at Every Step</h1>
+    <p class="level-subtitle">You've been driving Claude Code manually &mdash; watching it work, approving actions, checking results. Hooks let you wire in automatic behaviors that fire every time certain events happen, without you lifting a finger. Think auto-formatting, quality gates, audit logging, and guardrails that prevent costly mistakes.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: What Are Hooks? -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">11.1</span> What Hooks Are</h2>
+
+  <h3>Why This Matters</h3>
+  <p>Right now, every quality check you want to run &mdash; formatting code, running tests, blocking writes to certain files &mdash; requires you to either remember to do it or tell Claude to do it. That's manual, error-prone, and doesn't scale. Hooks make these checks automatic. Once configured, they fire every time, no reminders needed.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Analogy: Motion sensors in a building.</strong> When someone walks through a doorway, the motion sensor detects it and triggers an action &mdash; turn on the lights, sound an alarm, log the entry. You don't have to press a switch. The sensor watches, the action fires. Hooks work the same way: when Claude Code does something (reads a file, writes code, finishes a task), your hook detects it and runs whatever command you've configured. Automatically. Every time.
+  </div>
+
+  <h3>The Technical Definition</h3>
+
+  <div class="definition">
+    <p><span class="term">Hook</span> &mdash; A user-defined shell command that Claude Code automatically executes when a specific event occurs during its lifecycle. Hooks receive information about the event via JSON on stdin and can influence Claude Code's behavior through their exit code and output.</p>
+  </div>
+
+  <p>Hooks are not prompts. They're not instructions to Claude. They are real shell commands &mdash; <code>bash</code> scripts, <code>python</code> scripts, compiled binaries, whatever you want &mdash; that Claude Code's runtime executes directly. This means hooks run with your system's full power: file access, network calls, package managers, everything.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Hooks execute as <strong>shell commands on your machine</strong>, not as prompts to Claude. This means they're fast, deterministic, and can do anything your terminal can do. It also means a misconfigured hook can break your workflow, so test carefully.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: The Event Lifecycle -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">11.2</span> The Event Lifecycle</h2>
+
+  <p>Hooks don't fire randomly. They fire at specific, well-defined moments in Claude Code's execution. Understanding <em>when</em> each event fires is the key to writing hooks that do the right thing at the right time.</p>
+
+  <h3>The Five Hook Events</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>When It Fires</th>
+        <th>Can Block?</th>
+        <th>Typical Use</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>PreToolUse</code></td>
+        <td>Before a tool is executed</td>
+        <td>Yes</td>
+        <td>Block dangerous operations, validate inputs</td>
+      </tr>
+      <tr>
+        <td><code>PostToolUse</code></td>
+        <td>After a tool finishes executing</td>
+        <td>No</td>
+        <td>Auto-format, lint, log, notify</td>
+      </tr>
+      <tr>
+        <td><code>Notification</code></td>
+        <td>When Claude Code sends a notification</td>
+        <td>No</td>
+        <td>Custom notification routing</td>
+      </tr>
+      <tr>
+        <td><code>Stop</code></td>
+        <td>When the main Claude agent stops</td>
+        <td>No</td>
+        <td>Summary, cleanup, notification</td>
+      </tr>
+      <tr>
+        <td><code>SubagentStop</code></td>
+        <td>When a subagent finishes its task</td>
+        <td>No</td>
+        <td>Subagent result validation</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Understanding Event Flow</h3>
+
+  <p>Here's what happens when Claude Code decides to, say, write a file. The events fire in this order:</p>
+
+  <div class="code-label">event flow</div>
+  <pre><code><span class="syn-comment"># Claude decides to use the Write tool</span>
+
+<span class="syn-number">1.</span> <span class="syn-keyword">PreToolUse</span> fires  &rarr;  Your hook can <span class="syn-string">inspect</span> or <span class="syn-string">block</span>
+<span class="syn-number">2.</span> <span class="syn-comment">(if not blocked)</span> The tool runs &rarr;  File gets written
+<span class="syn-number">3.</span> <span class="syn-keyword">PostToolUse</span> fires &rarr;  Your hook can <span class="syn-string">react</span> (format, lint, log)
+
+<span class="syn-comment"># When Claude finishes its entire response:</span>
+<span class="syn-number">4.</span> <span class="syn-keyword">Stop</span> fires         &rarr;  Your hook can <span class="syn-string">summarize</span> or <span class="syn-string">notify</span></code></pre>
+
+  <p>The critical distinction: <code>PreToolUse</code> fires <em>before</em> the action happens, which means it can prevent the action entirely. Every other event fires <em>after</em> something has already happened, so it can only react.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><code>PreToolUse</code> is your only chance to <strong>stop</strong> an action before it happens. If you want guardrails that prevent mistakes (not just detect them after the fact), <code>PreToolUse</code> is the event you need.</p>
+  </div>
+
+  <h3>What Tools Can You Hook Into?</h3>
+
+  <p>Each tool in Claude Code has a name. When you configure a hook, you can target specific tools. Here are the most common ones:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tool Name</th>
+        <th>What It Does</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Write</code></td>
+        <td>Creates or overwrites a file</td>
+      </tr>
+      <tr>
+        <td><code>Edit</code></td>
+        <td>Modifies part of an existing file</td>
+      </tr>
+      <tr>
+        <td><code>Bash</code></td>
+        <td>Runs a shell command</td>
+      </tr>
+      <tr>
+        <td><code>Read</code></td>
+        <td>Reads file contents</td>
+      </tr>
+      <tr>
+        <td><code>Glob</code></td>
+        <td>Searches for files by pattern</td>
+      </tr>
+      <tr>
+        <td><code>Grep</code></td>
+        <td>Searches file contents</td>
+      </tr>
+      <tr>
+        <td><code>Task</code></td>
+        <td>Spawns a subagent</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>You can also use a wildcard to match <em>all</em> tools, which is useful for logging and auditing.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: Hook Configuration -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">11.3</span> Hook Configuration</h2>
+
+  <h3>Where Hooks Live</h3>
+
+  <p>Hooks are defined in your <code>settings.json</code> file. You have three levels of scope, just like other Claude Code settings:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Scope</th>
+        <th>Location</th>
+        <th>Applies To</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Project</td>
+        <td><code>.claude/settings.json</code> (in project root)</td>
+        <td>This project only</td>
+      </tr>
+      <tr>
+        <td>User</td>
+        <td><code>~/.claude/settings.json</code></td>
+        <td>All your projects</td>
+      </tr>
+      <tr>
+        <td>Enterprise</td>
+        <td>Managed by your organization</td>
+        <td>All users in the org</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>For most people starting out, project-level hooks make the most sense. They travel with the project and don't affect your other work.</p>
+
+  <h3>The Configuration Format</h3>
+
+  <p>Every hook configuration has the same structure. Here's the skeleton with every field explained:</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"hooks"</span>: {
+    <span class="syn-property">"<span class="syn-keyword">EventName</span>"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"ToolName"</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"shell command to run"</span>
+      }
+    ]
+  }
+}</code></pre>
+
+  <p>Let's break down each field:</p>
+
+  <ul>
+    <li><strong><code>"hooks"</code></strong> &mdash; The top-level key. All hook definitions live under this.</li>
+    <li><strong><code>"EventName"</code></strong> &mdash; One of the five events: <code>PreToolUse</code>, <code>PostToolUse</code>, <code>Notification</code>, <code>Stop</code>, or <code>SubagentStop</code>.</li>
+    <li><strong><code>"matcher"</code></strong> &mdash; Which tool(s) this hook applies to. Use a specific tool name like <code>"Write"</code>, or omit it / use <code>""</code> to match all tools. Only relevant for <code>PreToolUse</code> and <code>PostToolUse</code>.</li>
+    <li><strong><code>"command"</code></strong> &mdash; The shell command that gets executed. This is run via your system shell.</li>
+  </ul>
+
+  <p>You can define multiple hooks for the same event. They all run, in the order they're listed.</p>
+
+  <h3>A Complete, Real Configuration</h3>
+
+  <p>Here's what a project's <code>.claude/settings.json</code> might look like with multiple hooks defined:</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"hooks"</span>: {
+    <span class="syn-property">"PreToolUse"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Write"</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"python3 .claude/hooks/block-protected.py"</span>
+      }
+    ],
+    <span class="syn-property">"PostToolUse"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Write"</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"npx prettier --write $CLAUDE_FILE_PATH"</span>
+      },
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">""</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"python3 .claude/hooks/log-tool-call.py"</span>
+      }
+    ],
+    <span class="syn-property">"Stop"</span>: [
+      {
+        <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/notify-done.sh"</span>
+      }
+    ]
+  }
+}</code></pre>
+
+  <p>This configuration sets up four hooks: one guardrail (<code>PreToolUse</code> that blocks writes to protected paths), one auto-formatter (<code>PostToolUse</code> on Write), one audit logger (<code>PostToolUse</code> on all tools), and one completion notifier (<code>Stop</code>). We'll build each of these later in this level.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: Hook Input and Output -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">11.4</span> Hook Input and Output</h2>
+
+  <h3>What Your Hook Receives</h3>
+
+  <p>When Claude Code runs your hook, it passes information about the event as <strong>JSON on stdin</strong>. Your hook script reads from stdin to learn what happened.</p>
+
+  <p>The exact shape of the JSON depends on the event, but for <code>PreToolUse</code> and <code>PostToolUse</code> (the most common), it looks like this:</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"tool_name"</span>: <span class="syn-string">"Write"</span>,
+  <span class="syn-property">"tool_input"</span>: {
+    <span class="syn-property">"file_path"</span>: <span class="syn-string">"/Users/you/project/src/app.js"</span>,
+    <span class="syn-property">"content"</span>: <span class="syn-string">"const express = require('express');\n..."</span>
+  }
+}</code></pre>
+
+  <p>For <code>PostToolUse</code>, you also get the result of the tool execution:</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"tool_name"</span>: <span class="syn-string">"Write"</span>,
+  <span class="syn-property">"tool_input"</span>: {
+    <span class="syn-property">"file_path"</span>: <span class="syn-string">"/Users/you/project/src/app.js"</span>,
+    <span class="syn-property">"content"</span>: <span class="syn-string">"const express = require('express');\n..."</span>
+  },
+  <span class="syn-property">"tool_result"</span>: {
+    <span class="syn-property">"success"</span>: <span class="syn-keyword">true</span>
+  }
+}</code></pre>
+
+  <p>For <code>Stop</code> and <code>SubagentStop</code>, the JSON contains a summary of the stop reason and the transcript of what happened.</p>
+
+  <h3>How Your Hook Responds</h3>
+
+  <p>Your hook communicates back to Claude Code in two ways: <strong>exit codes</strong> and <strong>stdout</strong>.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>For <code>PreToolUse</code> hooks, the <strong>exit code</strong> is everything:</p>
+    <ul>
+      <li><strong>Exit code 0</strong> &mdash; Allow the tool to proceed normally.</li>
+      <li><strong>Exit code 2</strong> &mdash; <strong>Block the tool</strong>. The action is prevented. Whatever your hook prints to stdout becomes the reason shown to Claude (so it understands why the action was blocked and can adjust).</li>
+      <li><strong>Any other non-zero exit code</strong> &mdash; Hook error. The tool still proceeds, but the error is logged.</li>
+    </ul>
+  </div>
+
+  <p>For <code>PostToolUse</code>, <code>Stop</code>, and <code>SubagentStop</code> hooks, the exit code doesn't block anything (the action already happened). But stdout is still fed back to Claude as context, which can influence its next decision.</p>
+
+  <p>Here's a simple example of reading the input and deciding whether to block. This is a Python script that blocks writes to any path containing <code>/protected/</code>:</p>
+
+  <div class="code-label">python</div>
+  <pre><code><span class="syn-keyword">import</span> sys, json
+
+<span class="syn-comment"># Read the event data from stdin</span>
+<span class="syn-variable">data</span> = json.<span class="syn-function">load</span>(sys.stdin)
+
+<span class="syn-comment"># Extract the file path from the tool input</span>
+<span class="syn-variable">file_path</span> = data[<span class="syn-string">"tool_input"</span>].<span class="syn-function">get</span>(<span class="syn-string">"file_path"</span>, <span class="syn-string">""</span>)
+
+<span class="syn-comment"># Check if the path is in a protected directory</span>
+<span class="syn-keyword">if</span> <span class="syn-string">"/protected/"</span> <span class="syn-keyword">in</span> file_path:
+    <span class="syn-function">print</span>(<span class="syn-string">"BLOCKED: Cannot write to /protected/ directory."</span>)
+    sys.<span class="syn-function">exit</span>(<span class="syn-number">2</span>)  <span class="syn-comment"># Exit code 2 = block the action</span>
+
+<span class="syn-comment"># Exit code 0 = allow the action</span>
+sys.<span class="syn-function">exit</span>(<span class="syn-number">0</span>)</code></pre>
+
+  <p>The script reads JSON from stdin, checks the file path, and exits with code 2 if the path is in a protected directory. Exit code 0 means "all clear, proceed." The printed message tells Claude <em>why</em> the write was blocked, so it can adjust its approach rather than blindly retrying.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Practical Hook Examples -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">11.5</span> Practical Hook Examples</h2>
+
+  <p>Theory is nice, but hooks are a tool. Let's build real ones. Each example below includes the full configuration and the hook script, with explanations.</p>
+
+  <!-- Example 1: Auto-format -->
+  <h3>Example 1: Auto-Format Code After Every File Write</h3>
+
+  <p>Every time Claude writes or creates a file, this hook runs Prettier on it so the code is always consistently formatted. No more "can you fix the formatting?" follow-up prompts.</p>
+
+  <p>First, the configuration in <code>.claude/settings.json</code>:</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"hooks"</span>: {
+    <span class="syn-property">"PostToolUse"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Write"</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/autoformat.sh"</span>
+      },
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Edit"</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/autoformat.sh"</span>
+      }
+    ]
+  }
+}</code></pre>
+
+  <p>This tells Claude Code: "After every Write or Edit tool call, run my autoformat script." Now the script itself:</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .claude/hooks/autoformat.sh</span>
+<span class="syn-comment"># Auto-format files after Claude writes them</span>
+
+<span class="syn-comment"># Read the JSON input from stdin</span>
+<span class="syn-variable">INPUT</span>=$(<span class="syn-builtin">cat</span>)
+
+<span class="syn-comment"># Extract the file path using jq</span>
+<span class="syn-variable">FILE_PATH</span>=$(<span class="syn-builtin">echo</span> <span class="syn-string">"$INPUT"</span> | jq -r <span class="syn-string">'.tool_input.file_path'</span>)
+
+<span class="syn-comment"># Only format if the file exists and has a known extension</span>
+<span class="syn-keyword">if</span> [[ -f <span class="syn-string">"$FILE_PATH"</span> ]]; <span class="syn-keyword">then</span>
+  <span class="syn-comment"># Run Prettier (handles .js, .ts, .css, .html, .json, etc.)</span>
+  npx prettier --write <span class="syn-string">"$FILE_PATH"</span> <span class="syn-number">2>/dev/null</span>
+
+  <span class="syn-keyword">if</span> [[ $? -eq <span class="syn-number">0</span> ]]; <span class="syn-keyword">then</span>
+    <span class="syn-builtin">echo</span> <span class="syn-string">"Formatted: $FILE_PATH"</span>
+  <span class="syn-keyword">fi</span>
+<span class="syn-keyword">fi</span></code></pre>
+
+  <p>What's happening: the script reads JSON from stdin, extracts the file path with <code>jq</code>, and runs Prettier on it. The <code>2>/dev/null</code> suppresses error output for file types Prettier doesn't know (like <code>.py</code> files). If you use Python projects, you'd swap Prettier for <code>black</code> or <code>ruff format</code>.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>Make sure your hook scripts are executable. On macOS/Linux, run <code>chmod +x .claude/hooks/autoformat.sh</code>. On Windows with Git Bash, this is handled automatically.</p>
+  </div>
+
+  <!-- Example 2: Block writes to protected directory -->
+  <h3>Example 2: Block Writes to a Protected Directory</h3>
+
+  <p>Sometimes you have files that should never be modified by Claude &mdash; production configs, migration files that have already run, generated code that gets overwritten by a build process. This hook prevents writes to any path matching a protected pattern.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"hooks"</span>: {
+    <span class="syn-property">"PreToolUse"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Write"</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"python3 .claude/hooks/block-protected.py"</span>
+      },
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Edit"</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"python3 .claude/hooks/block-protected.py"</span>
+      }
+    ]
+  }
+}</code></pre>
+
+  <p>The hook applies to both <code>Write</code> and <code>Edit</code> because both can modify files. Here's the script:</p>
+
+  <div class="code-label">python</div>
+  <pre><code><span class="syn-comment">#!/usr/bin/env python3</span>
+<span class="syn-comment"># .claude/hooks/block-protected.py</span>
+<span class="syn-comment"># Block writes to protected directories</span>
+
+<span class="syn-keyword">import</span> sys, json
+
+<span class="syn-comment"># Define which directories are off-limits</span>
+<span class="syn-variable">PROTECTED_PATHS</span> = [
+    <span class="syn-string">"/protected/"</span>,
+    <span class="syn-string">"/migrations/production/"</span>,
+    <span class="syn-string">"/generated/"</span>,
+    <span class="syn-string">"/.env"</span>,
+]
+
+<span class="syn-comment"># Read event data from stdin</span>
+<span class="syn-variable">data</span> = json.<span class="syn-function">load</span>(sys.stdin)
+<span class="syn-variable">file_path</span> = data.<span class="syn-function">get</span>(<span class="syn-string">"tool_input"</span>, {}).<span class="syn-function">get</span>(<span class="syn-string">"file_path"</span>, <span class="syn-string">""</span>)
+
+<span class="syn-comment"># Check each protected path pattern</span>
+<span class="syn-keyword">for</span> pattern <span class="syn-keyword">in</span> PROTECTED_PATHS:
+    <span class="syn-keyword">if</span> pattern <span class="syn-keyword">in</span> file_path:
+        <span class="syn-function">print</span>(<span class="syn-string">f"BLOCKED: '{file_path}' is in a protected area."</span>)
+        <span class="syn-function">print</span>(<span class="syn-string">f"Protected pattern matched: '{pattern}'"</span>)
+        <span class="syn-function">print</span>(<span class="syn-string">"These files should not be modified by Claude."</span>)
+        sys.<span class="syn-function">exit</span>(<span class="syn-number">2</span>)  <span class="syn-comment"># Exit code 2 = block</span>
+
+<span class="syn-comment"># Not protected, allow it</span>
+sys.<span class="syn-function">exit</span>(<span class="syn-number">0</span>)</code></pre>
+
+  <p>When this hook fires, it checks the file path against a list of protected patterns. If any pattern matches, it exits with code 2, which tells Claude Code to block the write. The printed messages go back to Claude as feedback, so it knows why the action was blocked and can try writing to a different location.</p>
+
+  <!-- Example 3: Log all tool calls -->
+  <h3>Example 3: Log All Tool Calls to an Audit File</h3>
+
+  <p>Want a record of everything Claude does in your project? This hook appends a timestamped entry to an <code>audit.log</code> file for every single tool call.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"hooks"</span>: {
+    <span class="syn-property">"PostToolUse"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">""</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"python3 .claude/hooks/audit-log.py"</span>
+      }
+    ]
+  }
+}</code></pre>
+
+  <p>An empty string for <code>matcher</code> means "match every tool." Here's the script:</p>
+
+  <div class="code-label">python</div>
+  <pre><code><span class="syn-comment">#!/usr/bin/env python3</span>
+<span class="syn-comment"># .claude/hooks/audit-log.py</span>
+<span class="syn-comment"># Log every tool call to audit.log</span>
+
+<span class="syn-keyword">import</span> sys, json
+<span class="syn-keyword">from</span> datetime <span class="syn-keyword">import</span> datetime
+
+<span class="syn-comment"># Read event data</span>
+<span class="syn-variable">data</span> = json.<span class="syn-function">load</span>(sys.stdin)
+
+<span class="syn-comment"># Extract relevant fields</span>
+<span class="syn-variable">tool_name</span> = data.<span class="syn-function">get</span>(<span class="syn-string">"tool_name"</span>, <span class="syn-string">"unknown"</span>)
+<span class="syn-variable">tool_input</span> = data.<span class="syn-function">get</span>(<span class="syn-string">"tool_input"</span>, {})
+<span class="syn-variable">timestamp</span> = datetime.<span class="syn-function">now</span>().<span class="syn-function">isoformat</span>()
+
+<span class="syn-comment"># Build a one-line summary</span>
+<span class="syn-keyword">if</span> tool_name <span class="syn-keyword">in</span> (<span class="syn-string">"Write"</span>, <span class="syn-string">"Edit"</span>, <span class="syn-string">"Read"</span>):
+    <span class="syn-variable">summary</span> = tool_input.<span class="syn-function">get</span>(<span class="syn-string">"file_path"</span>, <span class="syn-string">"no path"</span>)
+<span class="syn-keyword">elif</span> tool_name == <span class="syn-string">"Bash"</span>:
+    <span class="syn-variable">cmd</span> = tool_input.<span class="syn-function">get</span>(<span class="syn-string">"command"</span>, <span class="syn-string">""</span>)
+    <span class="syn-variable">summary</span> = cmd[:<span class="syn-number">80</span>] + (<span class="syn-string">"..."</span> <span class="syn-keyword">if</span> <span class="syn-builtin">len</span>(cmd) > <span class="syn-number">80</span> <span class="syn-keyword">else</span> <span class="syn-string">""</span>)
+<span class="syn-keyword">else</span>:
+    <span class="syn-variable">summary</span> = json.<span class="syn-function">dumps</span>(tool_input)[:<span class="syn-number">80</span>]
+
+<span class="syn-comment"># Append to audit log</span>
+<span class="syn-variable">log_line</span> = <span class="syn-string">f"[{timestamp}] {tool_name}: {summary}\n"</span>
+<span class="syn-keyword">with</span> <span class="syn-builtin">open</span>(<span class="syn-string">"audit.log"</span>, <span class="syn-string">"a"</span>) <span class="syn-keyword">as</span> f:
+    f.<span class="syn-function">write</span>(log_line)</code></pre>
+
+  <p>Every tool call generates a line like this in your <code>audit.log</code>:</p>
+
+  <div class="code-label">log</div>
+  <pre><code><span class="syn-comment">[2026-03-03T14:22:01.123456] Write: /Users/you/project/src/app.js</span>
+<span class="syn-comment">[2026-03-03T14:22:03.456789] Bash: npm test</span>
+<span class="syn-comment">[2026-03-03T14:22:10.789012] Read: /Users/you/project/package.json</span>
+<span class="syn-comment">[2026-03-03T14:22:12.345678] Edit: /Users/you/project/src/utils.js</span></code></pre>
+
+  <p>This gives you a timestamped trail of everything Claude did. Useful for debugging, compliance, or just understanding what happened in a long session.</p>
+
+  <!-- Example 4: Run linting after code changes -->
+  <h3>Example 4: Run Linting After Code Changes</h3>
+
+  <p>Auto-formatting fixes style. Linting catches actual problems &mdash; unused variables, missing imports, potential bugs. This hook runs ESLint after every file write and feeds the results back to Claude.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"hooks"</span>: {
+    <span class="syn-property">"PostToolUse"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Write"</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/lint.sh"</span>
+      }
+    ]
+  }
+}</code></pre>
+
+  <p>And the linting script:</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .claude/hooks/lint.sh</span>
+<span class="syn-comment"># Run ESLint on written files and feed results back to Claude</span>
+
+<span class="syn-variable">INPUT</span>=$(<span class="syn-builtin">cat</span>)
+<span class="syn-variable">FILE_PATH</span>=$(<span class="syn-builtin">echo</span> <span class="syn-string">"$INPUT"</span> | jq -r <span class="syn-string">'.tool_input.file_path'</span>)
+
+<span class="syn-comment"># Only lint JavaScript/TypeScript files</span>
+<span class="syn-keyword">case</span> <span class="syn-string">"$FILE_PATH"</span> <span class="syn-keyword">in</span>
+  *.js|*.jsx|*.ts|*.tsx)
+    <span class="syn-variable">RESULT</span>=$(npx eslint <span class="syn-string">"$FILE_PATH"</span> <span class="syn-number">2>&1</span>)
+    <span class="syn-keyword">if</span> [[ $? -ne <span class="syn-number">0</span> ]]; <span class="syn-keyword">then</span>
+      <span class="syn-builtin">echo</span> <span class="syn-string">"ESLint found issues in $FILE_PATH:"</span>
+      <span class="syn-builtin">echo</span> <span class="syn-string">"$RESULT"</span>
+    <span class="syn-keyword">else</span>
+      <span class="syn-builtin">echo</span> <span class="syn-string">"Lint passed: $FILE_PATH"</span>
+    <span class="syn-keyword">fi</span>
+    ;;
+<span class="syn-keyword">esac</span></code></pre>
+
+  <p>When ESLint finds issues, the output goes to stdout, which Claude Code feeds back to Claude as context. Claude sees the lint errors and can immediately fix them &mdash; without you having to say "run the linter" or "fix the lint errors." The feedback loop is automatic.</p>
+
+  <!-- Example 5: Notification when task completes -->
+  <h3>Example 5: Send a Notification When a Long Task Completes</h3>
+
+  <p>You've asked Claude to refactor a large codebase and walked away to make coffee. This hook pings you when the work is done.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"hooks"</span>: {
+    <span class="syn-property">"Stop"</span>: [
+      {
+        <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/notify-done.sh"</span>
+      }
+    ]
+  }
+}</code></pre>
+
+  <p>Notice there's no <code>matcher</code> for <code>Stop</code> events &mdash; they don't apply to specific tools. The <code>Stop</code> event fires once, when Claude finishes its response. Here's the notification script:</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'notify-mac')">macOS</button>
+      <button onclick="switchTab(event, 'notify-win')">Windows</button>
+    </div>
+    <div id="notify-mac" class="os-tab-content active">
+      <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .claude/hooks/notify-done.sh (macOS)</span>
+
+<span class="syn-comment"># Read the stop event data</span>
+<span class="syn-variable">INPUT</span>=$(<span class="syn-builtin">cat</span>)
+<span class="syn-variable">REASON</span>=$(<span class="syn-builtin">echo</span> <span class="syn-string">"$INPUT"</span> | jq -r <span class="syn-string">'.stop_reason // "completed"'</span>)
+
+<span class="syn-comment"># macOS system notification</span>
+osascript -e <span class="syn-string">"display notification \"Claude finished ($REASON)\" with title \"Claude Code\""</span>
+
+<span class="syn-comment"># Optional: play a sound</span>
+afplay /System/Library/Sounds/Glass.aiff &</code></pre>
+    </div>
+    <div id="notify-win" class="os-tab-content">
+      <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .claude/hooks/notify-done.sh (Windows / Git Bash)</span>
+
+<span class="syn-comment"># Read the stop event data</span>
+<span class="syn-variable">INPUT</span>=$(<span class="syn-builtin">cat</span>)
+<span class="syn-variable">REASON</span>=$(<span class="syn-builtin">echo</span> <span class="syn-string">"$INPUT"</span> | jq -r <span class="syn-string">'.stop_reason // "completed"'</span>)
+
+<span class="syn-comment"># Windows toast notification via PowerShell</span>
+powershell.exe -Command <span class="syn-string">"
+  [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+  \$template = [Windows.UI.Notifications.ToastTemplateType]::ToastText01
+  \$xml = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent(\$template)
+  \$xml.GetElementsByTagName('text')[0].AppendChild(\$xml.CreateTextNode('Claude finished ($REASON)'))
+  \$notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Code')
+  \$notifier.Show([Windows.UI.Notifications.ToastNotification]::new(\$xml))
+"</span></code></pre>
+    </div>
+  </div>
+
+  <p>Now you'll get a system notification whenever Claude finishes a task. On macOS you also get a satisfying glass sound effect. Walk away with confidence.</p>
+
+  <!-- Example 6: Quality gate -->
+  <h3>Example 6: Quality Gate &mdash; Reject Code That Doesn't Pass Tests</h3>
+
+  <p>This is the most powerful pattern. A <code>PreToolUse</code> hook that blocks Claude from finishing until the tests pass. Claude writes code, tries to commit or move on, and the hook says "not so fast &mdash; tests are failing."</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"hooks"</span>: {
+    <span class="syn-property">"PostToolUse"</span>: [
+      {
+        <span class="syn-property">"matcher"</span>: <span class="syn-string">"Write"</span>,
+        <span class="syn-property">"command"</span>: <span class="syn-string">"bash .claude/hooks/run-tests.sh"</span>
+      }
+    ]
+  }
+}</code></pre>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .claude/hooks/run-tests.sh</span>
+<span class="syn-comment"># Run tests after every file write and report results to Claude</span>
+
+<span class="syn-variable">INPUT</span>=$(<span class="syn-builtin">cat</span>)
+<span class="syn-variable">FILE_PATH</span>=$(<span class="syn-builtin">echo</span> <span class="syn-string">"$INPUT"</span> | jq -r <span class="syn-string">'.tool_input.file_path'</span>)
+
+<span class="syn-comment"># Only run tests for source files, not configs or docs</span>
+<span class="syn-keyword">case</span> <span class="syn-string">"$FILE_PATH"</span> <span class="syn-keyword">in</span>
+  *.js|*.ts|*.jsx|*.tsx|*.py)
+    <span class="syn-variable">RESULT</span>=$(npm test <span class="syn-number">2>&1</span>)
+    <span class="syn-variable">EXIT_CODE</span>=$?
+
+    <span class="syn-keyword">if</span> [[ <span class="syn-variable">$EXIT_CODE</span> -ne <span class="syn-number">0</span> ]]; <span class="syn-keyword">then</span>
+      <span class="syn-builtin">echo</span> <span class="syn-string">"TESTS FAILING after writing $FILE_PATH"</span>
+      <span class="syn-builtin">echo</span> <span class="syn-string">"Test output:"</span>
+      <span class="syn-builtin">echo</span> <span class="syn-string">"$RESULT"</span> | tail -<span class="syn-number">30</span>
+      <span class="syn-builtin">echo</span> <span class="syn-string">""</span>
+      <span class="syn-builtin">echo</span> <span class="syn-string">"Please fix the failing tests before moving on."</span>
+    <span class="syn-keyword">else</span>
+      <span class="syn-builtin">echo</span> <span class="syn-string">"All tests passing."</span>
+    <span class="syn-keyword">fi</span>
+    ;;
+<span class="syn-keyword">esac</span></code></pre>
+
+  <p>This is a <code>PostToolUse</code> hook (not <code>PreToolUse</code>), so it doesn't block the write itself &mdash; Claude can write the file, but immediately sees "TESTS FAILING" as feedback. Since this output goes back to Claude as context, Claude will read the test failures and fix the code. It creates an automatic test-driven development loop.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>The auto-fix loop:</strong> When a <code>PostToolUse</code> hook reports problems via stdout, Claude sees that output and naturally tries to fix the issues. You don't need to tell it "fix the tests" &mdash; the feedback loop is automatic. This is one of the most powerful patterns in Claude Code.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: When Hooks Help vs. Add Friction -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">11.6</span> When Hooks Help vs. Add Friction</h2>
+
+  <p>It's tempting to hook everything. Don't. Every hook adds execution time, and a slow feedback loop makes Claude Code feel sluggish and costs more tokens (because Claude has to process more context with each step).</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Good Uses for Hooks</h4>
+      <ul>
+        <li>Auto-formatting (fast, deterministic)</li>
+        <li>Blocking writes to truly protected files</li>
+        <li>Audit logging (append-only, fast)</li>
+        <li>Notifications on completion</li>
+        <li>Lightweight linting on changed files only</li>
+      </ul>
+    </div>
+    <div class="comparison-col">
+      <h4>Bad Uses for Hooks</h4>
+      <ul>
+        <li>Running full test suites on every write</li>
+        <li>Heavy static analysis on every tool call</li>
+        <li>Network calls that might timeout</li>
+        <li>Hooks that prompt for user input</li>
+        <li>Anything that takes more than 5-10 seconds</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><strong>Hooks that are too slow will wreck your workflow.</strong> If a PostToolUse hook takes 30 seconds to run, Claude Code waits for it after every single tool call. For a task that involves 20 file writes, that's 10 minutes of waiting. Use hooks for fast, targeted operations. For heavy checks, consider running them only on <code>Stop</code> (which fires once) instead of <code>PostToolUse</code> (which fires on every tool call).</p>
+  </div>
+
+  <h3>The Rule of Thumb</h3>
+
+  <p>Ask yourself: "Would I do this manually after every single Claude action?" If the answer is yes (like formatting), hook it. If the answer is "only at the end" (like a full test run), use the <code>Stop</code> event. If the answer is "only sometimes" &mdash; don't hook it at all. Just ask Claude when you need it.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Debugging Hooks -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">11.7</span> Debugging Hooks</h2>
+
+  <p>Hooks run silently in the background. When one breaks, it can be confusing &mdash; either nothing happens (the hook crashed), or unexpected behavior occurs (the hook is doing something wrong). Here's how to diagnose problems.</p>
+
+  <h3>Common Issues</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Symptom</th>
+        <th>Likely Cause</th>
+        <th>Fix</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Hook doesn't fire at all</td>
+        <td>Wrong event name or typo in settings.json</td>
+        <td>Check event name is exactly <code>PreToolUse</code>, <code>PostToolUse</code>, etc. (case-sensitive)</td>
+      </tr>
+      <tr>
+        <td>Hook fires but does nothing</td>
+        <td>Script not executable or wrong path</td>
+        <td>Run <code>chmod +x</code> on the script; verify the path is relative to project root</td>
+      </tr>
+      <tr>
+        <td>PreToolUse doesn't block</td>
+        <td>Wrong exit code (using 1 instead of 2)</td>
+        <td>Use <code>exit 2</code> to block, not <code>exit 1</code></td>
+      </tr>
+      <tr>
+        <td>Hook errors out</td>
+        <td>Missing dependency (jq, prettier, etc.)</td>
+        <td>Test the command manually in your terminal first</td>
+      </tr>
+      <tr>
+        <td>Hook runs on wrong tool</td>
+        <td>Matcher is too broad or misspelled</td>
+        <td>Tool names are case-sensitive: <code>Write</code> not <code>write</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Testing Hooks Manually</h3>
+
+  <p>You don't have to wait for Claude Code to trigger your hook. You can test it directly by piping fake JSON data to it.</p>
+
+  <p>Create a test JSON file that mimics what Claude Code would send:</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-comment"># Create test input</span>
+<span class="syn-builtin">echo</span> <span class="syn-string">'{"tool_name":"Write","tool_input":{"file_path":"/your/project/protected/secret.env","content":"API_KEY=abc123"}}'</span> \
+  | python3 .claude/hooks/block-protected.py
+
+<span class="syn-comment"># Check the exit code</span>
+<span class="syn-builtin">echo</span> <span class="syn-string">"Exit code: $?"</span></code></pre>
+
+  <p>If the hook is working correctly, you should see the "BLOCKED" message and exit code 2. This lets you iterate on your hook logic without running Claude Code at all.</p>
+
+  <h3>Adding Debug Logging</h3>
+
+  <p>When a hook is misbehaving, add temporary logging to see what data it's actually receiving:</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># Temporary debug version of a hook</span>
+
+<span class="syn-variable">INPUT</span>=$(<span class="syn-builtin">cat</span>)
+
+<span class="syn-comment"># Log the raw input to a debug file</span>
+<span class="syn-builtin">echo</span> <span class="syn-string">"=== $(date) ==="</span> >> .claude/hooks/debug.log
+<span class="syn-builtin">echo</span> <span class="syn-string">"$INPUT"</span> >> .claude/hooks/debug.log
+<span class="syn-builtin">echo</span> <span class="syn-string">""</span> >> .claude/hooks/debug.log
+
+<span class="syn-comment"># ... rest of your hook logic</span></code></pre>
+
+  <p>Check <code>.claude/hooks/debug.log</code> to see the exact JSON your hook received. This immediately tells you whether the data structure matches what your code expects.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Hooks vs. Other Approaches -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">11.8</span> Hooks vs. Other Approaches</h2>
+
+  <p>Hooks aren't the only way to automate behavior in Claude Code. Here's when to use each approach.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Best For</th>
+        <th>Limitations</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Hooks</strong></td>
+        <td>Automatic, deterministic reactions to events. Guardrails, formatting, logging.</td>
+        <td>Must be fast. Can't do complex reasoning. No access to Claude's thinking.</td>
+      </tr>
+      <tr>
+        <td><strong>CLAUDE.md</strong></td>
+        <td>Guiding Claude's behavior with instructions. "Always write tests." "Use this naming convention."</td>
+        <td>Claude can forget or misinterpret. Not enforced &mdash; just suggested.</td>
+      </tr>
+      <tr>
+        <td><strong>MCP Servers</strong></td>
+        <td>Giving Claude new tools. Database access, API calls, external services.</td>
+        <td>Tools that Claude <em>chooses</em> to use. Not automatic &mdash; Claude decides when to call them.</td>
+      </tr>
+      <tr>
+        <td><strong>Manual checks</strong></td>
+        <td>One-off, complex, judgment-heavy decisions.</td>
+        <td>Requires you to be present and remember to do it.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-title">How to decide</div>
+    <p>Use this quick test: <strong>"Does this need to happen every single time, automatically, with no exceptions?"</strong> If yes, use a hook. <strong>"Does this guide how Claude thinks about a task?"</strong> Use CLAUDE.md. <strong>"Does this give Claude a new capability it calls on demand?"</strong> Use MCP. <strong>"Is this a one-time judgment call?"</strong> Just do it manually.</p>
+  </div>
+
+  <h3>Combining Approaches</h3>
+
+  <p>The real power comes from combining these. Here's a pattern that uses all of them together:</p>
+
+  <ul>
+    <li><strong>CLAUDE.md</strong> says: "Always write tests for new functions."</li>
+    <li><strong>Hook (PostToolUse)</strong> runs the test suite after every write and feeds failures back to Claude.</li>
+    <li><strong>Hook (PreToolUse)</strong> blocks writes to <code>/production/</code> so Claude can't accidentally deploy.</li>
+    <li><strong>MCP server</strong> gives Claude access to a database for integration testing.</li>
+  </ul>
+
+  <p>Each layer covers a different kind of automation. CLAUDE.md guides <em>intent</em>, hooks enforce <em>rules</em>, and MCP provides <em>capabilities</em>.</p>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#127937;</span>
+      <h3>Checkpoint Project: The Guardrails</h3>
+    </div>
+
+    <h4>What to Build</h4>
+    <p>Configure a real project with three working hooks that demonstrate the core hook patterns. You'll create the hooks directory, write the scripts, configure settings.json, and verify that each hook fires correctly.</p>
+
+    <h4>The Three Hooks</h4>
+    <ol>
+      <li><strong>Auto-format on write</strong> &mdash; A <code>PostToolUse</code> hook on <code>Write</code> and <code>Edit</code> that runs a code formatter (Prettier, Black, or any formatter you have installed) on the written file.</li>
+      <li><strong>Block protected directory</strong> &mdash; A <code>PreToolUse</code> hook on <code>Write</code> and <code>Edit</code> that rejects any write to a <code>/protected/</code> directory with exit code 2 and a clear message.</li>
+      <li><strong>Audit logging</strong> &mdash; A <code>PostToolUse</code> hook with an empty matcher that logs a timestamped one-line summary of every tool call to an <code>audit.log</code> file.</li>
+    </ol>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>Your <code>.claude/settings.json</code> contains all three hooks configured correctly with proper event names, matchers, and commands.</li>
+      <li>When you ask Claude to write a JavaScript file, it gets automatically formatted by Prettier (or equivalent) after creation &mdash; check the file to confirm formatting is applied.</li>
+      <li>When you ask Claude to write a file inside a <code>/protected/</code> directory, the write is blocked and Claude explains that it couldn't write there.</li>
+      <li>After running several Claude commands, your <code>audit.log</code> contains timestamped entries for every tool call &mdash; including Read, Write, Bash, and any other tools Claude used.</li>
+      <li>You can manually test each hook script by piping JSON to stdin and verifying the correct exit code and output.</li>
+      <li>All three hooks can coexist in the same <code>settings.json</code> without interfering with each other.</li>
+    </ul>
+
+    <h4>Step-by-Step Approach</h4>
+    <ol>
+      <li>Create a test project directory with a <code>.claude/hooks/</code> subdirectory.</li>
+      <li>Write the three hook scripts (use the examples in this level as a starting point, but type them yourself &mdash; don't just copy).</li>
+      <li>Create <code>.claude/settings.json</code> with all three hooks configured.</li>
+      <li>Test each hook manually using piped JSON before testing with Claude.</li>
+      <li>Open Claude Code in your test project and verify each hook fires correctly.</li>
+      <li>Create a <code>protected/</code> directory with a dummy file and confirm Claude can't modify it.</li>
+    </ol>
+
+    <div class="time-estimate">
+      <span>&#9201;</span> Estimated time: 60&ndash;90 minutes
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-10.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-12.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+<script>
+function switchTab(event, tabId) {
+  // Find the parent os-tabs container
+  const container = event.target.closest('.os-tabs');
+
+  // Deactivate all buttons in this container
+  container.querySelectorAll('.os-tab-buttons button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  // Deactivate all content in this container
+  container.querySelectorAll('.os-tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+
+  // Activate the clicked button
+  event.target.classList.add('active');
+
+  // Activate the matching content
+  document.getElementById(tabId).classList.add('active');
+}
+</script>
+
+</body>
+</html>

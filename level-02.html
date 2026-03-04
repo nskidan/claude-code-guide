@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 02: How Claude Code Actually Works — Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-01.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-03.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 02</div>
+    <h1>How Claude Code Actually Works</h1>
+    <p class="level-subtitle">The tool-use loop, the context window, how Claude reads and writes files, and what happens when you press Enter. This is the foundation of everything that follows.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: THE BIG PICTURE -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.1</span> The Big Picture</h2>
+
+  <h3>Why this matters</h3>
+
+  <p>You've already used Claude Code to build things. You've typed prompts, watched it create files, and seen the results. But you may have noticed moments where it behaves in ways that feel unpredictable: sometimes it seems to "forget" what you told it, sometimes it asks for permission when you wish it wouldn't, and sometimes it nails a complex task in one shot.</p>
+
+  <p>None of this is random. Once you understand the machinery behind what Claude Code is doing, you stop guessing and start driving. This level gives you the mental model that turns you from a passenger into a pilot.</p>
+
+  <h3>The contractor analogy</h3>
+
+  <div class="analogy">
+    <strong>Mental Model:</strong> Claude Code is not a chatbot. Think of it as a <strong>skilled contractor</strong> you've hired. This contractor can read blueprints (your files), use power tools (bash commands, file editors), check their own work (read files back, run tests), and talk to you when they need clarification. They show up each morning with a fresh memory — they don't remember yesterday's work unless you left notes on the job site.
+  </div>
+
+  <p>A chatbot just talks. Claude Code <strong>acts</strong>. It reads your codebase, writes files, executes commands, checks results, and iterates. The technical term for this is an <strong>agent</strong> — an AI system that can use tools to accomplish tasks, not just generate text.</p>
+
+  <div class="definition">
+    <p><span class="term">Agent</span> — An AI system that can perceive its environment, make decisions, and take actions using tools. Claude Code is an agent: it reads files, writes code, runs commands, and decides what to do next based on the results.</p>
+  </div>
+
+  <h3>What makes Claude Code different from Claude.ai</h3>
+
+  <p>When you chat with Claude on claude.ai, you're having a conversation. Claude reads your messages and writes responses. That's it — the conversation <em>is</em> the entire interaction.</p>
+
+  <p>Claude Code wraps that same intelligence in a <strong>tool-using harness</strong>. It can:</p>
+
+  <ul>
+    <li><strong>Read files</strong> on your computer</li>
+    <li><strong>Write and edit files</strong> on your computer</li>
+    <li><strong>Run bash/shell commands</strong> (install packages, run scripts, start servers)</li>
+    <li><strong>Search your codebase</strong> (grep, glob, find patterns)</li>
+    <li><strong>Use external tools</strong> via MCP (you'll learn about this in Level 10)</li>
+    <li><strong>Spawn sub-agents</strong> to handle parts of a task (Level 12)</li>
+  </ul>
+
+  <p>The chat-only Claude is like a consultant who gives advice over the phone. Claude Code is that same consultant sitting at your workstation, hands on keyboard, building alongside you.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: THE TOOL-USE LOOP -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.2</span> The Tool-Use Loop</h2>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>The tool-use loop is the single most important concept in this entire guide. Every frustration, every success, every optimization technique you'll learn later comes back to understanding this loop. If you internalize one thing from this page, make it this section.</p>
+  </div>
+
+  <h3>Why this matters</h3>
+
+  <p>When you type a prompt in Claude Code and press Enter, you're not just sending a message — you're kicking off a cycle that might repeat dozens of times before Claude gives you a final answer. Understanding this cycle is the key to understanding why Claude Code does what it does.</p>
+
+  <h3>The kitchen analogy</h3>
+
+  <div class="analogy">
+    <strong>Mental Model:</strong> Imagine you're the head chef, and Claude is your sous chef. You say, "Make me a risotto." The sous chef doesn't just blurt out a recipe — they open the fridge (read files), check what ingredients are available (search the codebase), start cooking (write files, run commands), taste as they go (check results), adjust seasoning (edit files), and finally plate the dish (respond to you). Each step informs the next. That's the tool-use loop.
+  </div>
+
+  <h3>The loop, step by step</h3>
+
+  <p>Here's exactly what happens when you type a prompt and press Enter. Every single interaction follows this pattern:</p>
+
+  <div class="callout info">
+    <div class="callout-title">The Loop Visualized</div>
+    <p><strong>Step 1:</strong> You send a message<br>
+    <strong>Step 2:</strong> Claude receives your message + the system prompt + CLAUDE.md + the full conversation history<br>
+    <strong>Step 3:</strong> Claude thinks about what to do (this is where extended thinking happens)<br>
+    <strong>Step 4:</strong> Claude decides to either respond directly OR call a tool<br>
+    <strong>Step 5:</strong> If Claude calls a tool, the tool runs and the result goes back to Claude<br>
+    <strong>Step 6:</strong> Go back to Step 3 — Claude thinks about the tool result and decides what to do next<br>
+    <strong>Step 7:</strong> Eventually, Claude has enough information to respond to you directly. The loop ends.</p>
+  </div>
+
+  <p>The critical insight: <strong>Steps 3-6 can repeat many times in a single turn.</strong> When you ask Claude Code to "add a dark mode toggle to my app," you might see it:</p>
+
+  <ol>
+    <li>Read your CSS file (tool call #1)</li>
+    <li>Read your HTML file (tool call #2)</li>
+    <li>Read your JavaScript file (tool call #3)</li>
+    <li>Write the new CSS for dark mode (tool call #4)</li>
+    <li>Edit the HTML to add a toggle button (tool call #5)</li>
+    <li>Write the JavaScript logic (tool call #6)</li>
+    <li>Run the app to check for errors (tool call #7)</li>
+    <li>Fix a bug it found (tool call #8)</li>
+    <li>Finally respond: "Done! Here's what I changed..."</li>
+  </ol>
+
+  <p>That's eight tool calls in a single turn. Each time, Claude saw the result of the previous tool and decided what to do next. That's the loop in action.</p>
+
+  <h3>The tools Claude Code uses</h3>
+
+  <p>Here are the main tools available to Claude Code. Each time Claude decides to "call a tool," it's choosing from this list:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tool</th>
+        <th>What It Does</th>
+        <th>Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Read</strong></td>
+        <td>Reads a file's contents into context</td>
+        <td>Read <code>styles.css</code> to understand existing styles</td>
+      </tr>
+      <tr>
+        <td><strong>Write</strong></td>
+        <td>Creates a new file or completely replaces a file</td>
+        <td>Create <code>index.html</code> from scratch</td>
+      </tr>
+      <tr>
+        <td><strong>Edit</strong></td>
+        <td>Makes targeted changes to a specific part of a file</td>
+        <td>Change line 42 of <code>app.js</code></td>
+      </tr>
+      <tr>
+        <td><strong>Bash</strong></td>
+        <td>Runs a shell command</td>
+        <td><code>npm install</code>, <code>python app.py</code></td>
+      </tr>
+      <tr>
+        <td><strong>Glob</strong></td>
+        <td>Finds files matching a pattern</td>
+        <td>Find all <code>*.html</code> files in the project</td>
+      </tr>
+      <tr>
+        <td><strong>Grep</strong></td>
+        <td>Searches file contents for text patterns</td>
+        <td>Find every file that mentions "API_KEY"</td>
+      </tr>
+      <tr>
+        <td><strong>Task</strong></td>
+        <td>Spawns a sub-agent for isolated work</td>
+        <td>Delegate "write all unit tests" to a sub-agent</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Every time you see Claude Code doing something — reading a file, creating a file, running a command — it's making a tool call. And after every tool call, it gets the result back and decides what to do next. That's the loop.</p>
+
+  <h3>What this looks like in practice</h3>
+
+  <p>Let's trace through a real example. Say you type this prompt:</p>
+
+  <div class="code-label">Your prompt</div>
+  <pre><code>Add a footer with copyright info to index.html</code></pre>
+
+  <p>Here's what happens behind the scenes:</p>
+
+  <div class="code-label">Claude's internal process (simplified)</div>
+  <pre><code><span class="syn-comment">// Step 1: Claude receives your prompt + system context + CLAUDE.md</span>
+
+<span class="syn-comment">// Step 2: Claude thinks — "I need to see the current index.html first"</span>
+<span class="syn-keyword">Tool call:</span> <span class="syn-function">Read</span>(<span class="syn-string">"index.html"</span>)
+<span class="syn-comment">// → Result: the full contents of index.html come back</span>
+
+<span class="syn-comment">// Step 3: Claude thinks — "OK, I see the structure. I'll add a footer</span>
+<span class="syn-comment">//   before the closing body tag. Let me also check styles.css for</span>
+<span class="syn-comment">//   any existing footer styles."</span>
+<span class="syn-keyword">Tool call:</span> <span class="syn-function">Read</span>(<span class="syn-string">"styles.css"</span>)
+<span class="syn-comment">// → Result: the full contents of styles.css come back</span>
+
+<span class="syn-comment">// Step 4: Claude thinks — "No footer styles exist. I'll edit</span>
+<span class="syn-comment">//   index.html to add the footer and styles.css for the styling."</span>
+<span class="syn-keyword">Tool call:</span> <span class="syn-function">Edit</span>(<span class="syn-string">"index.html"</span>, add footer before &lt;/body&gt;)
+<span class="syn-comment">// → Result: file updated successfully</span>
+
+<span class="syn-keyword">Tool call:</span> <span class="syn-function">Edit</span>(<span class="syn-string">"styles.css"</span>, add footer styles)
+<span class="syn-comment">// → Result: file updated successfully</span>
+
+<span class="syn-comment">// Step 5: Claude responds to you with a summary of what it did</span></code></pre>
+
+  <p>Notice the pattern: think, act, observe, think, act, observe, respond. This is the heartbeat of every Claude Code interaction. Once you see it, you can't unsee it.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>When Claude Code seems to be "taking a while," it's not stuck — it's looping. It's reading, writing, checking, and iterating. You can watch the tool calls scroll by in your terminal to see exactly where it is in the loop.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: THE CONTEXT WINDOW -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.3</span> The Context Window</h2>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>The context window is the single biggest constraint you'll work with in Claude Code. It shapes how you prompt, how you structure projects, when things go wrong, and how you fix them. Understanding it is not optional — it's the difference between frustration and mastery.</p>
+  </div>
+
+  <h3>Why this matters</h3>
+
+  <p>If you've ever had Claude Code "forget" something you told it earlier, or produce worse output toward the end of a long session, or suddenly start making mistakes on tasks it handled perfectly an hour ago — you've been bitten by the context window. Once you understand what it is, these problems go from mysterious to manageable.</p>
+
+  <h3>The desk analogy</h3>
+
+  <div class="analogy">
+    <strong>Mental Model:</strong> Imagine Claude's brain as a <strong>physical desk</strong>. Everything Claude needs to think about — your messages, the files it has read, the results of commands it has run, its own previous responses — all of this has to fit on the desk. The desk is big but <strong>it has edges</strong>. When the desk fills up, things start falling off the far side. Claude doesn't choose what falls off — the oldest stuff goes first. And once it's off the desk, it's gone.
+  </div>
+
+  <h3>How big is the desk?</h3>
+
+  <p>The context window is measured in <strong>tokens</strong>. A token is roughly 3/4 of a word — so "Hello, how are you?" is about 6 tokens. Claude's context window is approximately <strong>200,000 tokens</strong>, which sounds like a lot. But it fills up much faster than you'd think.</p>
+
+  <p>Here's a rough sense of scale:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Content</th>
+        <th>Approximate Token Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>A short prompt ("Fix the bug in app.js")</td>
+        <td>~10 tokens</td>
+      </tr>
+      <tr>
+        <td>A detailed prompt (paragraph of instructions)</td>
+        <td>~100-300 tokens</td>
+      </tr>
+      <tr>
+        <td>A small file (~50 lines of code)</td>
+        <td>~500 tokens</td>
+      </tr>
+      <tr>
+        <td>A medium file (~200 lines of code)</td>
+        <td>~2,000 tokens</td>
+      </tr>
+      <tr>
+        <td>A large file (~1000 lines of code)</td>
+        <td>~10,000 tokens</td>
+      </tr>
+      <tr>
+        <td>The system prompt + CLAUDE.md</td>
+        <td>~2,000-5,000 tokens</td>
+      </tr>
+      <tr>
+        <td>A bash command output (e.g., <code>npm install</code>)</td>
+        <td>~500-5,000 tokens</td>
+      </tr>
+      <tr>
+        <td>Full conversation after 30 minutes of back-and-forth</td>
+        <td>~50,000-150,000 tokens</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>See the problem? If Claude reads five large files and runs a few commands, you might be halfway through the context window before you've even started the real work.</p>
+
+  <h3>What fills up the context window</h3>
+
+  <p>Everything that Claude can "see" lives in the context window. Here's what goes in, roughly in this order:</p>
+
+  <ol>
+    <li><strong>The system prompt</strong> — Instructions from Anthropic about how Claude should behave (always present)</li>
+    <li><strong>Your CLAUDE.md</strong> — Your project instructions (always present if the file exists)</li>
+    <li><strong>Your first message</strong> — Whatever you typed</li>
+    <li><strong>Claude's first response</strong> — Including any tool calls it decided to make</li>
+    <li><strong>Tool results</strong> — The contents of files it read, the output of commands it ran</li>
+    <li><strong>Your next message</strong></li>
+    <li><strong>Claude's next response</strong></li>
+    <li><strong>More tool results...</strong></li>
+    <li>And so on, back and forth, until the window fills up</li>
+  </ol>
+
+  <p>The critical point: <strong>every file Claude reads stays in the context window for the rest of the conversation.</strong> If Claude reads a 1,000-line file at the start of your session, those ~10,000 tokens are sitting on the desk for every subsequent turn, taking up space, even if you're now working on something completely different.</p>
+
+  <h3>What happens when it fills up: /compact</h3>
+
+  <p>When the context window gets close to full, Claude Code has a mechanism called <strong>compaction</strong>. You can trigger it manually by typing <code>/compact</code>, or Claude Code will trigger it automatically when space runs low.</p>
+
+  <p>Compaction works like this: Claude creates a summary of the conversation so far, then starts a "fresh" context with that summary replacing all the detailed back-and-forth. Think of it like taking a photo of your messy desk, clearing the desk, and pinning the photo to the wall for reference.</p>
+
+  <p>The problem? Summaries lose detail. After compaction, Claude might forget specific variable names, exact file paths, or nuances of earlier instructions. This is why long sessions tend to degrade — it's not Claude getting "tired," it's the inevitable information loss from compaction.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Common Gotcha</div>
+    <p>The #1 mistake new users make is having marathon sessions with Claude Code. They work for two hours in a single conversation, the context window fills up and compacts multiple times, and Claude starts producing lower-quality output. The fix: <strong>start fresh conversations more often</strong>. If you're switching to a different task, start a new session. Think of each session like a focused meeting, not an all-day hangout.</p>
+  </div>
+
+  <h3>Practical rules for managing context</h3>
+
+  <ul>
+    <li><strong>Keep sessions focused.</strong> One task per conversation when possible.</li>
+    <li><strong>Start new conversations</strong> when switching topics or tasks.</li>
+    <li><strong>Don't ask Claude to read files "just in case."</strong> Every file read costs context space.</li>
+    <li><strong>Use <code>/compact</code> proactively</strong> if you're mid-task and feel the session getting long.</li>
+    <li><strong>Write good CLAUDE.md files</strong> so Claude doesn't have to ask you for information that could have been pre-loaded (you'll master this in Level 4).</li>
+  </ul>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: HOW CLAUDE READS FILES -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.4</span> How Claude Reads Files</h2>
+
+  <h3>Why this matters</h3>
+
+  <p>When you work on a project, you can scroll through files, jump to any file instantly, and keep the whole project in your head over days and weeks. Claude can't do any of that. Understanding how Claude reads files changes how you structure prompts and projects.</p>
+
+  <h3>The flashlight analogy</h3>
+
+  <div class="analogy">
+    <strong>Mental Model:</strong> Imagine your project is a dark room full of documents pinned to the walls. Claude has a <strong>flashlight</strong>. It can shine the flashlight on one document at a time (read a file), and once it reads a document, the text gets photocopied onto its desk (the context window). But Claude can't "look around" the room — it can only shine the flashlight where it decides to look, or where you tell it to look.
+  </div>
+
+  <h3>What "reading a file" actually means</h3>
+
+  <p>When Claude Code reads a file, the <strong>entire contents of that file</strong> get loaded into the context window. This has several important implications:</p>
+
+  <ul>
+    <li><strong>Reading is not free.</strong> Every file read consumes context space. A 500-line file takes up ~5,000 tokens that are now unavailable for other things.</li>
+    <li><strong>Claude can't skim.</strong> It reads the entire file. There's no "just read the first 20 lines" (unless you specifically ask for it, or Claude uses a line-range read).</li>
+    <li><strong>Claude doesn't "remember" files between sessions.</strong> When you start a new conversation, Claude has zero knowledge of your files. It has to read them again. This is why your contractor shows up each morning with a fresh memory — the desk was cleared overnight.</li>
+    <li><strong>Claude can't see files it hasn't read.</strong> If your project has 50 files, Claude doesn't know any of them exist until it searches for them or you mention them.</li>
+  </ul>
+
+  <p>Here's what a file read looks like from Claude's perspective. When it decides to read a file, it makes a tool call:</p>
+
+  <div class="code-label">Tool call</div>
+  <pre><code><span class="syn-function">Read</span>(<span class="syn-string">"src/components/Header.jsx"</span>)</code></pre>
+
+  <p>And the result that comes back is the literal file contents — every line, every character. That entire payload lands on the context desk.</p>
+
+  <div class="code-label">Tool result (what Claude receives)</div>
+  <pre><code><span class="syn-keyword">import</span> <span class="syn-variable">React</span> <span class="syn-keyword">from</span> <span class="syn-string">'react'</span>;
+<span class="syn-keyword">import</span> <span class="syn-string">'./Header.css'</span>;
+
+<span class="syn-keyword">export default function</span> <span class="syn-function">Header</span>() {
+  <span class="syn-keyword">return</span> (
+    <span class="syn-tag">&lt;header</span> <span class="syn-attr">className</span>=<span class="syn-value">"app-header"</span><span class="syn-tag">&gt;</span>
+      <span class="syn-tag">&lt;h1&gt;</span>My App<span class="syn-tag">&lt;/h1&gt;</span>
+      <span class="syn-tag">&lt;nav&gt;</span>...<span class="syn-tag">&lt;/nav&gt;</span>
+    <span class="syn-tag">&lt;/header&gt;</span>
+  );
+}
+<span class="syn-comment">// ... the rest of the file, all of it, every line</span></code></pre>
+
+  <p>Now that content is in the context window, and it stays there for the rest of the conversation (or until compaction summarizes it away).</p>
+
+  <h3>How Claude finds files</h3>
+
+  <p>Claude uses its search tools (Glob and Grep) to discover files it doesn't already know about. When you say "fix the bug in the header component," Claude doesn't magically know which file that's in. It has to search:</p>
+
+  <div class="code-label">Claude's search process</div>
+  <pre><code><span class="syn-comment">// Claude thinks: "I need to find the header component"</span>
+<span class="syn-keyword">Tool call:</span> <span class="syn-function">Glob</span>(<span class="syn-string">"**/*Header*"</span>)
+<span class="syn-comment">// → Result: ["src/components/Header.jsx", "src/components/Header.css"]</span>
+
+<span class="syn-comment">// Now Claude knows the file exists, so it can read it</span>
+<span class="syn-keyword">Tool call:</span> <span class="syn-function">Read</span>(<span class="syn-string">"src/components/Header.jsx"</span>)
+<span class="syn-comment">// → Result: full file contents loaded into context</span></code></pre>
+
+  <p>This is why good file naming and project structure (Level 3) matters so much — it helps Claude find what it needs faster, with fewer wasted tool calls.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>If you know which files Claude needs, tell it directly: "Look at <code>src/utils/auth.js</code> and fix the login bug." This saves Claude from needing to search, which saves tool calls and context space.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: HOW CLAUDE WRITES FILES -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.5</span> How Claude Writes Files</h2>
+
+  <h3>Why this matters</h3>
+
+  <p>Understanding the difference between how Claude creates files and how it edits them helps you predict its behavior, write better prompts, and troubleshoot when things go sideways.</p>
+
+  <h3>Two tools, two approaches</h3>
+
+  <p>Claude has two different tools for modifying files, and it chooses between them based on the situation:</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Write (Full Replace)</h4>
+      <ul>
+        <li>Creates a new file from scratch</li>
+        <li>Or completely replaces an existing file</li>
+        <li>Used when creating something new</li>
+        <li>Or when changes are so extensive it's easier to rewrite the whole file</li>
+      </ul>
+    </div>
+    <div class="comparison-col">
+      <h4>Edit (Targeted Change)</h4>
+      <ul>
+        <li>Changes a specific part of an existing file</li>
+        <li>Finds exact text to replace</li>
+        <li>Leaves everything else untouched</li>
+        <li>Used for surgical modifications</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>Why two tools? Imagine you have a 500-line CSS file and you need to change one color value. Using Write would mean Claude has to reproduce all 500 lines just to change one value — wasteful and error-prone. Using Edit, Claude specifies "find this exact text, replace it with this" — surgical and precise.</p>
+
+  <p>Here's what an Edit tool call looks like behind the scenes:</p>
+
+  <div class="code-label">Edit tool call</div>
+  <pre><code><span class="syn-function">Edit</span>(
+  <span class="syn-attr">file:</span> <span class="syn-string">"styles.css"</span>,
+  <span class="syn-attr">old_string:</span> <span class="syn-string">"color: #333333;"</span>,
+  <span class="syn-attr">new_string:</span> <span class="syn-string">"color: #3B2F2F;"</span>
+)</code></pre>
+
+  <p>Claude finds the exact old text in the file and swaps it for the new text. The rest of the file stays completely untouched. This is why Claude sometimes reads a file before editing it — it needs to know the exact existing text to match against.</p>
+
+  <h3>Permission prompts: why Claude asks first</h3>
+
+  <p>You've probably seen Claude ask "Do you want me to write this file?" or show you a diff and wait for approval. This happens because writing files is a <strong>potentially destructive action</strong> — Claude is modifying your actual files on your actual computer. The permission system is a safety net.</p>
+
+  <p>The exact behavior depends on your permission settings (which you'll customize in Level 8). By default:</p>
+
+  <ul>
+    <li><strong>Reading files:</strong> Always allowed (non-destructive)</li>
+    <li><strong>Writing/editing files:</strong> Asks for permission (could overwrite your work)</li>
+    <li><strong>Running bash commands:</strong> Asks for permission (could do anything)</li>
+  </ul>
+
+  <p>When Claude asks for permission, you'll see the exact changes it wants to make. You can approve, reject, or modify the request. This is not Claude being "needy" — it's a deliberate safety mechanism that exists because an AI modifying files on your computer is a powerful action that warrants a human checkpoint.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Common Gotcha</div>
+    <p>If you see Claude making changes that look wrong, <strong>reject them</strong>. Don't approve blindly. The permission prompt exists precisely for this moment. You can say "No, instead do X" and Claude will adjust. You are the foreman on this job site — the contractor checks with you before cutting structural beams.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: HOW CLAUDE "THINKS" -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.6</span> How Claude "Thinks"</h2>
+
+  <h3>Why this matters</h3>
+
+  <p>Sometimes Claude Code pauses before doing anything. Sometimes you see a "thinking..." indicator. Sometimes it seems to jump straight into action. Understanding the difference between Claude's thinking phase and its action phase helps you interpret what's happening and craft better prompts.</p>
+
+  <h3>The inner monologue analogy</h3>
+
+  <div class="analogy">
+    <strong>Mental Model:</strong> Before you speak in an important meeting, you have an <strong>inner monologue</strong> — you think through what you want to say, consider the context, and plan your words. Then you speak. Claude Code has the same two phases: an internal "thinking" phase where it plans, and an external "acting" phase where it calls tools or responds to you. You can actually see the thinking phase when extended thinking is enabled.
+  </div>
+
+  <h3>Extended thinking</h3>
+
+  <p>Claude has a capability called <strong>extended thinking</strong>. When this is active (and it is by default in Claude Code), Claude gets a dedicated "scratchpad" to reason through problems before taking action. This thinking is shown in a collapsed section in your terminal — you can expand it to see Claude's internal reasoning.</p>
+
+  <p>During extended thinking, Claude might:</p>
+
+  <ul>
+    <li>Plan which files to read first</li>
+    <li>Reason about the best approach to a problem</li>
+    <li>Consider edge cases and potential issues</li>
+    <li>Decide the order of operations</li>
+    <li>Evaluate whether it has enough information or needs to gather more</li>
+  </ul>
+
+  <p>Here's an example of what extended thinking looks like when you expand it:</p>
+
+  <div class="code-label">Extended thinking (visible in terminal)</div>
+  <pre><code><span class="syn-comment">The user wants me to add a dark mode toggle. Let me think about
+what I need to do:
+
+1. First, I should read the current CSS to understand the existing
+   color scheme and how styles are structured.
+2. Then I need to read the HTML to find where to place the toggle.
+3. I'll need to create a JavaScript function to switch themes.
+4. I should use CSS custom properties (variables) so the toggle
+   can swap all colors at once.
+5. I should also consider localStorage to remember the user's
+   preference across page loads.
+
+Let me start by reading the CSS file.</span></code></pre>
+
+  <p>After this thinking phase, Claude starts acting — making tool calls, reading files, writing code. The thinking happens before <em>every</em> tool call and response, not just at the beginning. After each tool result comes back, Claude thinks again about what to do next.</p>
+
+  <h3>Why Claude sometimes pauses</h3>
+
+  <p>When you see a noticeable pause, it means Claude is in its extended thinking phase working through a complex plan. Longer pauses usually mean more complex reasoning. This is a <em>good</em> thing — it means Claude is being thoughtful rather than rushing. A quick response to a complex prompt might actually be worse than a slow one.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>You can encourage deeper thinking by prompting for it. Phrases like "Think carefully about this before acting" or "Consider the edge cases" can nudge Claude to spend more time in its thinking phase. You'll learn more advanced techniques for this in Level 5 (Prompt Engineering).</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: SYSTEM PROMPT AND CLAUDE.MD -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.7</span> The System Prompt and CLAUDE.md</h2>
+
+  <h3>Why this matters</h3>
+
+  <p>Before you type a single character, Claude has already read a bunch of instructions. Understanding what those instructions are, and how your CLAUDE.md file fits in, explains why Claude behaves differently in different projects and how you can control that behavior.</p>
+
+  <h3>The briefing analogy</h3>
+
+  <div class="analogy">
+    <strong>Mental Model:</strong> Before your contractor starts work each morning, they get a <strong>two-part briefing</strong>. Part one is from their employer (Anthropic) — general rules about safety, behavior, and capabilities. Part two is the <strong>project spec you left on the kitchen counter</strong> — your CLAUDE.md file with project-specific instructions, conventions, and context. Both parts are loaded before you say a word.
+  </div>
+
+  <h3>What Claude sees before your first message</h3>
+
+  <p>When you start a Claude Code session in a project directory, here's what gets loaded into the context window before you type anything:</p>
+
+  <ol>
+    <li><strong>The system prompt</strong> — Written by Anthropic. Tells Claude it's operating as Claude Code, what tools are available, how to use them, safety guidelines, and general behavioral instructions. You can't see or modify this directly.</li>
+    <li><strong>CLAUDE.md files</strong> — Claude looks for these in specific locations and loads them automatically:
+      <ul>
+        <li><code>~/.claude/CLAUDE.md</code> — Your global instructions (applies to all projects)</li>
+        <li><code>CLAUDE.md</code> in the project root — Project-specific instructions</li>
+        <li><code>CLAUDE.md</code> in subdirectories — Scoped to that directory's contents</li>
+      </ul>
+    </li>
+  </ol>
+
+  <p>This all happens <em>before</em> your first prompt. So when Claude responds to your very first message, it already knows the system rules AND your project rules.</p>
+
+  <h3>What goes in CLAUDE.md</h3>
+
+  <p>This is just a preview — Level 4 is entirely dedicated to mastering CLAUDE.md. But here's the key concept: your CLAUDE.md file becomes part of Claude's "brain" for every single interaction in that project. Anything you put there is as if you told Claude directly, every time.</p>
+
+  <p>Typical CLAUDE.md contents include:</p>
+
+  <ul>
+    <li>Project description and purpose</li>
+    <li>File structure explanation</li>
+    <li>Coding conventions ("use single quotes", "never use <code>var</code>")</li>
+    <li>Design rules ("always use these CSS variables")</li>
+    <li>Common commands ("run <code>npm test</code> to test")</li>
+    <li>Things to avoid ("never modify the database schema directly")</li>
+  </ul>
+
+  <p>Here's a minimal example:</p>
+
+  <div class="code-label">CLAUDE.md</div>
+  <pre><code><span class="syn-comment"># My Web App</span>
+
+<span class="syn-comment">## Project</span>
+A React app for tracking daily habits. Uses TypeScript and Tailwind CSS.
+
+<span class="syn-comment">## Conventions</span>
+- Use functional components with hooks (no class components)
+- All files use .tsx extension
+- CSS: Use Tailwind utility classes, never write custom CSS
+- Tests: Jest + React Testing Library, colocated with components
+
+<span class="syn-comment">## Commands</span>
+- <span class="syn-function">npm run dev</span> — start development server
+- <span class="syn-function">npm test</span> — run test suite
+- <span class="syn-function">npm run build</span> — production build</code></pre>
+
+  <p>Without this file, Claude has to <em>guess</em> your conventions, <em>discover</em> your project structure by reading files, and <em>hope</em> it's doing things the way you want. With this file, Claude knows the answers from the start. That saves context space, reduces tool calls, and produces better results on the first try.</p>
+
+  <div class="callout info">
+    <div class="callout-title">Key Insight</div>
+    <p>Your CLAUDE.md file costs context space — it's loaded every session. But it almost always <em>saves</em> more context than it costs, because Claude doesn't have to waste tool calls discovering things you could have just told it. Think of it as a fixed upfront investment that pays off all session long.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: PERMISSIONS AND SAFETY -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.8</span> Permissions and Safety</h2>
+
+  <h3>Why this matters</h3>
+
+  <p>Claude Code runs on your actual computer, modifying your actual files, and executing real commands. This is immensely powerful, but it also means there need to be guardrails. Understanding the permission system helps you work faster (by configuring it right) and safer (by knowing what to watch for).</p>
+
+  <h3>The trust spectrum</h3>
+
+  <div class="analogy">
+    <strong>Mental Model:</strong> Think of it like giving your contractor <strong>access levels</strong>. At the lowest trust level, they have to ask you before every action — "Can I open this drawer? Can I use this drill? Can I move this wall?" At the highest level, you hand them the keys and say "just get it done, I trust you." Claude Code lets you choose where on that spectrum you want to be.
+  </div>
+
+  <h3>The three permission categories</h3>
+
+  <p>Claude Code groups actions into categories with different default permission levels:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Action</th>
+        <th>Default Permission</th>
+        <th>Why</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Read files</td>
+        <td>Always allowed</td>
+        <td>Reading can't damage anything</td>
+      </tr>
+      <tr>
+        <td>Search files (glob, grep)</td>
+        <td>Always allowed</td>
+        <td>Searching can't damage anything</td>
+      </tr>
+      <tr>
+        <td>Write / edit files</td>
+        <td>Asks each time</td>
+        <td>Could overwrite your work</td>
+      </tr>
+      <tr>
+        <td>Run bash commands</td>
+        <td>Asks each time</td>
+        <td>Could do literally anything</td>
+      </tr>
+      <tr>
+        <td>Run MCP tools</td>
+        <td>Asks each time</td>
+        <td>External integrations, varying risk</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Configuring trust levels</h3>
+
+  <p>You can adjust these settings so Claude asks less often (or more often). The main options, from most restrictive to least:</p>
+
+  <ol>
+    <li><strong>Ask every time</strong> (default for writes and bash) — Claude shows you the exact action and waits for your yes/no.</li>
+    <li><strong>Allow specific commands</strong> — You can pre-approve certain safe commands. For example, you might allow <code>npm test</code> and <code>npm run build</code> without asking, while still requiring approval for <code>rm</code> commands.</li>
+    <li><strong>Accept all edits</strong> — Claude writes and edits files without asking. Faster, but you're trusting Claude to get it right.</li>
+    <li><strong>"YOLO" mode</strong> — Claude runs any command without asking. Only recommended when you have git as a safety net (Level 6) and you're doing work where speed matters more than caution.</li>
+  </ol>
+
+  <p>You'll learn how to configure these in detail in Level 8 (Configuration). For now, the default settings are a good starting point. They give Claude enough autonomy to read and search freely, while keeping you in the loop for anything that modifies your project.</p>
+
+  <h3>The permission prompt in practice</h3>
+
+  <p>When Claude wants to do something that requires permission, you'll see a clear prompt in your terminal. It typically shows you:</p>
+
+  <div class="code-label">Permission prompt example</div>
+  <pre><code><span class="syn-comment">Claude wants to edit src/App.jsx</span>
+
+<span class="syn-keyword">-  &lt;h1&gt;Welcome&lt;/h1&gt;</span>
+<span class="syn-string">+  &lt;h1&gt;Welcome to My App&lt;/h1&gt;</span>
+
+<span class="syn-prompt">Allow this edit? (y/n/e)</span></code></pre>
+
+  <p>You can see exactly what Claude wants to change — the red line is what's being removed, the green line is what's being added. You can approve (<code>y</code>), reject (<code>n</code>), or sometimes edit the change before applying.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>Early on, keep the default permissions and actually read the diffs Claude shows you. This is one of the best ways to learn what Claude is doing and to build your ability to read code. As you get more comfortable, you can loosen permissions to speed up your workflow.</p>
+  </div>
+
+  <h3>Safety boundaries: what Claude won't do</h3>
+
+  <p>Even with maximum permissions, Claude Code has hard limits:</p>
+
+  <ul>
+    <li>It won't knowingly help with malicious tasks</li>
+    <li>It will warn you about destructive commands (like deleting important files)</li>
+    <li>It operates only within your project directory by default</li>
+    <li>It can't access the internet or make network requests without the right tools configured</li>
+    <li>It won't modify system files or sensitive configuration without clear consent</li>
+  </ul>
+
+  <p>These aren't limitations you need to "work around" — they're features. They're the reason you can hand Claude Code a lot of autonomy without losing sleep.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION: TYING IT ALL TOGETHER -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.9</span> Tying It All Together</h2>
+
+  <p>Let's trace through one complete Claude Code interaction from start to finish, using everything you've learned. Say you open a terminal, navigate to your project, and type:</p>
+
+  <div class="code-label">Your prompt</div>
+  <pre><code>The login button on mobile is too small. Fix it and make sure it meets
+accessibility guidelines for touch targets (at least 44x44 pixels).</code></pre>
+
+  <p>Here's the full sequence of what happens:</p>
+
+  <ol>
+    <li><strong>Context loads:</strong> The system prompt, your CLAUDE.md, and your message all go into the context window (~3,000-6,000 tokens used already).</li>
+    <li><strong>Claude thinks (extended thinking):</strong> "I need to find the login button. It's probably in a login component or page. I should search for it, then check the CSS. I need to make the touch target at least 44x44px."</li>
+    <li><strong>Tool call — Grep:</strong> Searches for "login" across the codebase. Result: finds <code>src/pages/Login.jsx</code> and <code>src/styles/auth.css</code>. (~500 more tokens)</li>
+    <li><strong>Tool call — Read:</strong> Reads <code>Login.jsx</code>. Now Claude sees the button component. (~2,000 tokens)</li>
+    <li><strong>Tool call — Read:</strong> Reads <code>auth.css</code>. Now Claude sees the current styles, including the button's small mobile dimensions. (~1,500 tokens)</li>
+    <li><strong>Claude thinks:</strong> "The button is 32px tall on mobile. I need to change the min-height to 44px and add some padding. I also need to check if there's a media query for mobile..."</li>
+    <li><strong>Tool call — Edit:</strong> Modifies <code>auth.css</code> to set <code>min-height: 44px</code> and <code>min-width: 44px</code> on the login button in the mobile media query. <strong>Permission prompt appears.</strong> You approve.</li>
+    <li><strong>Claude thinks:</strong> "Done. Let me verify by checking if there are any other touch targets that might need the same fix..."</li>
+    <li><strong>Tool call — Grep:</strong> Searches for other small button styles. Finds one more. (~300 tokens)</li>
+    <li><strong>Tool call — Edit:</strong> Fixes the second button too. You approve.</li>
+    <li><strong>Claude responds:</strong> Explains what it changed and why, mentions the accessibility guideline, and notes the two buttons it fixed.</li>
+  </ol>
+
+  <p>Total: 6 tool calls, 2 permission prompts, ~10,000-15,000 tokens consumed. The whole thing took maybe 30 seconds. And now you understand exactly what happened at every step.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION: COMMON MISTAKES -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">2.10</span> Common Mistakes and Gotchas</h2>
+
+  <p>Now that you understand the mechanics, here are the traps that catch people:</p>
+
+  <h4>1. Treating Claude Code like a chatbot</h4>
+  <p>Don't have long, casual back-and-forth conversations. Each message costs context. Be specific, be direct, and give Claude what it needs to act in one shot. Instead of "Can you look at my CSS?" followed by "Now can you fix the colors?" — say "In <code>styles.css</code>, change all the blue colors to match the orange accent color <code>#D4793A</code>."</p>
+
+  <h4>2. Not starting fresh sessions</h4>
+  <p>If you've been working for 30+ minutes on one task and are switching to something completely different, start a new session. The old context is just dead weight at that point.</p>
+
+  <h4>3. Asking Claude to read everything "just in case"</h4>
+  <p>"Read all the files in my project so you understand it" sounds helpful but is a context-window disaster. Let Claude read files as it needs them, or tell it specifically which files are relevant.</p>
+
+  <h4>4. Approving changes without reading them</h4>
+  <p>When Claude shows you a diff, take the two seconds to look at it. This catches mistakes early and teaches you to read code. Blindly approving everything is how you end up with mysterious bugs.</p>
+
+  <h4>5. Not having a CLAUDE.md</h4>
+  <p>Without a CLAUDE.md, Claude starts every session blind. It has to discover your project structure, conventions, and preferences through trial and error. This wastes context and produces inconsistent results. Even a minimal CLAUDE.md is better than none.</p>
+
+  <h4>6. Expecting memory between sessions</h4>
+  <p>Claude does not remember anything from previous sessions. If something was important, it needs to be in CLAUDE.md or in the files themselves. Don't say "remember when we discussed..." in a new session — Claude has no idea what you're talking about.</p>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT -->
+  <!-- ============================================================ -->
+
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#x1F3AF;</span>
+      <h3>Checkpoint Project: The Observer</h3>
+    </div>
+
+    <h4>What to build</h4>
+    <p>Run a Claude Code session on a small, contained task (for example: "Create an HTML page with a styled contact form"). As Claude works, observe and document everything it does. Create an <strong>annotated log</strong> — a written document that records each step Claude takes, categorizes it, and explains why it happened using what you learned in this level.</p>
+
+    <p>Then, based on your log, estimate at what point the context window would start filling up if you continued the session.</p>
+
+    <h4>Specific steps</h4>
+    <ol>
+      <li>Start a new Claude Code session in a fresh directory.</li>
+      <li>Give it a single, clear task (keep it small — a one-page HTML site with some styling).</li>
+      <li>Watch every tool call Claude makes. For each one, write down:
+        <ul>
+          <li>What tool was used (Read, Write, Edit, Bash, Grep, etc.)</li>
+          <li>What the input was (which file, what command)</li>
+          <li>What happened (what was the result)</li>
+          <li>Why Claude did this (using your understanding of the tool-use loop)</li>
+        </ul>
+      </li>
+      <li>After Claude finishes, count the tool calls and estimate the token usage.</li>
+      <li>Write a short paragraph answering: "If I continued this session for another 10 tasks of similar size, when would the context window start compacting?"</li>
+    </ol>
+
+    <h4>Success criteria</h4>
+    <ul>
+      <li>Your annotated log covers every tool call Claude made, with no gaps.</li>
+      <li>Each log entry correctly identifies the tool name and explains its purpose.</li>
+      <li>You correctly identified at least one instance of the tool-use loop repeating (think &rarr; act &rarr; observe &rarr; think).</li>
+      <li>Your token estimate is within a reasonable range (you identified at least 3 categories of context cost: system prompt, file reads, conversation messages).</li>
+      <li>Your context window analysis demonstrates understanding of why long sessions degrade and what <code>/compact</code> does.</li>
+      <li>Your log is written in your own words (not just a copy of Claude's output).</li>
+    </ul>
+
+    <div class="time-estimate">Estimated time: 45&ndash;60 minutes</div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-01.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-03.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 04: CLAUDE.md — The Most Important File You'll Ever Write | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-03.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-05.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 04</div>
+    <h1>CLAUDE.md: The Most Important File You'll Ever Write</h1>
+    <p class="level-subtitle">One file that transforms Claude from a generic assistant into a teammate who knows your project, your rules, and your preferences &mdash; every single time you start a conversation.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: Why CLAUDE.md Matters -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">4.1</span> Why CLAUDE.md Matters</h2>
+
+  <p>Every time you start a new Claude Code session, Claude has <strong>zero memory</strong> of what happened last time. It doesn't remember your project structure. It doesn't remember that you prefer tabs over spaces. It doesn't remember that your database is PostgreSQL, not MySQL. It doesn't remember that <code>npm run dev</code> starts your dev server. Every single session starts from a blank slate.</p>
+
+  <p>That might sound terrifying. But it's actually a design feature &mdash; and once you learn to work with it, it becomes a superpower. The tool for working with it is called <code>CLAUDE.md</code>.</p>
+
+  <div class="analogy">
+    <strong>The analogy:</strong> Imagine you hire the world's most talented employee. They're brilliant, fast, and tireless. But they have a condition: every morning, they wake up with complete amnesia. They don't remember yesterday's work, your company's rules, or even what project they're on. You'd be insane not to give them a handbook to read first thing every morning. CLAUDE.md is that handbook.
+  </div>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong>CLAUDE.md is the single highest-leverage thing you can do with Claude Code.</strong> Nothing else &mdash; not prompt engineering, not model selection, not fancy workflows &mdash; will improve your results as dramatically as a well-written CLAUDE.md. A mediocre prompt with a great CLAUDE.md will beat a great prompt with no CLAUDE.md every single time.</p>
+  </div>
+
+  <p>Think about your own experience. You've built your Resy sniper, the apartment dashboard, your daily newsletter. Every time you started a new conversation, you probably spent the first few exchanges re-explaining what the project is, what tech stack you're using, and how things are organized. Maybe Claude made a decision you didn't want &mdash; like creating a new file instead of editing an existing one, or using the wrong framework &mdash; and you had to course-correct.</p>
+
+  <p>All of that overhead disappears with a good CLAUDE.md. Claude reads it before you say a single word, and it shapes every decision Claude makes throughout the conversation.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Where CLAUDE.md Files Live and Load Order -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">4.2</span> Where CLAUDE.md Files Live and Load Order</h2>
+
+  <p>There isn't just one CLAUDE.md &mdash; there are actually three places Claude looks for them, and they all stack together. Understanding the load order matters because it determines which rules apply where.</p>
+
+  <h3>The Three Locations</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Scope</th>
+        <th>Typical Use</th>
+        <th>Check into Git?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>~/.claude/CLAUDE.md</code></td>
+        <td>Global (all projects)</td>
+        <td>Your personal preferences, coding style, tone</td>
+        <td>No (personal file)</td>
+      </tr>
+      <tr>
+        <td><code>/CLAUDE.md</code> (project root)</td>
+        <td>This project, all team members</td>
+        <td>Project rules, tech stack, conventions, structure</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><code>/.claude/CLAUDE.md</code></td>
+        <td>This project, just you</td>
+        <td>Personal overrides for this project</td>
+        <td>No (gitignored)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>How They Stack</h3>
+
+  <p>All three files are loaded and merged together. The global file is read first, then the project-root file, then the <code>.claude/</code> directory file. They don't override each other &mdash; they <strong>concatenate</strong>. Claude sees the combined content of all three as part of its instructions.</p>
+
+  <p>Here's the mental model for what Claude sees at the start of every conversation.</p>
+
+  <div class="code-label">Load Order</div>
+<pre><code><span class="syn-comment"># 1. First loaded: your global preferences</span>
+<span class="syn-path">~/.claude/CLAUDE.md</span>          <span class="syn-comment"># "I prefer TypeScript, use concise comments..."</span>
+
+<span class="syn-comment"># 2. Second loaded: project-level rules (shared with team)</span>
+<span class="syn-path">./CLAUDE.md</span>                  <span class="syn-comment"># "This is a Next.js app, use PostgreSQL..."</span>
+
+<span class="syn-comment"># 3. Third loaded: your personal project overrides</span>
+<span class="syn-path">./.claude/CLAUDE.md</span>          <span class="syn-comment"># "I'm working on the auth module this week..."</span></code></pre>
+
+  <p>The practical effect: your global file sets your baseline personality, the project-root file sets the project rules, and the <code>.claude/</code> file lets you add personal context without polluting the shared file.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p><strong>Start with just the project-root CLAUDE.md.</strong> That's the one that gives you 90% of the benefit. You can add a global file and personal overrides later once you're comfortable with the format.</p>
+  </div>
+
+  <h3>Which One Should You Use?</h3>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Use the Global File For</h4>
+      <ul>
+        <li>Your preferred programming language</li>
+        <li>Code comment style preferences</li>
+        <li>Tone of commit messages</li>
+        <li>Personal formatting quirks</li>
+        <li>Things true across ALL your projects</li>
+      </ul>
+    </div>
+    <div class="comparison-col">
+      <h4>Use the Project File For</h4>
+      <ul>
+        <li>Tech stack and dependencies</li>
+        <li>File structure overview</li>
+        <li>Project-specific coding conventions</li>
+        <li>Testing and deployment instructions</li>
+        <li>Things your whole team should follow</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: What to Include in a Great CLAUDE.md -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">4.3</span> What to Include in a Great CLAUDE.md</h2>
+
+  <p>A great CLAUDE.md is structured, scannable, and ruthlessly concise. Think of it as a reference sheet, not a novel. Below are the sections that matter most, with real examples for each.</p>
+
+  <h3>Project Description and Purpose</h3>
+
+  <p>Start with one to three sentences that explain what this project is. This sounds basic, but it's surprisingly powerful. It anchors every decision Claude makes &mdash; from file naming to error message wording.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-keyword">## Project</span>
+A daily newsletter aggregator that scrapes 12 news sources, ranks stories
+by relevance using an LLM, and sends a personalized morning email via SendGrid.
+Target audience: busy professionals who want curated news in 5 minutes.</code></pre>
+
+  <p>Notice how the description includes the <em>what</em>, the <em>how</em> (at a high level), and the <em>who</em>. This helps Claude make judgment calls: should error messages be technical or friendly? (Friendly &mdash; it's for non-technical users.) Should the code prioritize speed or readability? (Both, but delivery timing matters.)</p>
+
+  <h3>File Structure Overview</h3>
+
+  <p>Give Claude a map of your project. This is the single most impactful section for reducing mistakes, because it prevents Claude from creating duplicate files or putting things in the wrong place.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-keyword">## File Structure</span>
+<span class="syn-string">- src/scrapers/</span>       <span class="syn-comment"># One file per news source (e.g., hackernews.ts, reuters.ts)</span>
+<span class="syn-string">- src/ranker/</span>         <span class="syn-comment"># LLM-based story ranking logic</span>
+<span class="syn-string">- src/email/</span>          <span class="syn-comment"># Email template and SendGrid integration</span>
+<span class="syn-string">- src/config/</span>         <span class="syn-comment"># Environment config, constants</span>
+<span class="syn-string">- tests/</span>              <span class="syn-comment"># Mirror of src/ structure</span>
+<span class="syn-string">- scripts/</span>            <span class="syn-comment"># CLI utilities (seed DB, test email, etc.)</span>
+<span class="syn-string">- .env</span>                <span class="syn-comment"># Environment variables (never commit)</span></code></pre>
+
+  <p>This doesn't need to list every single file. Just the major directories and their purpose. The goal is to give Claude enough context to know where things belong.</p>
+
+  <h3>Tech Stack and Dependencies</h3>
+
+  <p>Explicitly state your tech choices. Without this, Claude will guess &mdash; and it might guess wrong. If your project uses Express but Claude defaults to Fastify, you'll waste time fixing it.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-keyword">## Tech Stack</span>
+- Runtime: Node.js 20 with TypeScript (strict mode)
+- Framework: Express.js
+- Database: PostgreSQL 16 via Prisma ORM
+- Email: SendGrid API v3
+- Testing: Vitest
+- Deployment: Railway
+- Package manager: pnpm (not npm or yarn)</code></pre>
+
+  <p>The last line is the kind of detail that saves you five minutes of frustration every single session. Without it, Claude might generate <code>npm install</code> commands when your lockfile is <code>pnpm-lock.yaml</code>.</p>
+
+  <h3>Coding Conventions and Style Rules</h3>
+
+  <p>This is where you encode your team's (or your personal) standards. Be specific. Vague rules produce vague compliance.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-keyword">## Coding Conventions</span>
+- Use named exports, never default exports
+- All functions must have JSDoc comments with @param and @returns
+- Error handling: always use custom error classes from src/errors/
+- Prefer early returns over nested if/else
+- Use <span class="syn-string">`const`</span> by default; only use <span class="syn-string">`let`</span> when reassignment is necessary
+- File naming: kebab-case for files, PascalCase for classes, camelCase for functions
+- Maximum function length: 40 lines (break up larger functions)</code></pre>
+
+  <p>Every one of these rules exists because, without it, Claude would make a different choice. These aren't arbitrary &mdash; they're decisions you've already made that Claude needs to follow consistently.</p>
+
+  <h3>What NOT to Do (Anti-patterns and Forbidden Actions)</h3>
+
+  <p>This section is <em>just as important</em> as the positive rules. Claude is eager to help, and sometimes "helping" means doing things you don't want.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-keyword">## Do NOT</span>
+- NEVER create new files without asking first
+- NEVER modify the database schema without explicit instruction
+- NEVER use <span class="syn-string">`any`</span> type in TypeScript
+- NEVER install new dependencies without asking
+- NEVER delete or overwrite test files
+- NEVER commit .env files or log secrets to console
+- Do not use console.log for debugging — use the Logger class from src/utils/logger.ts</code></pre>
+
+  <p>Notice the use of "NEVER" in caps. This isn't dramatic &mdash; it's practical. Strong imperatives get stronger compliance. Claude treats "maybe avoid" very differently from "NEVER do this."</p>
+
+  <h3>Testing Instructions</h3>
+
+  <p>Tell Claude how to run tests and what your testing philosophy is. Otherwise, it might write tests in a framework you don't use, or skip them entirely.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-keyword">## Testing</span>
+- Run all tests: <span class="syn-string">`pnpm test`</span>
+- Run a single test file: <span class="syn-string">`pnpm test src/scrapers/hackernews.test.ts`</span>
+- Every new function needs at least one test
+- Use factories (in tests/factories/) for test data — never hardcode mock objects
+- Integration tests go in tests/integration/ and need a running database</code></pre>
+
+  <p>This section is especially important because testing is where Claude's defaults diverge most from what any specific project needs. Every project has its own test runner, conventions, and expectations.</p>
+
+  <h3>Deployment Context</h3>
+
+  <p>A brief note about how the project gets deployed helps Claude avoid writing code that works locally but breaks in production.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-keyword">## Deployment</span>
+- Deployed on Railway via GitHub push to <span class="syn-string">`main`</span> branch
+- Environment variables are set in Railway dashboard, not in code
+- Build command: <span class="syn-string">`pnpm build`</span> (runs TypeScript compilation)
+- The app must start with: <span class="syn-string">`node dist/index.js`</span>
+- Health check endpoint: <span class="syn-string">`GET /health`</span> must return 200</code></pre>
+
+  <p>Without this, Claude might assume you're deploying to Vercel, or AWS Lambda, or Docker &mdash; and make architectural choices that don't fit your actual environment.</p>
+
+  <h3>Tone and Communication Preferences</h3>
+
+  <p>This goes in either your global CLAUDE.md or the project-level one, depending on whether it's a personal preference or a team standard.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-keyword">## Communication</span>
+- Be concise in responses — skip preamble and get to the point
+- When explaining a change, tell me WHY not just WHAT
+- If something is ambiguous in my request, ask before guessing
+- Use code comments sparingly — only when the "why" isn't obvious
+- Commit messages: imperative mood, max 72 chars, no period at end</code></pre>
+
+  <p>This shapes not just what Claude builds, but how it talks to you during the process. If you hate getting long-winded explanations, say so here. If you want Claude to be more thorough and explain trade-offs, say that instead.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: What NOT to Include -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">4.4</span> What NOT to Include in CLAUDE.md</h2>
+
+  <p>CLAUDE.md is loaded into the system prompt at the start of every conversation. That means every word in it <strong>counts against your context window</strong>. Bloated CLAUDE.md files waste tokens on useless information and leave less room for the actual work. Treat it like expensive real estate.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p>A CLAUDE.md that's 5,000 words of rambling instructions is worse than one that's 500 words of precise rules. More words does not mean more compliance. It often means less, because the critical rules get diluted.</p>
+  </div>
+
+  <h3>Things That Waste Context</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Don't Include</th>
+        <th>Why</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Obvious facts Claude already knows</td>
+        <td>"JavaScript is a programming language" adds nothing. Claude knows this.</td>
+      </tr>
+      <tr>
+        <td>Full API documentation</td>
+        <td>Claude can read your code and docs files. Don't paste an entire API reference into CLAUDE.md.</td>
+      </tr>
+      <tr>
+        <td>Session-specific context</td>
+        <td>"Today I'm working on the login page" should go in your prompt, not CLAUDE.md. It changes constantly.</td>
+      </tr>
+      <tr>
+        <td>Overly verbose explanations</td>
+        <td>"We use PostgreSQL because in 2019 we evaluated MySQL and MongoDB and after extensive benchmarking..." &mdash; just say "Database: PostgreSQL."</td>
+      </tr>
+      <tr>
+        <td>Tutorials or how-to guides</td>
+        <td>CLAUDE.md is a reference, not a textbook. Keep instructions terse.</td>
+      </tr>
+      <tr>
+        <td>Information already in your code</td>
+        <td>If your <code>package.json</code> lists your dependencies, you don't need to list them again in CLAUDE.md.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Too Verbose</h4>
+      <p>"When you write tests for this project, please make sure to use the Vitest testing framework which we chose after evaluating Jest and Mocha. The test files should be co-located with the source files and follow the naming convention of having .test.ts at the end."</p>
+    </div>
+    <div class="comparison-col">
+      <h4>Just Right</h4>
+      <p>"Tests: Vitest. Co-located with source. Name: <code>*.test.ts</code>"</p>
+    </div>
+  </div>
+
+  <p>The "just right" version gives Claude the same information in a fraction of the tokens. Remember: CLAUDE.md is a reference document for an extremely intelligent reader. You don't need to explain <em>why</em> Vitest exists. You just need to tell Claude to use it.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: How Claude Reads CLAUDE.md -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">4.5</span> How Claude Reads CLAUDE.md</h2>
+
+  <p>Understanding the mechanics helps you write a better file. Here's exactly what happens when you start a Claude Code session.</p>
+
+  <ol>
+    <li><strong>Claude Code launches</strong> and looks for CLAUDE.md files in all three locations (global, project root, <code>.claude/</code> directory).</li>
+    <li><strong>All found files are concatenated</strong> and injected into the system prompt &mdash; the special instructions Claude receives before your first message.</li>
+    <li><strong>Your first message is then processed</strong> in the context of those instructions. Claude treats CLAUDE.md content as high-priority directives, similar to how it treats its own system prompt.</li>
+    <li><strong>The CLAUDE.md content stays active</strong> for the entire conversation. It doesn't get "forgotten" mid-session the way earlier messages sometimes do in very long conversations.</li>
+  </ol>
+
+  <div class="definition">
+    <p><span class="term">System prompt:</span> The instructions given to an AI model before the user's first message. The system prompt has the highest priority in shaping the model's behavior. CLAUDE.md content is loaded into this privileged position.</p>
+  </div>
+
+  <p>Here's the important implication: because CLAUDE.md occupies the system prompt, it has more influence than anything you type during the conversation. A rule in CLAUDE.md carries more weight than the same rule written in a regular message. This is why getting it right matters so much.</p>
+
+  <p>But there's a trade-off. Every token in your CLAUDE.md is a token that can't be used for conversation, code, or file contents. Claude Code has a large context window, but it's not infinite. A 2,000-word CLAUDE.md is fine. A 10,000-word CLAUDE.md is going to start crowding out the actual work.</p>
+
+  <div class="callout info">
+    <div class="callout-title">Rule of Thumb</div>
+    <p>Aim for 300&ndash;800 words in your project-level CLAUDE.md. If it's longer than that, look for things to cut. If it's shorter than 200 words, you're probably missing important context.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Writing Effective Rules -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">4.6</span> Writing Effective Rules</h2>
+
+  <p>Not all rules are created equal. A vague rule is as good as no rule at all. Here's how to write instructions that Claude actually follows.</p>
+
+  <h3>Use Imperatives, Not Suggestions</h3>
+
+  <p>Claude responds to direct instructions much more reliably than to polite suggestions.</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Weak (Suggestions)</h4>
+      <ul>
+        <li>"It would be nice to use TypeScript"</li>
+        <li>"Try to keep functions small"</li>
+        <li>"You might want to add error handling"</li>
+        <li>"Consider using named exports"</li>
+      </ul>
+    </div>
+    <div class="comparison-col">
+      <h4>Strong (Imperatives)</h4>
+      <ul>
+        <li>"Always use TypeScript, never plain JavaScript"</li>
+        <li>"Maximum function length: 40 lines"</li>
+        <li>"Every async function must have try/catch"</li>
+        <li>"Use named exports, never default exports"</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Be Specific, Not General</h3>
+
+  <p>General rules leave too much to interpretation. Specific rules leave no room for misunderstanding.</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Too General</h4>
+      <ul>
+        <li>"Write clean code"</li>
+        <li>"Handle errors properly"</li>
+        <li>"Follow best practices"</li>
+        <li>"Use good naming"</li>
+      </ul>
+    </div>
+    <div class="comparison-col">
+      <h4>Specific Enough</h4>
+      <ul>
+        <li>"Use early returns to avoid nesting beyond 3 levels"</li>
+        <li>"Catch errors with custom AppError class from src/errors/"</li>
+        <li>"Run <code>pnpm lint</code> before considering a task done"</li>
+        <li>"Variables: camelCase. Files: kebab-case. Classes: PascalCase"</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Give Examples When the Rule Is Complex</h3>
+
+  <p>Some rules are easier to show than to describe. When a rule involves a pattern, include a short example right in the CLAUDE.md.</p>
+
+  <p>Here's what this looks like inside a real CLAUDE.md file.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-keyword">## Error Handling Pattern</span>
+Always wrap service calls in try/catch using our custom error classes:
+
+<span class="syn-string">```typescript</span>
+<span class="syn-keyword">try</span> {
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> <span class="syn-operator">=</span> <span class="syn-keyword">await</span> <span class="syn-function">userService</span>.<span class="syn-function">getById</span>(<span class="syn-variable">id</span>);
+  <span class="syn-keyword">return</span> <span class="syn-variable">result</span>;
+} <span class="syn-keyword">catch</span> (<span class="syn-variable">error</span>) {
+  <span class="syn-keyword">throw new</span> <span class="syn-function">AppError</span>(<span class="syn-string">'USER_NOT_FOUND'</span>, <span class="syn-string">`No user with id </span><span class="syn-variable">${id}</span><span class="syn-string">`</span>, <span class="syn-number">404</span>);
+}
+<span class="syn-string">```</span></code></pre>
+
+  <p>The code example inside the CLAUDE.md itself shows Claude exactly what pattern to follow. This is much more effective than describing it in prose.</p>
+
+  <h3>Order Rules by Priority</h3>
+
+  <p>Put your most important rules first. While Claude reads the entire file, front-loading critical rules adds emphasis. If you care more about type safety than naming conventions, put the type safety rules first.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p><strong>The "NEVER" test:</strong> If breaking a rule would cause real damage (data loss, security hole, production outage), prefix it with NEVER and put it near the top. If breaking it is just a style annoyance, put it further down.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Real-World CLAUDE.md Examples -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">4.7</span> Real-World CLAUDE.md Examples</h2>
+
+  <p>Let's look at three complete, realistic CLAUDE.md files. These are annotated so you can see the reasoning behind each section.</p>
+
+  <h3>Example 1: Simple Web Project</h3>
+
+  <p>This is for a static website with a handful of HTML pages and a shared stylesheet &mdash; similar to the kind of project you might have already built.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-comment"># Project Context</span>
+
+<span class="syn-keyword">## Project</span>
+A multi-page personal portfolio site with a blog.
+Target audience: potential employers and collaborators.
+Design is minimal, fast-loading, no JavaScript frameworks.
+
+<span class="syn-keyword">## File Structure</span>
+<span class="syn-string">- index.html</span>            → Home page
+<span class="syn-string">- about.html</span>            → About page
+<span class="syn-string">- blog/</span>                 → Blog post HTML files (one per post)
+<span class="syn-string">- styles.css</span>            → Single shared stylesheet
+<span class="syn-string">- images/</span>               → All images (optimized, .webp format)
+
+<span class="syn-keyword">## Design Rules</span>
+- Every page links styles.css — never use inline styles
+- Color scheme: #1a1a2e background, #e0e0e0 text, #e94560 accent
+- Font: system font stack (no external font loading)
+- Mobile-first: design for 375px, then scale up
+- Max content width: 680px, centered
+
+<span class="syn-keyword">## HTML Rules</span>
+- Semantic HTML only (<span class="syn-string">`&lt;article&gt;`</span>, <span class="syn-string">`&lt;nav&gt;`</span>, <span class="syn-string">`&lt;section&gt;`</span>, <span class="syn-string">`&lt;header&gt;`</span>)
+- Every page has consistent nav: Home | About | Blog
+- Every image must have descriptive alt text
+- No JavaScript unless absolutely necessary
+
+<span class="syn-keyword">## Do NOT</span>
+- NEVER add JavaScript frameworks (React, Vue, etc.)
+- NEVER use CSS frameworks (Tailwind, Bootstrap, etc.)
+- NEVER create inline styles
+- NEVER add dependencies — this is a zero-dependency project</code></pre>
+
+  <p>This CLAUDE.md is only about 200 words, which is perfect for a simple project. Notice how the "Do NOT" section explicitly prevents Claude from doing what it might otherwise default to &mdash; reaching for a framework. For a static site, that's the number one thing that could go wrong.</p>
+
+  <h3>Example 2: Full-Stack Application</h3>
+
+  <p>This is for a more complex project &mdash; something like the kind of app you might build next.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-comment"># Apartment Dashboard — CLAUDE.md</span>
+
+<span class="syn-keyword">## Project</span>
+A real-time apartment listing dashboard that scrapes rental sites,
+stores listings in a database, and displays them with filters.
+Built for personal use — single user, runs locally.
+
+<span class="syn-keyword">## Tech Stack</span>
+- Frontend: React 18 + TypeScript + Vite
+- Backend: Node.js + Express + TypeScript
+- Database: SQLite via better-sqlite3 (NOT Prisma, NOT PostgreSQL)
+- Styling: CSS Modules (no Tailwind, no styled-components)
+- Testing: Vitest for unit, Playwright for E2E
+- Package manager: pnpm
+
+<span class="syn-keyword">## File Structure</span>
+<span class="syn-string">- client/src/components/</span>   → React components (one per file)
+<span class="syn-string">- client/src/hooks/</span>        → Custom React hooks
+<span class="syn-string">- client/src/pages/</span>        → Route-level page components
+<span class="syn-string">- server/src/routes/</span>       → Express route handlers
+<span class="syn-string">- server/src/scrapers/</span>     → One scraper per rental site
+<span class="syn-string">- server/src/db/</span>           → Database schema and queries
+<span class="syn-string">- shared/types/</span>            → TypeScript types shared between client and server
+
+<span class="syn-keyword">## Conventions</span>
+- Components: functional only, no class components
+- State management: React Query for server state, useState for local
+- API routes: RESTful, prefix all with /api/v1/
+- Error responses: { error: string, code: string } format
+- All dates stored as ISO 8601 strings in UTC
+- Files: kebab-case. Components: PascalCase. Functions: camelCase.
+
+<span class="syn-keyword">## Testing</span>
+- Run tests: <span class="syn-string">`pnpm test`</span>
+- Every API route must have at least one integration test
+- Every React component must have a basic render test
+- Test files: co-located as <span class="syn-string">`*.test.ts`</span> or <span class="syn-string">`*.test.tsx`</span>
+
+<span class="syn-keyword">## Do NOT</span>
+- NEVER use <span class="syn-string">`any`</span> type — use <span class="syn-string">`unknown`</span> and narrow instead
+- NEVER install new npm packages without asking first
+- NEVER modify the database schema without explicit approval
+- NEVER use default exports
+- NEVER put API keys or secrets in code — use .env
+- Do not create migration files — we use manual schema changes</code></pre>
+
+  <p>This is around 350 words &mdash; well within the sweet spot. Notice the very specific tech stack callouts: "SQLite via better-sqlite3 (NOT Prisma, NOT PostgreSQL)." This prevents Claude from making well-intentioned but wrong tech choices. The parenthetical exclusions are a pattern worth copying.</p>
+
+  <h3>Example 3: Automation / Script-Heavy Project</h3>
+
+  <p>This is for something like a scraper or automation project &mdash; similar to your Resy sniper.</p>
+
+  <div class="code-label">markdown</div>
+<pre><code><span class="syn-comment"># Resy Sniper — CLAUDE.md</span>
+
+<span class="syn-keyword">## Project</span>
+An automated reservation sniper for Resy.
+Monitors target restaurants, detects new openings, and books instantly.
+Runs as a cron job on a VPS. Speed is the #1 priority.
+
+<span class="syn-keyword">## Tech Stack</span>
+- Python 3.12
+- HTTP client: httpx (not requests — we need async)
+- Scheduling: cron on the VPS, not Python schedulers
+- Notifications: Pushover API for mobile alerts
+- Config: YAML files in config/ directory
+- No web framework — this is a pure CLI/cron tool
+
+<span class="syn-keyword">## File Structure</span>
+<span class="syn-string">- src/sniper.py</span>          → Main entry point
+<span class="syn-string">- src/resy_client.py</span>     → Resy API wrapper
+<span class="syn-string">- src/notifier.py</span>        → Pushover notification sender
+<span class="syn-string">- src/config_loader.py</span>   → YAML config parser
+<span class="syn-string">- config/targets.yaml</span>    → Restaurant targets and preferences
+<span class="syn-string">- config/credentials.yaml</span> → API keys (gitignored)
+<span class="syn-string">- tests/</span>                 → pytest tests
+
+<span class="syn-keyword">## Critical Rules</span>
+- NEVER make real API calls in tests — always mock httpx
+- NEVER hardcode API keys, tokens, or credentials anywhere
+- NEVER change the booking logic without explicit instruction — this spends real money
+- All HTTP requests must have timeout=10 and retry logic (3 attempts)
+- Log every booking attempt with timestamp, restaurant, and result
+- Config changes go in YAML files, not in Python code
+
+<span class="syn-keyword">## Code Style</span>
+- Type hints on all function signatures
+- Docstrings on all public functions (Google style)
+- Use <span class="syn-string">`pathlib.Path`</span> not <span class="syn-string">`os.path`</span>
+- Use <span class="syn-string">`asyncio`</span> for all I/O operations
+- Prefer f-strings over .format() or % formatting
+
+<span class="syn-keyword">## Testing</span>
+- Run: <span class="syn-string">`pytest tests/ -v`</span>
+- Mock all external API calls
+- Test config loading with sample YAML fixtures in tests/fixtures/</code></pre>
+
+  <p>The most important line in this entire file is: "NEVER change the booking logic without explicit instruction &mdash; this spends real money." That's the kind of rule that prevents real-world damage. Context about <em>consequences</em> helps Claude understand what's at stake and act more carefully.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Iterating on Your CLAUDE.md -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">4.8</span> Iterating on Your CLAUDE.md</h2>
+
+  <p>Your CLAUDE.md is a living document. The first version you write won't be perfect &mdash; and that's fine. What matters is that you refine it based on what actually happens in your conversations.</p>
+
+  <h3>The Feedback Loop</h3>
+
+  <p>Here's the process for improving your CLAUDE.md over time.</p>
+
+  <ol>
+    <li><strong>Write your initial CLAUDE.md</strong> using the sections above.</li>
+    <li><strong>Use Claude Code normally</strong> for a few sessions.</li>
+    <li><strong>Watch for patterns:</strong>
+      <ul>
+        <li>Does Claude keep making the same mistake? Add a rule to prevent it.</li>
+        <li>Does Claude keep asking you the same question? Add the answer to CLAUDE.md.</li>
+        <li>Does Claude use the wrong tool/library/pattern? Add an explicit "use X, not Y" rule.</li>
+        <li>Does Claude do something you love? Reinforce it with a rule so it keeps doing it.</li>
+      </ul>
+    </li>
+    <li><strong>Update the file</strong> and start a new session to test.</li>
+    <li><strong>Repeat.</strong></li>
+  </ol>
+
+  <div class="analogy">
+    <strong>Think of it like training a new hire.</strong> On day one, you give them the handbook. On day two, you notice they use the wrong code review tool &mdash; so you update the handbook. By week three, the handbook is dialed in and the new hire barely needs supervision. Same process here.
+  </div>
+
+  <h3>Common Iteration Patterns</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>What You Observe</th>
+        <th>What to Add to CLAUDE.md</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Claude creates files in the wrong directory</td>
+        <td>Add or refine the File Structure section</td>
+      </tr>
+      <tr>
+        <td>Claude uses the wrong testing framework</td>
+        <td>Explicitly state "Testing: Vitest (NOT Jest)"</td>
+      </tr>
+      <tr>
+        <td>Claude installs packages you don't want</td>
+        <td>Add "NEVER install new packages without asking"</td>
+      </tr>
+      <tr>
+        <td>Claude writes overly verbose code comments</td>
+        <td>Add "Comments: only when the 'why' isn't obvious. No obvious comments."</td>
+      </tr>
+      <tr>
+        <td>Claude produces excessively long responses</td>
+        <td>Add "Be concise. Skip preamble. Get to the point."</td>
+      </tr>
+      <tr>
+        <td>Claude guesses when it should ask</td>
+        <td>Add "If requirements are ambiguous, ask for clarification."</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Pruning Your CLAUDE.md</h3>
+
+  <p>As your file grows, periodically audit it. Remove rules that:</p>
+
+  <ul>
+    <li><strong>Are redundant</strong> &mdash; you said the same thing two different ways</li>
+    <li><strong>Are no longer relevant</strong> &mdash; the project has evolved past them</li>
+    <li><strong>Never actually trigger</strong> &mdash; Claude already does this by default without being told</li>
+    <li><strong>Are too verbose</strong> &mdash; can be condensed to a single line</li>
+  </ul>
+
+  <p>A CLAUDE.md that gets longer and longer without pruning will eventually become diluted. Every word should earn its place.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p><strong>Ask Claude to help.</strong> You can literally paste your CLAUDE.md into a conversation and say "Review this CLAUDE.md. Identify any rules that are redundant, vague, or could be more concise." Claude is surprisingly good at editing its own instruction manual.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#127919;</span>
+      <h3>Checkpoint Project: The Constitution</h3>
+    </div>
+
+    <h4>What to Build</h4>
+    <p>Write a production-quality <code>CLAUDE.md</code> for one of your existing projects &mdash; your Resy sniper, apartment dashboard, or daily newsletter. Then stress-test it: start a brand new Claude Code conversation in that project directory, give Claude a vague instruction (like "add a new feature" or "fix the styling" or "write a test"), and see if Claude follows your rules <strong>without any extra prompting</strong>.</p>
+
+    <h4>Requirements</h4>
+    <ul>
+      <li>Your CLAUDE.md must include <strong>at least 6 of the 8 sections</strong> covered in this level (project description, file structure, tech stack, conventions, anti-patterns, testing, deployment, communication)</li>
+      <li>It must be between 200 and 600 words &mdash; concise but complete</li>
+      <li>It must contain at least 3 "NEVER" rules in the anti-patterns section</li>
+      <li>It must use imperative language throughout (no "it would be nice if" or "try to")</li>
+    </ul>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>Your CLAUDE.md file exists at the root of your project directory</li>
+      <li>Starting a new Claude Code session, Claude correctly identifies the project's tech stack without you mentioning it</li>
+      <li>Claude follows your file naming convention when creating new files</li>
+      <li>Claude uses the correct test runner when asked to write tests</li>
+      <li>Claude does NOT violate any of your "NEVER" rules during the test conversation</li>
+      <li>A vague prompt like "add error handling to the main function" results in code that follows your specified error handling pattern, not a generic one</li>
+    </ul>
+
+    <h4>Bonus Challenge</h4>
+    <p>Create a global <code>~/.claude/CLAUDE.md</code> with your personal preferences (language, comment style, response tone). Then verify that <strong>both</strong> files are active by starting a session and checking that Claude respects rules from both files simultaneously.</p>
+
+    <span class="time-estimate">&#9202; Estimated time: 45&ndash;60 minutes</span>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-03.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-05.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+</body>
+</html>

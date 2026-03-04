@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 07: Reading Code Without Writing It &mdash; Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-06.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-08.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 07</div>
+    <h1>Reading Code Without Writing It</h1>
+    <p class="level-subtitle">You don't need to write code to be dangerous with Claude Code. But you do need to read it well enough to know whether Claude built the right thing &mdash; or just built <em>something</em>.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: WHY THIS MATTERS FOR YOU -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">7.1</span> Why This Matters for You</h2>
+
+  <p>You've already built things with Claude Code. The Resy sniper, the apartment dashboard, the daily newsletter. Claude wrote the code. You described what you wanted. It worked &mdash; mostly.</p>
+
+  <p>But here's the thing: when something breaks at 2 AM, or when Claude generates 200 lines of code and asks "does this look right?", you need to be able to answer. Not by running it and praying. By actually <em>reading</em> what's there and forming a judgment.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>You are not becoming a programmer. You are becoming a <strong>code-literate operator</strong>. The difference is like the difference between being a novelist and being an editor. Editors don't write the novels &mdash; but they sure know when a chapter doesn't work.</p>
+  </div>
+
+  <p>This level gives you the vocabulary, the pattern recognition, and the review instincts to evaluate Claude's output with confidence. By the end, you'll be able to look at a block of code, understand its intent, spot common problems, and articulate what needs to change &mdash; all without typing a single line of code yourself.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: WHAT PROGRAMMING LANGUAGES ARE -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">7.2</span> What Programming Languages Are</h2>
+
+  <div class="analogy">
+    <strong>Analogy:</strong> Programming languages are like human languages &mdash; French, Spanish, Japanese. Each has its own grammar, vocabulary, and style. But just like you can recognize French without speaking it (the accents, the "le" and "la"), you can learn to recognize and read programming languages without being fluent in them.
+  </div>
+
+  <p>A programming language is a set of rules for giving precise instructions to a computer. Humans write instructions in these languages, and then tools translate those instructions into something the machine can execute.</p>
+
+  <p>There are hundreds of programming languages, but here's the good news: you only need to recognize a handful to work effectively with Claude Code. The two most common ones you'll encounter are:</p>
+
+  <div class="definition">
+    <p><span class="term">Python</span> &mdash; A language designed to be readable. It uses indentation (whitespace) to organize code and reads almost like English. It's the default choice for data processing, automation, APIs, and anything involving AI. When Claude Code builds you a scraper, a data pipeline, or an API &mdash; it's probably Python.</p>
+  </div>
+
+  <div class="definition">
+    <p><span class="term">JavaScript</span> &mdash; The language of the web. If it runs in a browser or builds a web app, it's JavaScript (or TypeScript, which is JavaScript with extra safety features). When Claude Code builds you a dashboard, a website, or a front-end interface &mdash; it's probably JavaScript.</p>
+  </div>
+
+  <p>You don't need to memorize the syntax of either. You need to be able to read them well enough to follow the logic. And once you learn the universal building blocks (next section), you'll realize these languages are more similar than they are different &mdash; just like how Spanish and Italian share a ton of vocabulary even though they sound different.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>When Claude generates code, look at the file extension: <code>.py</code> means Python, <code>.js</code> means JavaScript, <code>.ts</code> means TypeScript, <code>.html</code> means HTML (web structure), <code>.css</code> means CSS (web styling). The extension tells you what language you're looking at.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: THE UNIVERSAL BUILDING BLOCKS -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">7.3</span> The Universal Building Blocks</h2>
+
+  <p>Every programming language &mdash; every single one &mdash; is built from the same handful of concepts. Once you recognize these six building blocks, you can read code in any language. The syntax (the exact characters used) changes, but the ideas are identical.</p>
+
+  <!-- ---- Variables ---- -->
+  <h3><span class="section-number">7.3.1</span> Variables: Labeled Boxes</h3>
+
+  <div class="analogy">
+    <strong>Mental model:</strong> A variable is a labeled box. You write a name on the box, put a value inside, and from then on you can refer to the box by its name. If you write "price" on a box and put 29.99 inside, then every time the code mentions "price," it means 29.99.
+  </div>
+
+  <p>Here's what creating a variable looks like in both languages.</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-variable">name</span> <span class="syn-operator">=</span> <span class="syn-string">"Claude"</span>
+<span class="syn-variable">price</span> <span class="syn-operator">=</span> <span class="syn-number">29.99</span>
+<span class="syn-variable">is_active</span> <span class="syn-operator">=</span> <span class="syn-keyword">True</span></code></pre>
+
+  <p>In Python, you simply write the name, an equals sign, and the value. No special keywords needed.</p>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-keyword">const</span> <span class="syn-variable">name</span> <span class="syn-operator">=</span> <span class="syn-string">"Claude"</span>;
+<span class="syn-keyword">let</span> <span class="syn-variable">price</span> <span class="syn-operator">=</span> <span class="syn-number">29.99</span>;
+<span class="syn-keyword">let</span> <span class="syn-variable">isActive</span> <span class="syn-operator">=</span> <span class="syn-keyword">true</span>;</code></pre>
+
+  <p>In JavaScript, you use <code>const</code> (for values that won't change) or <code>let</code> (for values that might change), and each line ends with a semicolon. Notice <code>is_active</code> becomes <code>isActive</code> &mdash; Python uses underscores, JavaScript uses "camelCase." Same concept, different style.</p>
+
+  <!-- ---- Functions ---- -->
+  <h3><span class="section-number">7.3.2</span> Functions: Reusable Recipes</h3>
+
+  <div class="analogy">
+    <strong>Mental model:</strong> A function is a recipe. It has a name, takes ingredients (called "parameters" or "arguments"), follows a set of steps, and produces a result. Once you write the recipe, you can use it as many times as you want without repeating the steps.
+  </div>
+
+  <p>A function that calculates a discounted price:</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-keyword">def</span> <span class="syn-function">calculate_discount</span>(<span class="syn-variable">price</span>, <span class="syn-variable">percent_off</span>):
+    <span class="syn-variable">discount</span> <span class="syn-operator">=</span> <span class="syn-variable">price</span> <span class="syn-operator">*</span> (<span class="syn-variable">percent_off</span> <span class="syn-operator">/</span> <span class="syn-number">100</span>)
+    <span class="syn-keyword">return</span> <span class="syn-variable">price</span> <span class="syn-operator">-</span> <span class="syn-variable">discount</span>
+
+<span class="syn-variable">final_price</span> <span class="syn-operator">=</span> <span class="syn-function">calculate_discount</span>(<span class="syn-number">100</span>, <span class="syn-number">20</span>)  <span class="syn-comment"># Result: 80.0</span></code></pre>
+
+  <p>Reading it line by line: <code>def</code> means "define a new function." The name is <code>calculate_discount</code>. It takes two ingredients: <code>price</code> and <code>percent_off</code>. It multiplies them to get the discount amount, then returns the price minus the discount. The last line <em>calls</em> the function with a price of 100 and 20% off.</p>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-keyword">function</span> <span class="syn-function">calculateDiscount</span>(<span class="syn-variable">price</span>, <span class="syn-variable">percentOff</span>) {
+    <span class="syn-keyword">const</span> <span class="syn-variable">discount</span> <span class="syn-operator">=</span> <span class="syn-variable">price</span> <span class="syn-operator">*</span> (<span class="syn-variable">percentOff</span> <span class="syn-operator">/</span> <span class="syn-number">100</span>);
+    <span class="syn-keyword">return</span> <span class="syn-variable">price</span> <span class="syn-operator">-</span> <span class="syn-variable">discount</span>;
+}
+
+<span class="syn-keyword">const</span> <span class="syn-variable">finalPrice</span> <span class="syn-operator">=</span> <span class="syn-function">calculateDiscount</span>(<span class="syn-number">100</span>, <span class="syn-number">20</span>);  <span class="syn-comment">// Result: 80</span></code></pre>
+
+  <p>Same exact logic. JavaScript uses the word <code>function</code> instead of <code>def</code>, uses curly braces <code>{ }</code> instead of indentation to group the steps, and ends lines with semicolons. But the recipe is identical.</p>
+
+  <!-- ---- Conditionals ---- -->
+  <h3><span class="section-number">7.3.3</span> Conditionals: If/Else Decision Points</h3>
+
+  <div class="analogy">
+    <strong>Mental model:</strong> A conditional is a fork in the road. "If it's raining, bring an umbrella. Otherwise, wear sunglasses." The code checks a condition and takes one path or another.
+  </div>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-keyword">if</span> <span class="syn-variable">temperature</span> <span class="syn-operator">></span> <span class="syn-number">90</span>:
+    <span class="syn-function">print</span>(<span class="syn-string">"It's too hot!"</span>)
+<span class="syn-keyword">elif</span> <span class="syn-variable">temperature</span> <span class="syn-operator">></span> <span class="syn-number">70</span>:
+    <span class="syn-function">print</span>(<span class="syn-string">"Nice weather."</span>)
+<span class="syn-keyword">else</span>:
+    <span class="syn-function">print</span>(<span class="syn-string">"Bring a jacket."</span>)</code></pre>
+
+  <p>Read this as plain English: "If the temperature is above 90, print 'It's too hot!' Otherwise, if it's above 70, print 'Nice weather.' Otherwise, print 'Bring a jacket.'" That's literally what this code does. <code>elif</code> is Python's abbreviation of "else if."</p>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-keyword">if</span> (<span class="syn-variable">temperature</span> <span class="syn-operator">></span> <span class="syn-number">90</span>) {
+    <span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-string">"It's too hot!"</span>);
+} <span class="syn-keyword">else if</span> (<span class="syn-variable">temperature</span> <span class="syn-operator">></span> <span class="syn-number">70</span>) {
+    <span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-string">"Nice weather."</span>);
+} <span class="syn-keyword">else</span> {
+    <span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-string">"Bring a jacket."</span>);
+}</code></pre>
+
+  <p>Same logic, different syntax. JavaScript wraps the condition in parentheses and uses curly braces. <code>console.log</code> is JavaScript's version of Python's <code>print</code>.</p>
+
+  <!-- ---- Loops ---- -->
+  <h3><span class="section-number">7.3.4</span> Loops: Doing Something Repeatedly</h3>
+
+  <div class="analogy">
+    <strong>Mental model:</strong> A loop is like telling someone: "Go through every item in this list and do the same thing to each one." Like checking every seat in a theater row to see if it's empty.
+  </div>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-variable">restaurants</span> <span class="syn-operator">=</span> [<span class="syn-string">"Carbone"</span>, <span class="syn-string">"Don Angie"</span>, <span class="syn-string">"I Sodi"</span>]
+
+<span class="syn-keyword">for</span> <span class="syn-variable">restaurant</span> <span class="syn-keyword">in</span> <span class="syn-variable">restaurants</span>:
+    <span class="syn-function">print</span>(<span class="syn-string">f"Checking availability at </span><span class="syn-variable">{restaurant}</span><span class="syn-string">"</span>)</code></pre>
+
+  <p>This says: "For each restaurant in the list of restaurants, print a message." The loop runs three times &mdash; once for "Carbone," once for "Don Angie," once for "I Sodi."</p>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-keyword">const</span> <span class="syn-variable">restaurants</span> <span class="syn-operator">=</span> [<span class="syn-string">"Carbone"</span>, <span class="syn-string">"Don Angie"</span>, <span class="syn-string">"I Sodi"</span>];
+
+<span class="syn-keyword">for</span> (<span class="syn-keyword">const</span> <span class="syn-variable">restaurant</span> <span class="syn-keyword">of</span> <span class="syn-variable">restaurants</span>) {
+    <span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-string">`Checking availability at </span><span class="syn-variable">${restaurant}</span><span class="syn-string">`</span>);
+}</code></pre>
+
+  <p>Same logic. JavaScript uses <code>of</code> instead of <code>in</code>, and wraps the loop header in parentheses with curly braces for the body. The backtick strings with <code>${}</code> are JavaScript's way of inserting variables into text (Python uses <code>f""</code> strings).</p>
+
+  <!-- ---- Imports ---- -->
+  <h3><span class="section-number">7.3.5</span> Imports: Borrowing Someone Else's Recipe Book</h3>
+
+  <div class="analogy">
+    <strong>Mental model:</strong> An import is like referencing a cookbook. Instead of writing out every recipe from scratch, you say "I'm going to use recipes from Julia Child's cookbook." That's what importing does &mdash; it pulls in code someone else already wrote so you can use it.
+  </div>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-keyword">import</span> <span class="syn-variable">requests</span>                 <span class="syn-comment"># Import the whole "requests" cookbook</span>
+<span class="syn-keyword">from</span> <span class="syn-variable">datetime</span> <span class="syn-keyword">import</span> <span class="syn-variable">datetime</span>   <span class="syn-comment"># Import just the "datetime" recipe from the datetime cookbook</span>
+<span class="syn-keyword">import</span> <span class="syn-variable">os</span>                       <span class="syn-comment"># Import tools for interacting with the operating system</span></code></pre>
+
+  <p>Imports always appear at the top of a file. When you see them, you're looking at the "ingredients list" &mdash; the external tools this code depends on. <code>requests</code> means "this code will make web requests." <code>datetime</code> means "this code works with dates and times." <code>os</code> means "this code interacts with the file system or environment."</p>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-keyword">import</span> <span class="syn-variable">express</span> <span class="syn-keyword">from</span> <span class="syn-string">'express'</span>;           <span class="syn-comment">// Import the Express web framework</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">readFile</span> } <span class="syn-keyword">from</span> <span class="syn-string">'fs/promises'</span>;  <span class="syn-comment">// Import just the readFile function</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">axios</span> <span class="syn-operator">=</span> <span class="syn-function">require</span>(<span class="syn-string">'axios'</span>);           <span class="syn-comment">// Older import style (still common)</span></code></pre>
+
+  <p>JavaScript has two import styles: the modern <code>import ... from</code> syntax and the older <code>require()</code> syntax. You'll see both. They do the same thing.</p>
+
+  <!-- ---- Data Structures ---- -->
+  <h3><span class="section-number">7.3.6</span> Data Structures: Lists and Dictionaries</h3>
+
+  <div class="analogy">
+    <strong>Mental model:</strong> A <strong>list</strong> (Python) or <strong>array</strong> (JavaScript) is an ordered collection &mdash; like a numbered shopping list. A <strong>dictionary</strong> (Python) or <strong>object</strong> (JavaScript) is a collection of labeled values &mdash; like a contact card where each field has a name ("phone," "email," "address") and a value.
+  </div>
+
+  <p>Lists/Arrays &mdash; ordered collections:</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-variable">colors</span> <span class="syn-operator">=</span> [<span class="syn-string">"red"</span>, <span class="syn-string">"green"</span>, <span class="syn-string">"blue"</span>]
+<span class="syn-function">print</span>(<span class="syn-variable">colors</span>[<span class="syn-number">0</span>])  <span class="syn-comment"># "red" — counting starts at 0, not 1</span></code></pre>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-keyword">const</span> <span class="syn-variable">colors</span> <span class="syn-operator">=</span> [<span class="syn-string">"red"</span>, <span class="syn-string">"green"</span>, <span class="syn-string">"blue"</span>];
+<span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-variable">colors</span>[<span class="syn-number">0</span>]);  <span class="syn-comment">// "red"</span></code></pre>
+
+  <p>Lists look almost identical in both languages. Square brackets, comma-separated values, zero-indexed (the first item is number 0, not number 1).</p>
+
+  <p>Dictionaries/Objects &mdash; labeled value collections:</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-variable">contact</span> <span class="syn-operator">=</span> {
+    <span class="syn-string">"name"</span>: <span class="syn-string">"Sarah"</span>,
+    <span class="syn-string">"email"</span>: <span class="syn-string">"sarah@example.com"</span>,
+    <span class="syn-string">"phone"</span>: <span class="syn-string">"555-1234"</span>
+}
+<span class="syn-function">print</span>(<span class="syn-variable">contact</span>[<span class="syn-string">"email"</span>])  <span class="syn-comment"># "sarah@example.com"</span></code></pre>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-keyword">const</span> <span class="syn-variable">contact</span> <span class="syn-operator">=</span> {
+    <span class="syn-property">name</span>: <span class="syn-string">"Sarah"</span>,
+    <span class="syn-property">email</span>: <span class="syn-string">"sarah@example.com"</span>,
+    <span class="syn-property">phone</span>: <span class="syn-string">"555-1234"</span>
+};
+<span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-variable">contact</span>.<span class="syn-property">email</span>);  <span class="syn-comment">// "sarah@example.com"</span></code></pre>
+
+  <p>The key difference: Python puts quotes around the labels (keys), JavaScript doesn't. JavaScript accesses values with a dot (<code>contact.email</code>), Python uses brackets (<code>contact["email"]</code>). Same data, same idea.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>These six building blocks &mdash; variables, functions, conditionals, loops, imports, and data structures &mdash; make up roughly 90% of the code you'll ever need to read. Everything else is combinations and variations of these patterns. If you can spot these six in a block of code, you can follow the logic.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: READING CODE AS STRUCTURED ENGLISH -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">7.4</span> Reading Code as Structured English</h2>
+
+  <p>Now let's put the building blocks together. The most important skill in this entire level is the ability to read a block of code and translate it into plain English, line by line. Let's practice with three examples, starting simple and building up.</p>
+
+  <!-- Example 1 -->
+  <h3>Example 1: A Temperature Converter (Simple)</h3>
+
+  <p>Imagine Claude Code built this for you. Let's read it together.</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-keyword">def</span> <span class="syn-function">fahrenheit_to_celsius</span>(<span class="syn-variable">temp_f</span>):
+    <span class="syn-variable">temp_c</span> <span class="syn-operator">=</span> (<span class="syn-variable">temp_f</span> <span class="syn-operator">-</span> <span class="syn-number">32</span>) <span class="syn-operator">*</span> <span class="syn-number">5</span> <span class="syn-operator">/</span> <span class="syn-number">9</span>
+    <span class="syn-keyword">return</span> <span class="syn-function">round</span>(<span class="syn-variable">temp_c</span>, <span class="syn-number">1</span>)
+
+<span class="syn-variable">boiling</span> <span class="syn-operator">=</span> <span class="syn-function">fahrenheit_to_celsius</span>(<span class="syn-number">212</span>)
+<span class="syn-function">print</span>(<span class="syn-string">f"212F is </span><span class="syn-variable">{boiling}</span><span class="syn-string">C"</span>)</code></pre>
+
+  <p>Line-by-line translation:</p>
+  <ul>
+    <li><strong>Line 1:</strong> Define a new recipe called "fahrenheit_to_celsius" that takes one ingredient: a temperature in Fahrenheit.</li>
+    <li><strong>Line 2:</strong> Do the conversion math (subtract 32, multiply by 5/9) and store the result in a box labeled "temp_c."</li>
+    <li><strong>Line 3:</strong> Round the result to 1 decimal place and send it back as the answer.</li>
+    <li><strong>Line 5:</strong> Use the recipe with 212 as input and store the answer in a box labeled "boiling."</li>
+    <li><strong>Line 6:</strong> Print the result: "212F is 100.0C"</li>
+  </ul>
+
+  <p>That's it. Five lines, and you can tell exactly what this code does. The function name alone &mdash; <code>fahrenheit_to_celsius</code> &mdash; tells you the purpose. Good code is self-documenting like this.</p>
+
+  <!-- Example 2 -->
+  <h3>Example 2: Filtering a List (Medium)</h3>
+
+  <p>This function takes a list of restaurant reservations and returns only the ones for tonight.</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-keyword">from</span> <span class="syn-variable">datetime</span> <span class="syn-keyword">import</span> <span class="syn-variable">date</span>
+
+<span class="syn-keyword">def</span> <span class="syn-function">get_tonight_reservations</span>(<span class="syn-variable">reservations</span>):
+    <span class="syn-variable">today</span> <span class="syn-operator">=</span> <span class="syn-variable">date</span>.<span class="syn-function">today</span>()
+    <span class="syn-variable">tonight</span> <span class="syn-operator">=</span> []
+
+    <span class="syn-keyword">for</span> <span class="syn-variable">res</span> <span class="syn-keyword">in</span> <span class="syn-variable">reservations</span>:
+        <span class="syn-keyword">if</span> <span class="syn-variable">res</span>[<span class="syn-string">"date"</span>] <span class="syn-operator">==</span> <span class="syn-variable">today</span>:
+            <span class="syn-variable">tonight</span>.<span class="syn-function">append</span>(<span class="syn-variable">res</span>)
+
+    <span class="syn-keyword">return</span> <span class="syn-variable">tonight</span></code></pre>
+
+  <p>Line-by-line translation:</p>
+  <ul>
+    <li><strong>Line 1:</strong> Borrow the "date" tool from the datetime cookbook.</li>
+    <li><strong>Line 3:</strong> Define a recipe called "get_tonight_reservations" that takes a list of reservations.</li>
+    <li><strong>Line 4:</strong> Ask the computer "what is today's date?" and store it.</li>
+    <li><strong>Line 5:</strong> Create an empty list called "tonight" &mdash; this will hold our results.</li>
+    <li><strong>Line 7:</strong> Go through each reservation in the list, one at a time...</li>
+    <li><strong>Line 8:</strong> If this reservation's date matches today's date...</li>
+    <li><strong>Line 9:</strong> Add it to the "tonight" list.</li>
+    <li><strong>Line 11:</strong> When done checking all reservations, send back the list of tonight's reservations.</li>
+  </ul>
+
+  <p>Notice the pattern: get today's date, create an empty results list, loop through all items, keep the ones that match, return the results. This "filter" pattern is one of the most common things you'll see in code.</p>
+
+  <!-- Example 3 -->
+  <h3>Example 3: Fetching Data from an API (Advanced)</h3>
+
+  <p>This is closer to what Claude Code might actually generate &mdash; code that calls an external service.</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-keyword">import</span> <span class="syn-variable">requests</span>
+<span class="syn-keyword">import</span> <span class="syn-variable">os</span>
+
+<span class="syn-keyword">def</span> <span class="syn-function">get_weather</span>(<span class="syn-variable">city</span>):
+    <span class="syn-variable">api_key</span> <span class="syn-operator">=</span> <span class="syn-variable">os</span>.<span class="syn-variable">environ</span>.<span class="syn-function">get</span>(<span class="syn-string">"WEATHER_API_KEY"</span>)
+    <span class="syn-keyword">if</span> <span class="syn-keyword">not</span> <span class="syn-variable">api_key</span>:
+        <span class="syn-keyword">raise</span> <span class="syn-builtin">ValueError</span>(<span class="syn-string">"Missing WEATHER_API_KEY"</span>)
+
+    <span class="syn-variable">url</span> <span class="syn-operator">=</span> <span class="syn-string">f"https://api.weather.com/v1/current?city=</span><span class="syn-variable">{city}</span><span class="syn-string">&amp;key=</span><span class="syn-variable">{api_key}</span><span class="syn-string">"</span>
+    <span class="syn-variable">response</span> <span class="syn-operator">=</span> <span class="syn-variable">requests</span>.<span class="syn-function">get</span>(<span class="syn-variable">url</span>)
+
+    <span class="syn-keyword">if</span> <span class="syn-variable">response</span>.<span class="syn-property">status_code</span> <span class="syn-operator">!=</span> <span class="syn-number">200</span>:
+        <span class="syn-keyword">return</span> {<span class="syn-string">"error"</span>: <span class="syn-string">f"API returned </span><span class="syn-variable">{response.status_code}</span><span class="syn-string">"</span>}
+
+    <span class="syn-variable">data</span> <span class="syn-operator">=</span> <span class="syn-variable">response</span>.<span class="syn-function">json</span>()
+    <span class="syn-keyword">return</span> {
+        <span class="syn-string">"city"</span>: <span class="syn-variable">city</span>,
+        <span class="syn-string">"temp"</span>: <span class="syn-variable">data</span>[<span class="syn-string">"temperature"</span>],
+        <span class="syn-string">"conditions"</span>: <span class="syn-variable">data</span>[<span class="syn-string">"description"</span>]
+    }</code></pre>
+
+  <p>Line-by-line translation:</p>
+  <ul>
+    <li><strong>Lines 1-2:</strong> Import two cookbooks &mdash; <code>requests</code> for making web calls, <code>os</code> for reading system settings.</li>
+    <li><strong>Line 4:</strong> Define a recipe called "get_weather" that takes a city name.</li>
+    <li><strong>Line 5:</strong> Look for an API key stored in the computer's environment (not in the code itself &mdash; this is a good security practice).</li>
+    <li><strong>Lines 6-7:</strong> If there's no API key, stop everything and raise an error. This is a safety check.</li>
+    <li><strong>Line 9:</strong> Build the web address to call, inserting the city name and API key.</li>
+    <li><strong>Line 10:</strong> Actually make the web request and store the response.</li>
+    <li><strong>Lines 12-13:</strong> If the response wasn't successful (anything other than code 200 means something went wrong), return an error message.</li>
+    <li><strong>Line 15:</strong> Convert the response from raw data to a structured format (JSON).</li>
+    <li><strong>Lines 16-20:</strong> Return a dictionary with just the information we care about: city, temperature, and conditions.</li>
+  </ul>
+
+  <p>This example has three things worth noticing: the API key is read from the environment (not hardcoded &mdash; good), there's error checking for both the missing key and a failed API call (good), and the function returns a clean, simple result even though the raw API response might have 50 fields (good). If you can spot these patterns, you're reading code effectively.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: RED FLAGS IN CLAUDE'S CODE -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">7.5</span> Red Flags to Watch for in Claude's Code</h2>
+
+  <p>Claude Code is excellent at generating working code quickly. But "working" and "good" aren't the same thing. Here are the patterns you should train your eyes to catch.</p>
+
+  <!-- Red Flag 1 -->
+  <h3><span class="section-number">7.5.1</span> Hardcoded Values That Should Be Configurable</h3>
+
+  <p>A "hardcoded value" is a specific number, string, or setting written directly into the code instead of being stored somewhere easy to change.</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-comment"># BAD: Hardcoded values</span>
+<span class="syn-keyword">def</span> <span class="syn-function">send_alert</span>(<span class="syn-variable">message</span>):
+    <span class="syn-variable">requests</span>.<span class="syn-function">post</span>(<span class="syn-string">"https://hooks.slack.com/services/T0123/B456/xyz789"</span>,
+                  <span class="syn-variable">json</span><span class="syn-operator">=</span>{<span class="syn-string">"text"</span>: <span class="syn-variable">message</span>})</code></pre>
+
+  <p>That Slack webhook URL is buried in the code. If it changes, you have to find it in the source and edit it. Even worse, if this file gets shared or committed to a public repository, that URL is exposed.</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-comment"># GOOD: Configurable values</span>
+<span class="syn-keyword">def</span> <span class="syn-function">send_alert</span>(<span class="syn-variable">message</span>):
+    <span class="syn-variable">webhook_url</span> <span class="syn-operator">=</span> <span class="syn-variable">os</span>.<span class="syn-variable">environ</span>.<span class="syn-function">get</span>(<span class="syn-string">"SLACK_WEBHOOK_URL"</span>)
+    <span class="syn-keyword">if</span> <span class="syn-keyword">not</span> <span class="syn-variable">webhook_url</span>:
+        <span class="syn-keyword">raise</span> <span class="syn-builtin">ValueError</span>(<span class="syn-string">"SLACK_WEBHOOK_URL not set"</span>)
+    <span class="syn-variable">requests</span>.<span class="syn-function">post</span>(<span class="syn-variable">webhook_url</span>, <span class="syn-variable">json</span><span class="syn-operator">=</span>{<span class="syn-string">"text"</span>: <span class="syn-variable">message</span>})</code></pre>
+
+  <p>Now the URL comes from an environment variable &mdash; easy to change, never exposed in code.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">What to look for</div>
+    <p>Watch for URLs, email addresses, file paths, specific numbers (like <code>max_retries = 3</code> or <code>timeout = 30</code>), and especially anything that looks like a key, token, or password written directly in the code. These should almost always be variables or environment settings.</p>
+  </div>
+
+  <!-- Red Flag 2 -->
+  <h3><span class="section-number">7.5.2</span> Missing Error Handling</h3>
+
+  <p>Error handling is what happens when things go wrong &mdash; and things always go wrong. A network call fails. A file doesn't exist. A user enters "banana" when the code expects a number.</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-comment"># BAD: No error handling</span>
+<span class="syn-keyword">def</span> <span class="syn-function">load_config</span>():
+    <span class="syn-variable">f</span> <span class="syn-operator">=</span> <span class="syn-function">open</span>(<span class="syn-string">"config.json"</span>)
+    <span class="syn-keyword">return</span> <span class="syn-variable">json</span>.<span class="syn-function">load</span>(<span class="syn-variable">f</span>)</code></pre>
+
+  <p>If <code>config.json</code> doesn't exist, this code crashes with an ugly error. If the file contains invalid JSON, it crashes differently. Neither case is handled gracefully.</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-comment"># GOOD: Handles what could go wrong</span>
+<span class="syn-keyword">def</span> <span class="syn-function">load_config</span>():
+    <span class="syn-keyword">try</span>:
+        <span class="syn-keyword">with</span> <span class="syn-function">open</span>(<span class="syn-string">"config.json"</span>) <span class="syn-keyword">as</span> <span class="syn-variable">f</span>:
+            <span class="syn-keyword">return</span> <span class="syn-variable">json</span>.<span class="syn-function">load</span>(<span class="syn-variable">f</span>)
+    <span class="syn-keyword">except</span> <span class="syn-builtin">FileNotFoundError</span>:
+        <span class="syn-function">print</span>(<span class="syn-string">"Config file not found, using defaults."</span>)
+        <span class="syn-keyword">return</span> {<span class="syn-string">"theme"</span>: <span class="syn-string">"default"</span>, <span class="syn-string">"debug"</span>: <span class="syn-keyword">False</span>}
+    <span class="syn-keyword">except</span> <span class="syn-variable">json</span>.<span class="syn-builtin">JSONDecodeError</span>:
+        <span class="syn-function">print</span>(<span class="syn-string">"Config file is corrupted."</span>)
+        <span class="syn-keyword">return</span> {<span class="syn-string">"theme"</span>: <span class="syn-string">"default"</span>, <span class="syn-string">"debug"</span>: <span class="syn-keyword">False</span>}</code></pre>
+
+  <p>The <code>try/except</code> pattern is the standard way to handle errors. "Try this thing. If it fails with error X, do this instead. If it fails with error Y, do that instead." When you see code that calls an API, opens a file, or processes user input without a <code>try/except</code> block &mdash; that's a red flag.</p>
+
+  <!-- Red Flag 3 -->
+  <h3><span class="section-number">7.5.3</span> Unused Variables or Imports</h3>
+
+  <p>Sometimes Claude generates code that imports a library or creates a variable but never actually uses it. This is like buying ingredients for a recipe and then leaving them on the counter.</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-keyword">import</span> <span class="syn-variable">requests</span>      <span class="syn-comment"># Imported but never used anywhere below</span>
+<span class="syn-keyword">import</span> <span class="syn-variable">json</span>
+<span class="syn-keyword">import</span> <span class="syn-variable">sys</span>           <span class="syn-comment"># Also never used</span>
+
+<span class="syn-keyword">def</span> <span class="syn-function">process_data</span>(<span class="syn-variable">data</span>):
+    <span class="syn-variable">result</span> <span class="syn-operator">=</span> <span class="syn-variable">json</span>.<span class="syn-function">loads</span>(<span class="syn-variable">data</span>)
+    <span class="syn-variable">temp</span> <span class="syn-operator">=</span> <span class="syn-variable">result</span>[<span class="syn-string">"value"</span>]  <span class="syn-comment"># Created but never used</span>
+    <span class="syn-keyword">return</span> <span class="syn-variable">result</span></code></pre>
+
+  <p>Here, <code>requests</code> and <code>sys</code> are imported but never referenced. The variable <code>temp</code> is created but never used. This isn't necessarily a bug, but it suggests sloppy code or leftover artifacts from an earlier version. It adds noise and makes the code harder to understand.</p>
+
+  <!-- Red Flag 4 -->
+  <h3><span class="section-number">7.5.4</span> Infinite Loops or Obvious Logic Bugs</h3>
+
+  <p>An infinite loop is a loop that never stops. It's like telling someone "keep walking until you reach the end of the circle."</p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-comment"># DANGER: This never stops</span>
+<span class="syn-variable">count</span> <span class="syn-operator">=</span> <span class="syn-number">0</span>
+<span class="syn-keyword">while</span> <span class="syn-variable">count</span> <span class="syn-operator"><</span> <span class="syn-number">10</span>:
+    <span class="syn-function">print</span>(<span class="syn-variable">count</span>)
+    <span class="syn-comment"># Oops: forgot to increment count, so count is always 0</span></code></pre>
+
+  <p>The loop says "keep going while count is less than 10" but count never increases from 0. It will print 0 forever. The fix is adding <code>count = count + 1</code> inside the loop. When you see a <code>while</code> loop, ask yourself: "what makes this stop?" If you can't find the answer, that's a red flag.</p>
+
+  <!-- Red Flag 5 -->
+  <h3><span class="section-number">7.5.5</span> Security Issues</h3>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Security issues are the most important red flags to catch. A functional bug means something doesn't work. A security issue means someone could steal your data, your API keys, or run malicious code on your system.</p>
+  </div>
+
+  <p><strong>API keys in code:</strong></p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-comment"># NEVER do this</span>
+<span class="syn-variable">API_KEY</span> <span class="syn-operator">=</span> <span class="syn-string">"sk-ant-api03-real-key-here-abc123xyz"</span>
+<span class="syn-variable">STRIPE_SECRET</span> <span class="syn-operator">=</span> <span class="syn-string">"sk_live_51H7..."</span></code></pre>
+
+  <p>If you see something that looks like a real key or password assigned directly to a variable (not read from an environment variable or a secrets file), stop immediately. Tell Claude to move it to an environment variable or a <code>.env</code> file.</p>
+
+  <p><strong>SQL injection patterns:</strong></p>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-comment"># BAD: User input directly in database query</span>
+<span class="syn-variable">query</span> <span class="syn-operator">=</span> <span class="syn-string">f"SELECT * FROM users WHERE name = '</span><span class="syn-variable">{user_input}</span><span class="syn-string">'"</span></code></pre>
+
+  <p>This inserts user input directly into a database query. If someone types a malicious value, they could delete your entire database. You don't need to understand exactly how SQL injection works &mdash; just know that if you see user input being placed directly into a string that looks like a database command (containing words like SELECT, INSERT, UPDATE, DELETE), that's dangerous.</p>
+
+  <!-- Red Flag 6 -->
+  <h3><span class="section-number">7.5.6</span> TODOs and Placeholder Code</h3>
+
+  <div class="code-label">python</div>
+<pre><code><span class="syn-keyword">def</span> <span class="syn-function">send_email</span>(<span class="syn-variable">to</span>, <span class="syn-variable">subject</span>, <span class="syn-variable">body</span>):
+    <span class="syn-comment"># TODO: implement actual email sending</span>
+    <span class="syn-keyword">pass</span>
+
+<span class="syn-keyword">def</span> <span class="syn-function">validate_payment</span>(<span class="syn-variable">amount</span>):
+    <span class="syn-comment"># FIXME: this doesn't handle refunds yet</span>
+    <span class="syn-keyword">return</span> <span class="syn-keyword">True</span>  <span class="syn-comment"># Always returns True — no real validation!</span></code></pre>
+
+  <p>Claude sometimes generates placeholder functions that look complete but do nothing. The <code>pass</code> keyword in Python means "do literally nothing." A function that always returns <code>True</code> without actually checking anything is a stub. Search for comments containing <code>TODO</code>, <code>FIXME</code>, <code>HACK</code>, or <code>PLACEHOLDER</code> &mdash; these are the code's own admission that it's not finished.</p>
+
+  <div class="callout info">
+    <div class="callout-title">Quick Reference: Red Flag Checklist</div>
+    <p>When reviewing Claude's code, scan for these patterns:</p>
+    <ul>
+      <li>Strings that look like API keys, tokens, passwords, or webhook URLs</li>
+      <li>Web requests, file operations, or data parsing without <code>try/except</code></li>
+      <li><code>import</code> statements at the top that aren't used in the code below</li>
+      <li><code>while</code> loops with no clear exit condition</li>
+      <li>User input inserted directly into database queries or shell commands</li>
+      <li>Comments with TODO, FIXME, HACK, or functions that just say <code>pass</code></li>
+      <li>Variables assigned but never referenced again</li>
+    </ul>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: EVALUATING CORRECTNESS WITHOUT CODING -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">7.6</span> How to Evaluate Correctness Without Coding</h2>
+
+  <p>You can't run the code in your head (well, not efficiently). But you can evaluate whether it's likely correct by asking the right questions. Here's your framework.</p>
+
+  <h3>Question 1: Does it match what you asked for?</h3>
+
+  <p>This sounds obvious, but it's the most common failure mode. You asked Claude to "build a script that sends me the top 5 Hacker News stories every morning." Check: does the code actually fetch from Hacker News? Does it limit to 5 stories? Is there any scheduling mechanism? If you asked for 5 stories and the code fetches 10, that's a mismatch &mdash; even if the code technically works.</p>
+
+  <h3>Question 2: What happens at the edges?</h3>
+
+  <p>Edge cases are the unusual situations. What happens if the list of stories is empty? What if the network is down? What if one story has no title? Good code anticipates these. Ask yourself:</p>
+  <ul>
+    <li>What happens with <strong>empty input</strong>? (An empty list, a blank string, zero)</li>
+    <li>What happens with <strong>extreme input</strong>? (A million items, a very long string)</li>
+    <li>What happens when <strong>external services fail</strong>? (API down, network timeout)</li>
+    <li>What happens with <strong>unexpected input</strong>? (Letters where numbers are expected)</li>
+  </ul>
+
+  <h3>Question 3: Does the logic flow make sense?</h3>
+
+  <p>Follow the code from top to bottom like a story. Does the sequence of events make sense? A common logic bug is doing things in the wrong order &mdash; like trying to read data from a file before checking if the file exists, or sending a confirmation email before the payment actually succeeds.</p>
+
+  <h3>Question 4: Is it doing more than it should?</h3>
+
+  <p>Sometimes Claude overbuilds. You asked for a simple to-do list, and it generated a full database schema, user authentication system, and admin dashboard. More code means more things that can break. If the complexity exceeds what you asked for, ask Claude to simplify.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>You don't need to verify that the code <em>computes correctly</em>. You need to verify that it <em>addresses what you asked for</em>, <em>handles failure gracefully</em>, and <em>doesn't have obvious structural problems</em>. That's 80% of code review, and you can do all of it without writing a single line.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: ASKING CLAUDE TO EXPLAIN ITS WORK -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">7.7</span> Asking Claude to Explain Its Work</h2>
+
+  <p>One of the most underused features of working with Claude Code: you can ask it to explain what it just built. This is your secret weapon as a non-coder. Here are the specific prompts that work best.</p>
+
+  <h3>Prompt 1: The Line-by-Line Walkthrough</h3>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-string">Walk me through this file line by line. For each section, explain:</span>
+<span class="syn-string">1. What it does in plain English</span>
+<span class="syn-string">2. Why you chose this approach</span>
+<span class="syn-string">3. What could go wrong here</span></code></pre>
+
+  <p>This forces Claude to articulate its reasoning. If it can't explain a section clearly, that section might be unnecessarily complex or might not be well thought-out.</p>
+
+  <h3>Prompt 2: The Failure Scenario</h3>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-string">What happens if the API is down? What happens if the input</span>
+<span class="syn-string">is empty? What happens if the file doesn't exist? Walk me</span>
+<span class="syn-string">through every failure scenario and tell me how this code handles it.</span></code></pre>
+
+  <p>This exposes missing error handling. Claude will either point you to the existing error handling (good) or admit "oh, I didn't handle that case" (which means it needs to be fixed).</p>
+
+  <h3>Prompt 3: The Simplification Check</h3>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-string">Is there a simpler way to do this? I want the minimum amount</span>
+<span class="syn-string">of code that achieves the goal. Point out anything you included</span>
+<span class="syn-string">that isn't strictly necessary.</span></code></pre>
+
+  <p>Claude sometimes over-engineers solutions. This prompt gives it permission to strip things down. Simpler code is almost always better code.</p>
+
+  <h3>Prompt 4: The Security Audit</h3>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-string">Review this code for security issues. Are there any hardcoded</span>
+<span class="syn-string">secrets? Any places where user input isn't validated? Any data</span>
+<span class="syn-string">that could be exposed? Be thorough.</span></code></pre>
+
+  <p>Claude is very good at finding security issues in its own code when asked directly. Make this a standard part of your review process, especially for anything that handles user data, makes API calls, or deals with payments.</p>
+
+  <h3>Prompt 5: The "Explain It to Me" Recap</h3>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-string">Explain the overall architecture of what you just built. How do</span>
+<span class="syn-string">the files relate to each other? What's the flow of data from</span>
+<span class="syn-string">start to finish? Use a non-technical analogy.</span></code></pre>
+
+  <p>This gives you the big picture. After a multi-file build, use this prompt to make sure you understand the overall structure before reviewing individual files.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>Don't be embarrassed to ask Claude to explain itself. This isn't a sign of ignorance &mdash; it's a sign of diligence. Professional software teams do formal code reviews where developers explain their work to each other. You're doing the same thing, just with an AI as the author.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: THE 80/20 OF CODE REVIEW -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">7.8</span> The 80/20 of Code Review for Non-Coders</h2>
+
+  <p>You don't need to understand every character in every line. Here are the four things that catch 80% of problems, ordered by priority.</p>
+
+  <h3>1. Does it do what was asked?</h3>
+
+  <p>Read the function names and the overall flow. Do they match your request? If you asked for a "daily email digest of news stories" and the code is setting up a web server, something went sideways. The function names and the structure tell the story &mdash; you don't need to understand the implementation details.</p>
+
+  <h3>2. Are there obvious errors?</h3>
+
+  <p>Use the red flags checklist from Section 7.5. Scan for TODOs, placeholder code, hardcoded secrets, missing error handling, and infinite loops. These are visual patterns you can spot without understanding the logic.</p>
+
+  <h3>3. Is it readable?</h3>
+
+  <p>Good code reads like a story. Variables have descriptive names (<code>user_email</code> not <code>x</code>). Functions describe what they do (<code>send_notification</code> not <code>func2</code>). There are comments explaining the non-obvious parts. If you can't follow the general flow by reading the variable names and function names, the code is too clever and should be simplified.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Readability is not a luxury. Code that's hard to read is hard to debug, hard to modify, and hard to trust. If Claude generates code with variable names like <code>a</code>, <code>b</code>, <code>tmp</code>, <code>data2</code>, or <code>x</code>, ask it to rewrite with descriptive names. This is one of the highest-value changes you can request.</p>
+  </div>
+
+  <h3>4. Are there security concerns?</h3>
+
+  <p>Any code that handles passwords, API keys, personal data, or payments deserves extra scrutiny. Check for:</p>
+  <ul>
+    <li>API keys or passwords written directly in the code (should be in environment variables)</li>
+    <li>User data being logged or printed (should never log passwords or personal info)</li>
+    <li>External input being used directly in database queries or system commands (should be sanitized)</li>
+    <li>HTTP instead of HTTPS (data sent unencrypted)</li>
+  </ul>
+
+  <p>If any of these exist, use Prompt 4 from Section 7.7 and have Claude fix them before you proceed.</p>
+
+  <h3>Putting It All Together: Your Review Checklist</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Check</th>
+        <th>What to Look For</th>
+        <th>How to Fix</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Purpose Match</strong></td>
+        <td>Function names and flow match your request</td>
+        <td>Clarify your prompt and regenerate</td>
+      </tr>
+      <tr>
+        <td><strong>Error Handling</strong></td>
+        <td>try/except blocks around risky operations</td>
+        <td>"Add error handling for [specific scenario]"</td>
+      </tr>
+      <tr>
+        <td><strong>Security</strong></td>
+        <td>No hardcoded secrets, input validation</td>
+        <td>"Move all secrets to environment variables"</td>
+      </tr>
+      <tr>
+        <td><strong>Readability</strong></td>
+        <td>Descriptive names, comments, logical flow</td>
+        <td>"Rename variables to be more descriptive"</td>
+      </tr>
+      <tr>
+        <td><strong>Completeness</strong></td>
+        <td>No TODOs, no placeholder functions</td>
+        <td>"Implement all TODO items"</td>
+      </tr>
+      <tr>
+        <td><strong>Simplicity</strong></td>
+        <td>No unnecessary complexity or over-engineering</td>
+        <td>"Simplify this to the minimum needed"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT -->
+  <!-- ============================================================ -->
+
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#9989;</span>
+      <h3>Checkpoint Project: The Code Reviewer</h3>
+    </div>
+
+    <h4>What You'll Build</h4>
+    <p>You're going to ask Claude Code to generate a small application, then review it <strong>without writing any code yourself</strong>. Your deliverable is a plain-English review document.</p>
+
+    <h4>Step-by-Step Instructions</h4>
+    <ol>
+      <li><strong>Ask Claude Code to build a contact manager</strong> (or a to-do list &mdash; your choice). It should be a command-line Python or JavaScript app that can add, list, search, and delete contacts/items. Tell Claude: "Build a simple contact manager CLI app in Python. It should save contacts to a JSON file and support adding, listing, searching by name, and deleting contacts."</li>
+      <li><strong>Read through the generated code</strong> without modifying it. Identify what each section does using the building blocks from Section 7.3.</li>
+      <li><strong>Create a review document</strong> (a plain text or markdown file) that includes:
+        <ul>
+          <li>A summary of what the application does (2-3 sentences)</li>
+          <li>A section-by-section breakdown ("Lines 1-5: imports the json and os libraries for file handling and system interaction")</li>
+          <li>At least one potential issue or improvement you identified (missing error handling, hardcoded file path, etc.)</li>
+          <li>At least one question you'd ask the developer (or Claude) about a design decision</li>
+          <li>A verdict: is this code ready to use, or does it need changes?</li>
+        </ul>
+      </li>
+      <li><strong>Ask Claude to explain its code</strong> using at least two of the prompts from Section 7.7. Compare its explanation to your own understanding.</li>
+      <li><strong>Ask Claude to review its own code for issues</strong> using Prompt 4 (security audit). Note whether Claude identifies issues you missed, or whether you caught something Claude didn't mention.</li>
+    </ol>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>You produced a written review document covering the five areas listed above</li>
+      <li>You correctly identified at least 3 of the 6 building blocks (variables, functions, conditionals, loops, imports, data structures) in Claude's code</li>
+      <li>You found at least one genuine issue or improvement (not a nitpick &mdash; something that would actually matter in production)</li>
+      <li>You used at least two of the "explain your work" prompts from Section 7.7 and understood Claude's responses</li>
+      <li>You can explain, in your own words, what the application does and how data flows through it</li>
+    </ul>
+
+    <h4>How You Know You've Passed</h4>
+    <p>Show your review document to Claude and ask: "Is this review accurate? Did I miss anything significant?" If Claude confirms your analysis is mostly right and your identified issue is valid, you've passed this level. You can read code.</p>
+
+    <div class="time-estimate">
+      <span>&#9202;</span> Estimated time: 45 &ndash; 60 minutes
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-06.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-08.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+</body>
+</html>

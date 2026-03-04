@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 14: The Claude Code SDK | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-13.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-15.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 14</div>
+    <h1>The Claude Code SDK</h1>
+    <p class="level-subtitle">Move beyond typing prompts in a terminal. The SDK lets you embed Claude Code's full power &mdash; file access, tool use, multi-turn reasoning &mdash; directly inside your own programs.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: What the SDK Is -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.1</span> What the SDK Is</h2>
+
+  <p>In Level 13 you learned headless mode: firing off a single prompt to Claude Code from a script and getting a result back. That works great for simple automation &mdash; run a command, get an answer, move on. But what if you want more control? What if you need to stream Claude's output in real time, manage multi-turn conversations programmatically, or build an entirely custom interface on top of Claude Code?</p>
+
+  <p>That's what the SDK is for.</p>
+
+  <div class="analogy">
+    <strong>The analogy:</strong> Headless mode is like sending a letter to Claude &mdash; you write your message, drop it in the mailbox, and eventually get a reply. The SDK is like having Claude on speed dial with a direct phone line. You can call programmatically, interrupt mid-sentence, start new topics without hanging up, get real-time streaming responses, and build whatever custom phone system you want on top of that direct connection.
+  </div>
+
+  <p>The Claude Code SDK is a TypeScript/JavaScript library that exposes Claude Code's full capabilities &mdash; file reading, file writing, command execution, multi-turn reasoning, tool use &mdash; as functions you can call from your own Node.js applications. Instead of Claude Code being the program you use, it becomes a component <em>inside</em> programs you build.</p>
+
+  <div class="definition">
+    <p><span class="term">SDK (Software Development Kit):</span> A library that gives your code access to another system's functionality. The Claude Code SDK gives your Node.js programs access to everything Claude Code can do &mdash; not just the language model, but the entire agent loop with tools, file access, and command execution.</p>
+  </div>
+
+  <p>This is a significant shift. Up to now, you've been a <em>user</em> of Claude Code. With the SDK, you become a <em>builder</em> on top of Claude Code. You're not just asking Claude to do things &mdash; you're writing programs that orchestrate Claude as a component.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: SDK vs. CLI vs. API -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.2</span> SDK vs. CLI vs. Headless vs. API</h2>
+
+  <p>There are now four ways to interact with Claude's intelligence. Each serves a different purpose, and confusing them is a common source of frustration. Here's the clear breakdown.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Mode</th>
+        <th>How It Works</th>
+        <th>Tools / File Access</th>
+        <th>Best For</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>CLI (Interactive)</strong></td>
+        <td>You type, Claude responds in the terminal</td>
+        <td>Full access (files, commands, MCP)</td>
+        <td>Day-to-day development work</td>
+      </tr>
+      <tr>
+        <td><strong>Headless (<code>-p</code>)</strong></td>
+        <td>Fire-and-forget: one prompt in, one result out</td>
+        <td>Full access</td>
+        <td>Shell scripts, CI pipelines, cron jobs</td>
+      </tr>
+      <tr>
+        <td><strong>SDK</strong></td>
+        <td>Programmatic control from your own Node.js code</td>
+        <td>Full access</td>
+        <td>Custom tools, multi-agent systems, apps</td>
+      </tr>
+      <tr>
+        <td><strong>Anthropic API</strong></td>
+        <td>Raw HTTP calls to Claude's language model</td>
+        <td>None &mdash; just text in, text out</td>
+        <td>When you only need the model itself</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong>The SDK is not the Anthropic API.</strong> This is the most common misunderstanding. The Anthropic API gives you access to the raw Claude model &mdash; you send text, you get text back. No file access, no command execution, no tool use. The SDK gives you access to the full Claude Code <em>agent</em> &mdash; the entire system that reads files, writes code, runs commands, and reasons across multiple steps. The SDK is Claude Code as a library. The API is just the brain without the hands.</p>
+  </div>
+
+  <p>Think about it this way: when you use Claude Code interactively and ask it to "refactor the auth module," Claude reads dozens of files, plans changes, edits code, and runs tests. That entire workflow &mdash; not just the language model, but the agent loop around it &mdash; is what the SDK exposes to your programs.</p>
+
+  <h3>When to Use Which</h3>
+
+  <ul>
+    <li><strong>Use the CLI</strong> when you're sitting at your computer, working interactively on a project.</li>
+    <li><strong>Use headless mode</strong> when you need Claude to do one thing non-interactively (commit message generation, a CI check, a scheduled task).</li>
+    <li><strong>Use the SDK</strong> when you're building a program that needs to invoke Claude Code as part of its logic &mdash; especially if you need streaming, multi-turn conversations, or custom orchestration.</li>
+    <li><strong>Use the Anthropic API</strong> when you only need the model's text generation ability and you're handling everything else (file access, tool use) yourself.</li>
+  </ul>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: Installation and Setup -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.3</span> Installation and Setup</h2>
+
+  <p>The SDK is a Node.js package. You need Node.js installed, and you need Claude Code already authenticated on your machine (which you've had since Level 1). The SDK piggybacks on your existing authentication &mdash; no separate API key needed.</p>
+
+  <h3>Prerequisites</h3>
+
+  <ul>
+    <li>Node.js 18 or higher installed</li>
+    <li>Claude Code installed and authenticated (you can run <code>claude --version</code> to verify)</li>
+    <li>A Node.js project (we'll create one if you don't have one)</li>
+  </ul>
+
+  <h3>Setting Up a New Project</h3>
+
+  <p>If you're starting fresh, create a project directory and initialize it. Here's the full setup sequence.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment"># Create and enter the project directory</span>
+<span class="syn-function">mkdir</span> claude-sdk-playground
+<span class="syn-keyword">cd</span> claude-sdk-playground
+
+<span class="syn-comment"># Initialize a Node.js project</span>
+<span class="syn-function">npm</span> init -y
+
+<span class="syn-comment"># Install the Claude Code SDK</span>
+<span class="syn-function">npm</span> install @anthropic-ai/claude-code
+
+<span class="syn-comment"># Install TypeScript (recommended but optional)</span>
+<span class="syn-function">npm</span> install -D typescript @types/node tsx
+
+<span class="syn-comment"># Initialize TypeScript config</span>
+<span class="syn-function">npx</span> tsc --init</code></pre>
+
+  <p>That installs the SDK and sets up TypeScript. The <code>tsx</code> package lets you run TypeScript files directly without a separate compilation step, which is ideal for experimenting.</p>
+
+  <h3>Verifying the Installation</h3>
+
+  <p>Create a quick test file to make sure everything is wired up. This is the "hello world" of the SDK.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// test-sdk.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">main</span>() {
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-string">'What is 2 + 2?'</span>);
+  console.<span class="syn-function">log</span>(<span class="syn-string">'Response:'</span>, <span class="syn-variable">result</span>);
+}
+
+<span class="syn-function">main</span>();</code></pre>
+
+  <p>Run it with <code>npx tsx test-sdk.ts</code>. If you see a response from Claude, your setup is working. If you get an authentication error, make sure you can run <code>claude</code> from the same terminal &mdash; the SDK uses the same credentials.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p><strong>TypeScript is strongly recommended</strong> for SDK work. The SDK's type definitions give you autocomplete and catch mistakes before runtime. All examples in this level use TypeScript, but they work in plain JavaScript too &mdash; just remove the type annotations.</p>
+  </div>
+
+  <h3>Authentication</h3>
+
+  <p>The SDK uses whatever authentication Claude Code already has. If you're logged in with <code>claude</code>, the SDK works automatically. No separate API keys, no environment variables to set, no OAuth flows. It just works.</p>
+
+  <p>If you're deploying SDK-based applications to a server or CI environment, you'll need to ensure Claude Code is authenticated there too. The typical approach is to set the <code>ANTHROPIC_API_KEY</code> environment variable, which both Claude Code and the SDK will pick up.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: The claude() Function -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.4</span> The <code>claude()</code> Function &mdash; The Core of the SDK</h2>
+
+  <p>Everything in the SDK revolves around one function: <code>claude()</code>. It's the single entry point for spawning a Claude Code agent from your code. You give it a prompt, options, and it returns a result. Simple on the surface &mdash; immensely powerful underneath.</p>
+
+  <h3>Basic Usage</h3>
+
+  <p>The simplest possible SDK call is just a string prompt.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-string">'Create a TypeScript function that reverses a string'</span>);
+console.<span class="syn-function">log</span>(<span class="syn-variable">result</span>);</code></pre>
+
+  <p>That spawns a full Claude Code agent, sends it the prompt, lets it think and act, and returns the result when it's done. The agent has access to the same tools it has in the CLI &mdash; it can read files, write files, run commands. This is not just a text completion &mdash; it's a full agent execution.</p>
+
+  <h3>Options Object</h3>
+
+  <p>For real-world use, you'll pass an options object to control the agent's behavior. Here are the key options.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-string">'Refactor the utils module to use async/await'</span>, {
+  <span class="syn-comment">// Working directory — where Claude operates</span>
+  <span class="syn-property">cwd</span>: <span class="syn-string">'/path/to/my-project'</span>,
+
+  <span class="syn-comment">// Limit which tools Claude can use</span>
+  <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Write'</span>, <span class="syn-string">'Edit'</span>],
+
+  <span class="syn-comment">// Max agentic turns (each tool use is one turn)</span>
+  <span class="syn-property">maxTurns</span>: <span class="syn-number">20</span>,
+
+  <span class="syn-comment">// Permission mode — controls what Claude can do without asking</span>
+  <span class="syn-property">permissionMode</span>: <span class="syn-string">'auto'</span>,
+
+  <span class="syn-comment">// System prompt additions</span>
+  <span class="syn-property">systemPrompt</span>: <span class="syn-string">'You are a refactoring specialist. Only modify existing files.'</span>,
+});</code></pre>
+
+  <p>Each option shapes the agent's behavior. Let's break them down.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Option</th>
+        <th>What It Does</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>cwd</code></td>
+        <td>Sets the working directory. Claude reads/writes files relative to this path.</td>
+        <td>Current process directory</td>
+      </tr>
+      <tr>
+        <td><code>allowedTools</code></td>
+        <td>Restricts which tools Claude can use. Useful for sandboxing.</td>
+        <td>All tools available</td>
+      </tr>
+      <tr>
+        <td><code>maxTurns</code></td>
+        <td>Caps how many agentic steps Claude can take. Prevents runaway loops.</td>
+        <td>Unlimited</td>
+      </tr>
+      <tr>
+        <td><code>permissionMode</code></td>
+        <td>Controls auto-approval of tool use (<code>'auto'</code> for unattended execution).</td>
+        <td>Depends on context</td>
+      </tr>
+      <tr>
+        <td><code>systemPrompt</code></td>
+        <td>Additional system instructions on top of the default Claude Code prompt.</td>
+        <td>None (uses default)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong><code>allowedTools</code> is your most important safety lever.</strong> When you're building automated pipelines, you often want Claude to read and analyze code but <em>not</em> modify it. Setting <code>allowedTools: ['Read', 'Grep', 'Glob']</code> creates a read-only agent. When you want Claude to make changes, add <code>'Write'</code> and <code>'Edit'</code>. When you want it to run commands too, add <code>'Bash'</code>. Always grant the minimum permissions needed for the task.</p>
+  </div>
+
+  <h3>The Result Object</h3>
+
+  <p>When the <code>claude()</code> call completes, you get back a result object. Understanding its structure is essential for processing the output in your code.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-string">'Analyze the error handling in this project'</span>, {
+  <span class="syn-property">cwd</span>: <span class="syn-string">'/path/to/project'</span>,
+  <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>],
+});
+
+<span class="syn-comment">// The text output from Claude</span>
+console.<span class="syn-function">log</span>(<span class="syn-variable">result</span>.<span class="syn-property">stdout</span>);
+
+<span class="syn-comment">// Any errors that occurred</span>
+console.<span class="syn-function">log</span>(<span class="syn-variable">result</span>.<span class="syn-property">stderr</span>);
+
+<span class="syn-comment">// The conversation ID — use this to continue the conversation</span>
+console.<span class="syn-function">log</span>(<span class="syn-variable">result</span>.<span class="syn-property">conversationId</span>);
+
+<span class="syn-comment">// Cost information</span>
+console.<span class="syn-function">log</span>(<span class="syn-variable">result</span>.<span class="syn-property">costUsd</span>);</code></pre>
+
+  <p>The <code>stdout</code> field contains Claude's final text response. The <code>conversationId</code> is the key to multi-turn conversations, which we'll cover shortly. And <code>costUsd</code> tells you what the call cost, which matters when you're running agents in loops or at scale.</p>
+
+  <h3>A Complete Working Example</h3>
+
+  <p>Here's a real-world example that ties it all together: a script that asks Claude to analyze a project's test coverage and suggest improvements.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// analyze-tests.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">analyzeTestCoverage</span>(<span class="syn-variable">projectPath</span>: <span class="syn-builtin">string</span>) {
+  console.<span class="syn-function">log</span>(<span class="syn-string">`Analyzing test coverage for: ${<span class="syn-variable">projectPath</span>}`</span>);
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(
+    <span class="syn-string">`Analyze this project's test coverage. For each source file,
+     check if a corresponding test file exists. List files that
+     are missing tests and suggest what should be tested.
+     Output your findings as a structured JSON object with keys:
+     "covered", "missing", and "suggestions".`</span>,
+    {
+      <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>],
+      <span class="syn-property">maxTurns</span>: <span class="syn-number">30</span>,
+    }
+  );
+
+  console.<span class="syn-function">log</span>(<span class="syn-string">'Analysis complete.'</span>);
+  console.<span class="syn-function">log</span>(<span class="syn-string">'Cost:'</span>, <span class="syn-variable">result</span>.<span class="syn-property">costUsd</span>, <span class="syn-string">'USD'</span>);
+  console.<span class="syn-function">log</span>(<span class="syn-variable">result</span>.<span class="syn-property">stdout</span>);
+
+  <span class="syn-keyword">return</span> <span class="syn-variable">result</span>;
+}
+
+<span class="syn-comment">// Run it</span>
+<span class="syn-function">analyzeTestCoverage</span>(<span class="syn-string">'/Users/you/projects/my-app'</span>);</code></pre>
+
+  <p>This script is read-only &mdash; it can't modify any files because <code>allowedTools</code> only includes read operations. That's intentional. For an analysis task, you don't want the agent accidentally editing your code. The <code>maxTurns: 30</code> gives Claude enough room to explore a moderately sized codebase without running indefinitely.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Streaming Responses -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.5</span> Streaming Responses</h2>
+
+  <p>The basic <code>claude()</code> call waits until the agent is completely done, then returns everything at once. For short tasks, that's fine. But when Claude is working on something that takes 30 seconds, a minute, or longer, you don't want to stare at a blank screen wondering if it's still alive.</p>
+
+  <p>Streaming gives you Claude's output in real time, as it's being generated. You see each token appear, each tool call happen, each step of the agent loop as it unfolds.</p>
+
+  <div class="analogy">
+    <strong>The analogy:</strong> The non-streaming call is like ordering food and having them bring the entire meal at once. Streaming is like a sushi conveyor belt &mdash; each piece arrives as soon as it's ready, and you can start eating (or processing) immediately.
+  </div>
+
+  <h3>Basic Streaming</h3>
+
+  <p>To stream, you use the <code>claude()</code> function the same way but iterate over the result as an async iterable.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// stream-example.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">main</span>() {
+  <span class="syn-keyword">const</span> <span class="syn-variable">stream</span> = <span class="syn-function">claude</span>(<span class="syn-string">'Explain the main patterns in this codebase'</span>, {
+    <span class="syn-property">cwd</span>: <span class="syn-string">'/path/to/project'</span>,
+    <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>],
+  });
+
+  <span class="syn-comment">// Process events as they arrive</span>
+  <span class="syn-keyword">for await</span> (<span class="syn-keyword">const</span> <span class="syn-variable">event</span> <span class="syn-keyword">of</span> <span class="syn-variable">stream</span>) {
+    <span class="syn-keyword">if</span> (<span class="syn-variable">event</span>.<span class="syn-property">type</span> === <span class="syn-string">'text'</span>) {
+      process.<span class="syn-property">stdout</span>.<span class="syn-function">write</span>(<span class="syn-variable">event</span>.<span class="syn-property">content</span>);
+    }
+  }
+}
+
+<span class="syn-function">main</span>();</code></pre>
+
+  <p>The <code>for await...of</code> loop receives each event as it happens. When Claude outputs text, you see it immediately. When Claude calls a tool, you can see that too. The loop ends when the agent completes its work.</p>
+
+  <h3>Processing Different Event Types</h3>
+
+  <p>The stream doesn't just emit text &mdash; it emits structured events that tell you exactly what the agent is doing at every step. This is what makes the SDK so powerful for building custom interfaces.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// stream-with-events.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">main</span>() {
+  <span class="syn-keyword">let</span> <span class="syn-variable">toolCallCount</span> = <span class="syn-number">0</span>;
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">stream</span> = <span class="syn-function">claude</span>(<span class="syn-string">'Fix all TypeScript errors in the src/ directory'</span>, {
+    <span class="syn-property">cwd</span>: <span class="syn-string">'/path/to/project'</span>,
+    <span class="syn-property">maxTurns</span>: <span class="syn-number">50</span>,
+  });
+
+  <span class="syn-keyword">for await</span> (<span class="syn-keyword">const</span> <span class="syn-variable">event</span> <span class="syn-keyword">of</span> <span class="syn-variable">stream</span>) {
+    <span class="syn-keyword">switch</span> (<span class="syn-variable">event</span>.<span class="syn-property">type</span>) {
+      <span class="syn-keyword">case</span> <span class="syn-string">'text'</span>:
+        <span class="syn-comment">// Claude is outputting text</span>
+        process.<span class="syn-property">stdout</span>.<span class="syn-function">write</span>(<span class="syn-variable">event</span>.<span class="syn-property">content</span>);
+        <span class="syn-keyword">break</span>;
+
+      <span class="syn-keyword">case</span> <span class="syn-string">'tool_use'</span>:
+        <span class="syn-comment">// Claude is calling a tool (Read, Write, Bash, etc.)</span>
+        <span class="syn-variable">toolCallCount</span>++;
+        console.<span class="syn-function">log</span>(<span class="syn-string">`\n[Tool #${<span class="syn-variable">toolCallCount</span>}] ${<span class="syn-variable">event</span>.<span class="syn-property">tool</span>}: ${<span class="syn-variable">event</span>.<span class="syn-property">input</span>}`</span>);
+        <span class="syn-keyword">break</span>;
+
+      <span class="syn-keyword">case</span> <span class="syn-string">'tool_result'</span>:
+        <span class="syn-comment">// A tool call returned a result</span>
+        console.<span class="syn-function">log</span>(<span class="syn-string">`[Tool result received]`</span>);
+        <span class="syn-keyword">break</span>;
+
+      <span class="syn-keyword">case</span> <span class="syn-string">'error'</span>:
+        <span class="syn-comment">// Something went wrong</span>
+        console.<span class="syn-function">error</span>(<span class="syn-string">'Error:'</span>, <span class="syn-variable">event</span>.<span class="syn-property">message</span>);
+        <span class="syn-keyword">break</span>;
+    }
+  }
+
+  console.<span class="syn-function">log</span>(<span class="syn-string">`\n\nDone. Total tool calls: ${<span class="syn-variable">toolCallCount</span>}`</span>);
+}
+
+<span class="syn-function">main</span>();</code></pre>
+
+  <p>This is the foundation for building any custom interface. You're getting the same information the Claude Code CLI uses to render its terminal UI &mdash; but now you can present it however you want. A web dashboard, a Slack bot, a custom terminal UI with progress bars, a log file for auditing &mdash; the events give you full visibility into what the agent is doing.</p>
+
+  <h3>Building a Progress Indicator</h3>
+
+  <p>A practical application: showing a progress indicator while Claude works. This is something you'll want in almost any SDK-based tool.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// progress-indicator.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">runWithProgress</span>(<span class="syn-variable">prompt</span>: <span class="syn-builtin">string</span>, <span class="syn-variable">projectPath</span>: <span class="syn-builtin">string</span>) {
+  <span class="syn-keyword">const</span> <span class="syn-variable">startTime</span> = Date.<span class="syn-function">now</span>();
+  <span class="syn-keyword">let</span> <span class="syn-variable">steps</span> = <span class="syn-number">0</span>;
+  <span class="syn-keyword">let</span> <span class="syn-variable">currentAction</span> = <span class="syn-string">'Thinking...'</span>;
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">stream</span> = <span class="syn-function">claude</span>(<span class="syn-variable">prompt</span>, {
+    <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+    <span class="syn-property">maxTurns</span>: <span class="syn-number">30</span>,
+  });
+
+  <span class="syn-keyword">for await</span> (<span class="syn-keyword">const</span> <span class="syn-variable">event</span> <span class="syn-keyword">of</span> <span class="syn-variable">stream</span>) {
+    <span class="syn-keyword">if</span> (<span class="syn-variable">event</span>.<span class="syn-property">type</span> === <span class="syn-string">'tool_use'</span>) {
+      <span class="syn-variable">steps</span>++;
+      <span class="syn-variable">currentAction</span> = <span class="syn-string">`Step ${<span class="syn-variable">steps</span>}: ${<span class="syn-variable">event</span>.<span class="syn-property">tool</span>}`</span>;
+      <span class="syn-keyword">const</span> <span class="syn-variable">elapsed</span> = ((Date.<span class="syn-function">now</span>() - <span class="syn-variable">startTime</span>) / <span class="syn-number">1000</span>).<span class="syn-function">toFixed</span>(<span class="syn-number">1</span>);
+      process.<span class="syn-property">stdout</span>.<span class="syn-function">write</span>(<span class="syn-string">`\r[${<span class="syn-variable">elapsed</span>}s] ${<span class="syn-variable">currentAction</span>.padEnd(<span class="syn-number">60</span>)}`</span>);
+    }
+  }
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">totalTime</span> = ((Date.<span class="syn-function">now</span>() - <span class="syn-variable">startTime</span>) / <span class="syn-number">1000</span>).<span class="syn-function">toFixed</span>(<span class="syn-number">1</span>);
+  console.<span class="syn-function">log</span>(<span class="syn-string">`\rCompleted in ${<span class="syn-variable">totalTime</span>}s with ${<span class="syn-variable">steps</span>} steps.`</span>);
+}
+
+<span class="syn-function">runWithProgress</span>(
+  <span class="syn-string">'Add input validation to all API route handlers'</span>,
+  <span class="syn-string">'/path/to/project'</span>
+);</code></pre>
+
+  <p>This shows a single updating line in the terminal: <code>[12.3s] Step 7: Edit</code>. It uses <code>\r</code> (carriage return) to overwrite the same line, creating a clean progress indicator. Simple, effective, and infinitely customizable.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Managing Conversations -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.6</span> Managing Conversations</h2>
+
+  <p>By default, each <code>claude()</code> call starts a fresh conversation. Claude has no memory of previous calls. But sometimes you need multi-turn interactions &mdash; analyze something first, then make changes based on the analysis. That requires conversation continuity.</p>
+
+  <h3>Continuing a Conversation</h3>
+
+  <p>The result of every <code>claude()</code> call includes a <code>conversationId</code>. Pass it to the next call to continue the same conversation.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// multi-turn.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">analyzeAndFix</span>(<span class="syn-variable">projectPath</span>: <span class="syn-builtin">string</span>) {
+  <span class="syn-comment">// Step 1: Analyze (read-only)</span>
+  console.<span class="syn-function">log</span>(<span class="syn-string">'Step 1: Analyzing code quality...'</span>);
+  <span class="syn-keyword">const</span> <span class="syn-variable">analysis</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(
+    <span class="syn-string">'Analyze the error handling in this project. List all files that have bare try/catch blocks with no proper error logging.'</span>,
+    {
+      <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>],
+    }
+  );
+  console.<span class="syn-function">log</span>(<span class="syn-variable">analysis</span>.<span class="syn-property">stdout</span>);
+
+  <span class="syn-comment">// Step 2: Fix (using the same conversation so Claude remembers the analysis)</span>
+  console.<span class="syn-function">log</span>(<span class="syn-string">'\nStep 2: Fixing issues...'</span>);
+  <span class="syn-keyword">const</span> <span class="syn-variable">fix</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(
+    <span class="syn-string">'Now fix all the issues you just identified. Add proper error logging using console.error with context about which function failed.'</span>,
+    {
+      <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+      <span class="syn-property">conversationId</span>: <span class="syn-variable">analysis</span>.<span class="syn-property">conversationId</span>,  <span class="syn-comment">// Continue the conversation</span>
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Write'</span>, <span class="syn-string">'Edit'</span>],
+    }
+  );
+  console.<span class="syn-function">log</span>(<span class="syn-variable">fix</span>.<span class="syn-property">stdout</span>);
+
+  <span class="syn-comment">// Step 3: Verify (read-only again)</span>
+  console.<span class="syn-function">log</span>(<span class="syn-string">'\nStep 3: Verifying fixes...'</span>);
+  <span class="syn-keyword">const</span> <span class="syn-variable">verify</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(
+    <span class="syn-string">'Verify that all the issues are fixed. Check each file you modified.'</span>,
+    {
+      <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+      <span class="syn-property">conversationId</span>: <span class="syn-variable">fix</span>.<span class="syn-property">conversationId</span>,  <span class="syn-comment">// Same conversation</span>
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>],
+    }
+  );
+  console.<span class="syn-function">log</span>(<span class="syn-variable">verify</span>.<span class="syn-property">stdout</span>);
+}
+
+<span class="syn-function">analyzeAndFix</span>(<span class="syn-string">'/path/to/project'</span>);</code></pre>
+
+  <p>This is a three-step pipeline where each step builds on the previous one. The analysis informs the fix, and the verification checks the fix. All within the same conversation, so Claude remembers what it found and what it changed. Notice how the <code>allowedTools</code> change at each step &mdash; read-only for analysis, write-enabled for fixing, read-only again for verification. This is the principle of least privilege in action.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong>Change permissions between conversation turns.</strong> The <code>conversationId</code> preserves the conversation history, but <code>allowedTools</code> can be different for each call. This lets you create pipelines where Claude first analyzes (read-only), then you decide whether to let it modify files (read-write). The conversation memory is preserved even though the permissions change. This is the safest pattern for automated code modification.</p>
+  </div>
+
+  <h3>When to Start Fresh vs. Continue</h3>
+
+  <p>Not every multi-step workflow should use conversation continuity. Here are the guidelines.</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Continue the Conversation</h4>
+      <ul>
+        <li>The next step needs context from the previous one</li>
+        <li>Claude found specific files/issues that it needs to reference</li>
+        <li>You're doing analyze-then-fix workflows</li>
+        <li>You want Claude to build on its previous reasoning</li>
+      </ul>
+    </div>
+    <div class="comparison-col">
+      <h4>Start Fresh</h4>
+      <ul>
+        <li>Each task is independent (processing different files)</li>
+        <li>The conversation history is getting too long</li>
+        <li>You want a clean slate to avoid biased reasoning</li>
+        <li>You're running parallel tasks that don't share context</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>A good rule of thumb: if you would naturally say "now do this based on what you just found," continue the conversation. If you would say "here's a completely separate task," start fresh.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Building Custom Tools and Interfaces -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.7</span> Building Custom Tools and Interfaces</h2>
+
+  <p>The SDK's real power emerges when you build tools that solve problems specific to your workflow. Instead of adapting your process to what the CLI offers, you adapt Claude Code to your process.</p>
+
+  <h3>Example: A Custom CLI Wrapper</h3>
+
+  <p>Suppose you want a simpler interface for a common task &mdash; like a command that reviews your staged git changes. Instead of typing a long prompt every time, you build a custom command.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// review.ts — Run with: npx tsx review.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">reviewStagedChanges</span>() {
+  console.<span class="syn-function">log</span>(<span class="syn-string">'Reviewing staged changes...\n'</span>);
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">stream</span> = <span class="syn-function">claude</span>(
+    <span class="syn-string">`Run "git diff --cached" to see staged changes, then review them.
+     For each changed file, provide:
+     1. A one-line summary of the change
+     2. Any potential bugs or issues
+     3. Suggestions for improvement
+     Rate the overall change: SHIP IT, NEEDS WORK, or DANGER.`</span>,
+    {
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Bash'</span>, <span class="syn-string">'Read'</span>],
+      <span class="syn-property">maxTurns</span>: <span class="syn-number">15</span>,
+    }
+  );
+
+  <span class="syn-keyword">for await</span> (<span class="syn-keyword">const</span> <span class="syn-variable">event</span> <span class="syn-keyword">of</span> <span class="syn-variable">stream</span>) {
+    <span class="syn-keyword">if</span> (<span class="syn-variable">event</span>.<span class="syn-property">type</span> === <span class="syn-string">'text'</span>) {
+      process.<span class="syn-property">stdout</span>.<span class="syn-function">write</span>(<span class="syn-variable">event</span>.<span class="syn-property">content</span>);
+    }
+  }
+}
+
+<span class="syn-function">reviewStagedChanges</span>();</code></pre>
+
+  <p>Now you can add <code>"review": "npx tsx review.ts"</code> to your <code>package.json</code> scripts and run <code>npm run review</code> before every commit. You've just built a custom, AI-powered code review tool in 25 lines.</p>
+
+  <h3>Example: Batch Processing</h3>
+
+  <p>One of the most powerful patterns is batch processing &mdash; running the same task across multiple files or projects. This is where the SDK shines compared to the CLI, because you can orchestrate everything programmatically.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// batch-docs.ts — Generate docs for all modules</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+<span class="syn-keyword">import</span> { <span class="syn-variable">readdir</span> } <span class="syn-keyword">from</span> <span class="syn-string">'fs/promises'</span>;
+<span class="syn-keyword">import</span> { <span class="syn-variable">join</span> } <span class="syn-keyword">from</span> <span class="syn-string">'path'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">generateDocsForModule</span>(<span class="syn-variable">modulePath</span>: <span class="syn-builtin">string</span>, <span class="syn-variable">moduleName</span>: <span class="syn-builtin">string</span>) {
+  console.<span class="syn-function">log</span>(<span class="syn-string">`Generating docs for: ${<span class="syn-variable">moduleName</span>}`</span>);
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(
+    <span class="syn-string">`Read all TypeScript files in this directory. Generate a
+     README.md that documents:
+     - What this module does (one paragraph)
+     - Exported functions with their signatures and descriptions
+     - Usage examples
+     - Dependencies on other modules in the project`</span>,
+    {
+      <span class="syn-property">cwd</span>: <span class="syn-variable">modulePath</span>,
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>, <span class="syn-string">'Write'</span>],
+      <span class="syn-property">maxTurns</span>: <span class="syn-number">20</span>,
+    }
+  );
+
+  console.<span class="syn-function">log</span>(<span class="syn-string">`  Done (${<span class="syn-variable">result</span>.<span class="syn-property">costUsd</span>} USD)`</span>);
+  <span class="syn-keyword">return</span> <span class="syn-variable">result</span>;
+}
+
+<span class="syn-keyword">async function</span> <span class="syn-function">main</span>() {
+  <span class="syn-keyword">const</span> <span class="syn-variable">srcDir</span> = <span class="syn-string">'/path/to/project/src'</span>;
+  <span class="syn-keyword">const</span> <span class="syn-variable">modules</span> = <span class="syn-keyword">await</span> <span class="syn-function">readdir</span>(<span class="syn-variable">srcDir</span>, { <span class="syn-property">withFileTypes</span>: <span class="syn-keyword">true</span> });
+
+  <span class="syn-keyword">let</span> <span class="syn-variable">totalCost</span> = <span class="syn-number">0</span>;
+
+  <span class="syn-keyword">for</span> (<span class="syn-keyword">const</span> <span class="syn-variable">mod</span> <span class="syn-keyword">of</span> <span class="syn-variable">modules</span>.<span class="syn-function">filter</span>(<span class="syn-variable">m</span> =&gt; <span class="syn-variable">m</span>.<span class="syn-function">isDirectory</span>())) {
+    <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">generateDocsForModule</span>(
+      <span class="syn-function">join</span>(<span class="syn-variable">srcDir</span>, <span class="syn-variable">mod</span>.<span class="syn-property">name</span>),
+      <span class="syn-variable">mod</span>.<span class="syn-property">name</span>
+    );
+    <span class="syn-variable">totalCost</span> += <span class="syn-variable">result</span>.<span class="syn-property">costUsd</span>;
+  }
+
+  console.<span class="syn-function">log</span>(<span class="syn-string">`\nAll modules documented. Total cost: $${<span class="syn-variable">totalCost</span>.toFixed(<span class="syn-number">4</span>)}`</span>);
+}
+
+<span class="syn-function">main</span>();</code></pre>
+
+  <p>This iterates through every subdirectory in <code>src/</code> and spawns a separate Claude agent for each one, generating a README. Each agent works in isolation with its own context. You could also run these in parallel (with <code>Promise.all</code>), but sequential processing keeps costs predictable and avoids rate limits.</p>
+
+  <h3>Example: Integrating with an Express Server</h3>
+
+  <p>The SDK works inside any Node.js application, including web servers. Here's a minimal Express endpoint that uses Claude to answer questions about your codebase.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// server.ts</span>
+<span class="syn-keyword">import</span> <span class="syn-variable">express</span> <span class="syn-keyword">from</span> <span class="syn-string">'express'</span>;
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">const</span> <span class="syn-variable">app</span> = <span class="syn-function">express</span>();
+<span class="syn-variable">app</span>.<span class="syn-function">use</span>(<span class="syn-variable">express</span>.<span class="syn-function">json</span>());
+
+<span class="syn-variable">app</span>.<span class="syn-function">post</span>(<span class="syn-string">'/api/ask'</span>, <span class="syn-keyword">async</span> (<span class="syn-variable">req</span>, <span class="syn-variable">res</span>) =&gt; {
+  <span class="syn-keyword">const</span> { <span class="syn-variable">question</span> } = <span class="syn-variable">req</span>.<span class="syn-property">body</span>;
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(
+    <span class="syn-string">`Answer this question about the codebase: ${<span class="syn-variable">question</span>}`</span>,
+    {
+      <span class="syn-property">cwd</span>: <span class="syn-string">'/path/to/project'</span>,
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>],
+      <span class="syn-property">maxTurns</span>: <span class="syn-number">15</span>,
+    }
+  );
+
+  <span class="syn-variable">res</span>.<span class="syn-function">json</span>({
+    <span class="syn-property">answer</span>: <span class="syn-variable">result</span>.<span class="syn-property">stdout</span>,
+    <span class="syn-property">cost</span>: <span class="syn-variable">result</span>.<span class="syn-property">costUsd</span>,
+  });
+});
+
+<span class="syn-variable">app</span>.<span class="syn-function">listen</span>(<span class="syn-number">3000</span>, () =&gt; console.<span class="syn-function">log</span>(<span class="syn-string">'Code Q&A server running on port 3000'</span>));</code></pre>
+
+  <p>Now you have a web endpoint where anyone can ask questions about your codebase and get answers backed by Claude Code's full file-reading capabilities. A front-end developer could build a chat UI on top of this, and the team would have a shared "codebase expert" accessible from the browser.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><strong>Sanitize inputs when exposing the SDK through a web interface.</strong> The example above passes user input directly into the prompt. In production, you'd want to validate and sanitize the <code>question</code> field, enforce <code>allowedTools</code> strictly (read-only for a Q&A endpoint), and add rate limiting. Never expose a write-enabled Claude agent to unauthenticated web requests.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Practical Patterns -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.8</span> Practical Patterns</h2>
+
+  <p>Now that you understand the SDK primitives, let's look at patterns that solve real problems. These are templates you can adapt to your own workflows.</p>
+
+  <h3>Pattern 1: Auto-Fix Failing Tests</h3>
+
+  <p>This pattern runs your test suite, captures failures, and sends them to Claude for fixing. It's a build system integration that turns red tests green automatically.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// auto-fix-tests.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+<span class="syn-keyword">import</span> { <span class="syn-variable">execSync</span> } <span class="syn-keyword">from</span> <span class="syn-string">'child_process'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">autoFixTests</span>(<span class="syn-variable">projectPath</span>: <span class="syn-builtin">string</span>) {
+  <span class="syn-comment">// Step 1: Run tests and capture output</span>
+  <span class="syn-keyword">let</span> <span class="syn-variable">testOutput</span>: <span class="syn-builtin">string</span>;
+  <span class="syn-keyword">try</span> {
+    <span class="syn-variable">testOutput</span> = <span class="syn-function">execSync</span>(<span class="syn-string">'npm test 2>&1'</span>, {
+      <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+      <span class="syn-property">encoding</span>: <span class="syn-string">'utf8'</span>,
+    });
+    console.<span class="syn-function">log</span>(<span class="syn-string">'All tests passing. Nothing to fix.'</span>);
+    <span class="syn-keyword">return</span>;
+  } <span class="syn-keyword">catch</span> (<span class="syn-variable">error</span>: <span class="syn-builtin">any</span>) {
+    <span class="syn-variable">testOutput</span> = <span class="syn-variable">error</span>.<span class="syn-property">stdout</span> || <span class="syn-variable">error</span>.<span class="syn-property">message</span>;
+    console.<span class="syn-function">log</span>(<span class="syn-string">'Tests failed. Sending to Claude for fixing...\n'</span>);
+  }
+
+  <span class="syn-comment">// Step 2: Send failures to Claude</span>
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(
+    <span class="syn-string">`The following test failures occurred:\n\n${<span class="syn-variable">testOutput</span>}\n\n
+     Read the failing test files and the source code they test.
+     Fix the SOURCE code (not the tests) to make the tests pass.
+     Only modify the minimum code necessary.`</span>,
+    {
+      <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Edit'</span>],
+      <span class="syn-property">maxTurns</span>: <span class="syn-number">30</span>,
+    }
+  );
+
+  console.<span class="syn-function">log</span>(<span class="syn-variable">result</span>.<span class="syn-property">stdout</span>);
+
+  <span class="syn-comment">// Step 3: Re-run tests to verify</span>
+  <span class="syn-keyword">try</span> {
+    <span class="syn-function">execSync</span>(<span class="syn-string">'npm test'</span>, { <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>, <span class="syn-property">stdio</span>: <span class="syn-string">'inherit'</span> });
+    console.<span class="syn-function">log</span>(<span class="syn-string">'\nAll tests passing after fix!'</span>);
+  } <span class="syn-keyword">catch</span> {
+    console.<span class="syn-function">log</span>(<span class="syn-string">'\nSome tests still failing. Manual review needed.'</span>);
+  }
+}
+
+<span class="syn-function">autoFixTests</span>(<span class="syn-string">'/path/to/project'</span>);</code></pre>
+
+  <p>This is a powerful build system integration. You could hook this into a git pre-push hook, a CI pipeline, or even a file watcher that runs it every time tests fail. The key design choice is only allowing <code>Edit</code> (not <code>Write</code>) &mdash; Claude can modify existing files but can't create new ones, limiting the blast radius of any mistakes.</p>
+
+  <h3>Pattern 2: Code Review Pipeline</h3>
+
+  <p>Automatically review pull requests using Claude as a code reviewer. This integrates with git to analyze what changed.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// review-pr.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+<span class="syn-keyword">import</span> { <span class="syn-variable">execSync</span> } <span class="syn-keyword">from</span> <span class="syn-string">'child_process'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">reviewPR</span>(<span class="syn-variable">projectPath</span>: <span class="syn-builtin">string</span>, <span class="syn-variable">baseBranch</span> = <span class="syn-string">'main'</span>) {
+  <span class="syn-comment">// Get the diff</span>
+  <span class="syn-keyword">const</span> <span class="syn-variable">diff</span> = <span class="syn-function">execSync</span>(
+    <span class="syn-string">`git diff ${<span class="syn-variable">baseBranch</span>}...HEAD`</span>,
+    { <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>, <span class="syn-property">encoding</span>: <span class="syn-string">'utf8'</span> }
+  );
+
+  <span class="syn-keyword">if</span> (!<span class="syn-variable">diff</span>.<span class="syn-function">trim</span>()) {
+    console.<span class="syn-function">log</span>(<span class="syn-string">'No changes to review.'</span>);
+    <span class="syn-keyword">return</span>;
+  }
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(
+    <span class="syn-string">`Review this pull request diff. For each file changed:
+     1. Summarize the change in one sentence
+     2. Flag any bugs, security issues, or performance problems
+     3. Suggest improvements if applicable
+     4. Note any missing test coverage
+
+     Conclude with an overall assessment: APPROVE, REQUEST_CHANGES, or COMMENT.
+
+     Here's the diff:\n\n${<span class="syn-variable">diff</span>}`</span>,
+    {
+      <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>],
+      <span class="syn-property">maxTurns</span>: <span class="syn-number">25</span>,
+    }
+  );
+
+  console.<span class="syn-function">log</span>(<span class="syn-variable">result</span>.<span class="syn-property">stdout</span>);
+  <span class="syn-keyword">return</span> <span class="syn-variable">result</span>.<span class="syn-property">stdout</span>;
+}
+
+<span class="syn-function">reviewPR</span>(<span class="syn-string">'/path/to/project'</span>);</code></pre>
+
+  <p>This is read-only by design &mdash; a code reviewer should look but not touch. Claude reads the diff, then has access to the full codebase context via <code>Read</code>, <code>Grep</code>, and <code>Glob</code> to understand the broader implications of each change. You could pipe the output into a GitHub PR comment using the <code>gh</code> CLI.</p>
+
+  <h3>Pattern 3: Documentation Generator</h3>
+
+  <p>Crawl an entire codebase and generate comprehensive documentation. This is the kind of task that would take a human hours but takes Claude minutes.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// generate-docs.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">async function</span> <span class="syn-function">generateProjectDocs</span>(<span class="syn-variable">projectPath</span>: <span class="syn-builtin">string</span>) {
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(
+    <span class="syn-string">`Analyze this entire codebase and generate comprehensive documentation.
+
+     1. Read the project structure and key files
+     2. Create a docs/ directory if it doesn't exist
+     3. Generate the following files:
+        - docs/architecture.md — High-level architecture overview
+        - docs/api.md — All API endpoints with request/response formats
+        - docs/setup.md — How to set up the project from scratch
+        - docs/modules.md — Description of each module/directory
+
+     Use the actual code as the source of truth. Include real examples
+     from the codebase. Do not make up function names or endpoints.`</span>,
+    {
+      <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+      <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>, <span class="syn-string">'Write'</span>, <span class="syn-string">'Bash'</span>],
+      <span class="syn-property">maxTurns</span>: <span class="syn-number">50</span>,
+    }
+  );
+
+  console.<span class="syn-function">log</span>(<span class="syn-string">'Documentation generated.'</span>);
+  console.<span class="syn-function">log</span>(<span class="syn-string">`Cost: $${<span class="syn-variable">result</span>.<span class="syn-property">costUsd</span>.toFixed(<span class="syn-number">4</span>)}`</span>);
+}
+
+<span class="syn-function">generateProjectDocs</span>(<span class="syn-string">'/path/to/project'</span>);</code></pre>
+
+  <p>This gives Claude broad permissions because it needs to both read the entire codebase and write documentation files. The <code>maxTurns: 50</code> gives it enough room to explore a medium-sized project thoroughly. The prompt is specific about the exact output files and what each should contain, which prevents Claude from making its own (potentially wrong) decisions about documentation structure.</p>
+
+  <h3>Pattern 4: Multi-Agent Orchestrator</h3>
+
+  <p>This is the most advanced pattern: spawning multiple Claude agents in parallel, each handling a different task. This is the building block for the agent teams you'll learn about in Level 15.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// multi-agent.ts</span>
+<span class="syn-keyword">import</span> { <span class="syn-variable">claude</span> } <span class="syn-keyword">from</span> <span class="syn-string">'@anthropic-ai/claude-code'</span>;
+
+<span class="syn-keyword">interface</span> <span class="syn-builtin">Task</span> {
+  <span class="syn-property">name</span>: <span class="syn-builtin">string</span>;
+  <span class="syn-property">prompt</span>: <span class="syn-builtin">string</span>;
+  <span class="syn-property">allowedTools</span>: <span class="syn-builtin">string</span>[];
+}
+
+<span class="syn-keyword">async function</span> <span class="syn-function">runParallelAgents</span>(<span class="syn-variable">projectPath</span>: <span class="syn-builtin">string</span>, <span class="syn-variable">tasks</span>: <span class="syn-builtin">Task</span>[]) {
+  console.<span class="syn-function">log</span>(<span class="syn-string">`Spawning ${<span class="syn-variable">tasks</span>.<span class="syn-property">length</span>} agents in parallel...\n`</span>);
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">results</span> = <span class="syn-keyword">await</span> Promise.<span class="syn-function">allSettled</span>(
+    <span class="syn-variable">tasks</span>.<span class="syn-function">map</span>(<span class="syn-keyword">async</span> (<span class="syn-variable">task</span>) =&gt; {
+      console.<span class="syn-function">log</span>(<span class="syn-string">`  [${<span class="syn-variable">task</span>.<span class="syn-property">name</span>}] Starting...`</span>);
+      <span class="syn-keyword">const</span> <span class="syn-variable">startTime</span> = Date.<span class="syn-function">now</span>();
+
+      <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-variable">task</span>.<span class="syn-property">prompt</span>, {
+        <span class="syn-property">cwd</span>: <span class="syn-variable">projectPath</span>,
+        <span class="syn-property">allowedTools</span>: <span class="syn-variable">task</span>.<span class="syn-property">allowedTools</span>,
+        <span class="syn-property">maxTurns</span>: <span class="syn-number">20</span>,
+      });
+
+      <span class="syn-keyword">const</span> <span class="syn-variable">elapsed</span> = ((Date.<span class="syn-function">now</span>() - <span class="syn-variable">startTime</span>) / <span class="syn-number">1000</span>).<span class="syn-function">toFixed</span>(<span class="syn-number">1</span>);
+      console.<span class="syn-function">log</span>(<span class="syn-string">`  [${<span class="syn-variable">task</span>.<span class="syn-property">name</span>}] Done in ${<span class="syn-variable">elapsed</span>}s ($${<span class="syn-variable">result</span>.<span class="syn-property">costUsd</span>.toFixed(<span class="syn-number">4</span>)})`</span>);
+
+      <span class="syn-keyword">return</span> { <span class="syn-property">name</span>: <span class="syn-variable">task</span>.<span class="syn-property">name</span>, <span class="syn-property">output</span>: <span class="syn-variable">result</span>.<span class="syn-property">stdout</span>, <span class="syn-property">cost</span>: <span class="syn-variable">result</span>.<span class="syn-property">costUsd</span> };
+    })
+  );
+
+  <span class="syn-comment">// Summarize results</span>
+  <span class="syn-keyword">let</span> <span class="syn-variable">totalCost</span> = <span class="syn-number">0</span>;
+  <span class="syn-keyword">for</span> (<span class="syn-keyword">const</span> <span class="syn-variable">r</span> <span class="syn-keyword">of</span> <span class="syn-variable">results</span>) {
+    <span class="syn-keyword">if</span> (<span class="syn-variable">r</span>.<span class="syn-property">status</span> === <span class="syn-string">'fulfilled'</span>) {
+      <span class="syn-variable">totalCost</span> += <span class="syn-variable">r</span>.<span class="syn-property">value</span>.<span class="syn-property">cost</span>;
+    } <span class="syn-keyword">else</span> {
+      console.<span class="syn-function">error</span>(<span class="syn-string">'Agent failed:'</span>, <span class="syn-variable">r</span>.<span class="syn-property">reason</span>);
+    }
+  }
+
+  console.<span class="syn-function">log</span>(<span class="syn-string">`\nAll agents complete. Total cost: $${<span class="syn-variable">totalCost</span>.toFixed(<span class="syn-number">4</span>)}`</span>);
+  <span class="syn-keyword">return</span> <span class="syn-variable">results</span>;
+}
+
+<span class="syn-comment">// Define parallel tasks</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">tasks</span>: <span class="syn-builtin">Task</span>[] = [
+  {
+    <span class="syn-property">name</span>: <span class="syn-string">'Linting'</span>,
+    <span class="syn-property">prompt</span>: <span class="syn-string">'Find all TypeScript strict-mode violations and list them.'</span>,
+    <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>],
+  },
+  {
+    <span class="syn-property">name</span>: <span class="syn-string">'Security'</span>,
+    <span class="syn-property">prompt</span>: <span class="syn-string">'Audit this codebase for security vulnerabilities: SQL injection, XSS, hardcoded secrets, insecure dependencies.'</span>,
+    <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>, <span class="syn-string">'Bash'</span>],
+  },
+  {
+    <span class="syn-property">name</span>: <span class="syn-string">'Performance'</span>,
+    <span class="syn-property">prompt</span>: <span class="syn-string">'Identify performance bottlenecks: N+1 queries, missing indexes, unnecessary re-renders, synchronous I/O in async contexts.'</span>,
+    <span class="syn-property">allowedTools</span>: [<span class="syn-string">'Read'</span>, <span class="syn-string">'Grep'</span>, <span class="syn-string">'Glob'</span>],
+  },
+];
+
+<span class="syn-function">runParallelAgents</span>(<span class="syn-string">'/path/to/project'</span>, <span class="syn-variable">tasks</span>);</code></pre>
+
+  <p>Three agents running simultaneously, each focused on a different concern. <code>Promise.allSettled</code> (not <code>Promise.all</code>) ensures that if one agent fails, the others still complete. Each agent has its own <code>allowedTools</code>, so the security audit can run shell commands (like <code>npm audit</code>) while the other agents are read-only.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong>Parallel agents multiply your throughput.</strong> Three sequential Claude calls that take 30 seconds each = 90 seconds total. Three parallel calls = ~30 seconds total. The SDK makes parallelism trivial because each <code>claude()</code> call is an independent async operation. The cost is the same either way, but the wall-clock time drops dramatically. This is the foundation of the agent team patterns in Level 15.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: Error Handling and Best Practices -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.9</span> Error Handling and Best Practices</h2>
+
+  <p>Building reliable SDK-based tools requires more than just calling <code>claude()</code>. Here are the practices that separate toys from tools.</p>
+
+  <h3>Always Set <code>maxTurns</code></h3>
+
+  <p>Without a turn limit, a confused agent can loop indefinitely, burning through your API quota. Always set a reasonable cap.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// Good: bounded execution</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-variable">prompt</span>, {
+  <span class="syn-property">maxTurns</span>: <span class="syn-number">25</span>,  <span class="syn-comment">// Enough for the task, but won't run forever</span>
+});
+
+<span class="syn-comment">// Risky: unbounded execution</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-variable">prompt</span>);  <span class="syn-comment">// Could use unlimited turns</span></code></pre>
+
+  <p>As a rough guide: simple tasks need 5-10 turns, moderate tasks need 15-30, and complex multi-file refactors might need 40-50. Start low and increase if the agent is running out of turns.</p>
+
+  <h3>Wrap Calls in Try/Catch</h3>
+
+  <p>SDK calls can fail for many reasons &mdash; network errors, authentication issues, rate limits. Always handle errors gracefully.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-keyword">async function</span> <span class="syn-function">safeClaudeCall</span>(<span class="syn-variable">prompt</span>: <span class="syn-builtin">string</span>, <span class="syn-variable">options</span> = {}) {
+  <span class="syn-keyword">try</span> {
+    <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-variable">prompt</span>, <span class="syn-variable">options</span>);
+    <span class="syn-keyword">return</span> { <span class="syn-property">success</span>: <span class="syn-keyword">true</span>, <span class="syn-property">data</span>: <span class="syn-variable">result</span> };
+  } <span class="syn-keyword">catch</span> (<span class="syn-variable">error</span>: <span class="syn-builtin">any</span>) {
+    console.<span class="syn-function">error</span>(<span class="syn-string">'Claude SDK error:'</span>, <span class="syn-variable">error</span>.<span class="syn-property">message</span>);
+    <span class="syn-keyword">return</span> { <span class="syn-property">success</span>: <span class="syn-keyword">false</span>, <span class="syn-property">error</span>: <span class="syn-variable">error</span>.<span class="syn-property">message</span> };
+  }
+}</code></pre>
+
+  <p>This wrapper returns a structured result that your code can check without crashing. Use it as a foundation for all your SDK calls.</p>
+
+  <h3>Track Costs</h3>
+
+  <p>Every SDK call costs money. When you're running agents in loops or in parallel, costs can add up fast. Always log costs and set budgets.</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-keyword">let</span> <span class="syn-variable">sessionCost</span> = <span class="syn-number">0</span>;
+<span class="syn-keyword">const</span> <span class="syn-variable">BUDGET_LIMIT</span> = <span class="syn-number">1.00</span>; <span class="syn-comment">// $1.00 max per run</span>
+
+<span class="syn-keyword">async function</span> <span class="syn-function">budgetedCall</span>(<span class="syn-variable">prompt</span>: <span class="syn-builtin">string</span>, <span class="syn-variable">options</span> = {}) {
+  <span class="syn-keyword">if</span> (<span class="syn-variable">sessionCost</span> &gt;= <span class="syn-variable">BUDGET_LIMIT</span>) {
+    <span class="syn-keyword">throw new</span> <span class="syn-function">Error</span>(<span class="syn-string">`Budget exhausted: $${<span class="syn-variable">sessionCost</span>.toFixed(<span class="syn-number">4</span>)} spent`</span>);
+  }
+
+  <span class="syn-keyword">const</span> <span class="syn-variable">result</span> = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-variable">prompt</span>, <span class="syn-variable">options</span>);
+  <span class="syn-variable">sessionCost</span> += <span class="syn-variable">result</span>.<span class="syn-property">costUsd</span>;
+  console.<span class="syn-function">log</span>(<span class="syn-string">`Cost so far: $${<span class="syn-variable">sessionCost</span>.toFixed(<span class="syn-number">4</span>)} / $${<span class="syn-variable">BUDGET_LIMIT</span>.toFixed(<span class="syn-number">2</span>)}`</span>);
+
+  <span class="syn-keyword">return</span> <span class="syn-variable">result</span>;
+}</code></pre>
+
+  <p>This is particularly important for loops and batch processing. A bug in a loop that spawns 100 agents instead of 10 could cost 10x what you expected. A budget check prevents that.</p>
+
+  <h3>Use the Minimum <code>allowedTools</code></h3>
+
+  <p>This bears repeating because it's the single most important safety practice. Grant only the tools the task actually needs.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Task Type</th>
+        <th>Recommended Tools</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Code analysis / review</td>
+        <td><code>['Read', 'Grep', 'Glob']</code></td>
+      </tr>
+      <tr>
+        <td>Code modification</td>
+        <td><code>['Read', 'Grep', 'Glob', 'Edit']</code></td>
+      </tr>
+      <tr>
+        <td>File creation</td>
+        <td><code>['Read', 'Grep', 'Glob', 'Write']</code></td>
+      </tr>
+      <tr>
+        <td>Full autonomy (tests, builds)</td>
+        <td><code>['Read', 'Grep', 'Glob', 'Edit', 'Write', 'Bash']</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>An agent that only needs to read files should never have <code>Write</code> or <code>Bash</code> access. This isn't paranoia &mdash; it's engineering discipline. The fewer permissions an agent has, the fewer ways it can make mistakes.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p><strong>Test your SDK scripts on a git branch first.</strong> Before running a write-enabled agent on your main codebase, create a throwaway branch. If the agent makes a mess, you can reset to the branch point without losing anything. This is especially important while you're still learning what <code>maxTurns</code> and <code>allowedTools</code> settings work best for your use cases.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 10: Common Mistakes and Gotchas -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">14.10</span> Common Mistakes and Gotchas</h2>
+
+  <p>These are the issues that trip people up most often when starting with the SDK. Learn from others' mistakes.</p>
+
+  <h3>Mistake 1: Forgetting <code>await</code></h3>
+
+  <p>The <code>claude()</code> function returns a Promise. If you forget <code>await</code>, you get a Promise object instead of a result, and your code silently does the wrong thing.</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Wrong</h4>
+      <pre style="font-size: 0.8rem;"><code><span class="syn-comment">// Missing await — result is a Promise!</span>
+<span class="syn-keyword">const</span> result = <span class="syn-function">claude</span>(<span class="syn-string">'...'</span>);
+console.<span class="syn-function">log</span>(result.<span class="syn-property">stdout</span>);
+<span class="syn-comment">// undefined</span></code></pre>
+    </div>
+    <div class="comparison-col">
+      <h4>Correct</h4>
+      <pre style="font-size: 0.8rem;"><code><span class="syn-comment">// With await — result is the actual data</span>
+<span class="syn-keyword">const</span> result = <span class="syn-keyword">await</span> <span class="syn-function">claude</span>(<span class="syn-string">'...'</span>);
+console.<span class="syn-function">log</span>(result.<span class="syn-property">stdout</span>);
+<span class="syn-comment">// "Here's the analysis..."</span></code></pre>
+    </div>
+  </div>
+
+  <h3>Mistake 2: Not Setting <code>cwd</code></h3>
+
+  <p>If you don't set <code>cwd</code>, Claude operates in whatever directory your Node.js process started in, which might not be your project directory. This leads to "file not found" errors that are confusing to debug.</p>
+
+  <h3>Mistake 3: Overly Broad Prompts</h3>
+
+  <p>Telling the SDK agent to "improve this project" is like telling a new contractor to "make the house better." Be specific about what you want done, what files are involved, and what the output should look like.</p>
+
+  <h3>Mistake 4: Running Too Many Parallel Agents</h3>
+
+  <p>While parallelism is powerful, spawning 20 agents simultaneously will hit rate limits and potentially cause conflicts if multiple agents try to edit the same files. Start with 2-3 parallel agents and scale up carefully.</p>
+
+  <h3>Mistake 5: Not Checking the Result</h3>
+
+  <p>Always check whether the agent actually succeeded. Just because the call didn't throw an error doesn't mean Claude did what you wanted. Read the <code>stdout</code>, check for error messages in the output, and verify that expected files were actually created or modified.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><strong>Parallel write agents can conflict.</strong> If two agents try to edit the same file simultaneously, one will overwrite the other's changes. When running parallel agents, make sure they work on non-overlapping sets of files. Use <code>cwd</code> to give each agent its own directory, or carefully scope prompts so agents don't touch the same files.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#127919;</span>
+      <h3>Checkpoint Project: The Architect</h3>
+    </div>
+
+    <h4>What to Build</h4>
+    <p>Build a small Node.js/TypeScript application that uses the Claude Code SDK to programmatically spawn an agent, give it a task, stream its output to the console with real-time progress updates, and process the final result. You're building a mini Claude Code wrapper with custom behavior &mdash; essentially a specialized tool that uses Claude Code as its engine.</p>
+
+    <p>Specifically, your application should:</p>
+    <ol>
+      <li>Accept a task description as a command-line argument (e.g., <code>npx tsx architect.ts "Create a utility that formats dates"</code>)</li>
+      <li>Spawn a Claude Code agent via the SDK with appropriate options</li>
+      <li>Stream the agent's output to the terminal with custom formatting &mdash; showing a running count of tool calls, elapsed time, and the text output</li>
+      <li>When the agent finishes, display a summary: total time, number of tool calls, cost, and a list of files that were created or modified</li>
+      <li>Include error handling so the program doesn't crash if the agent fails</li>
+    </ol>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>Running your program with a task like "Create a simple utility function" spawns a Claude agent and streams its output</li>
+      <li>The terminal shows real-time progress (tool call counts, elapsed time) while the agent works</li>
+      <li>When the agent completes, a summary is printed showing total time, tool calls, and cost</li>
+      <li>The program gracefully handles errors &mdash; try giving it an invalid <code>cwd</code> or a nonsense prompt and verify it doesn't crash with an unhandled exception</li>
+      <li><code>maxTurns</code> is set to a reasonable value (not unlimited)</li>
+      <li><code>allowedTools</code> is explicitly configured (not left as the default "everything")</li>
+      <li>The code is TypeScript with proper type annotations, not loose <code>any</code> types</li>
+    </ul>
+
+    <h4>Bonus Challenges</h4>
+    <ul>
+      <li>Add a <code>--dry-run</code> flag that restricts the agent to read-only tools, so you can preview what it would do without it actually making changes</li>
+      <li>Add a <code>--budget</code> flag (e.g., <code>--budget 0.50</code>) that aborts the run if cost exceeds the specified limit</li>
+      <li>Save the agent's full output to a timestamped log file in a <code>logs/</code> directory</li>
+    </ul>
+
+    <span class="time-estimate">&#9202; Estimated time: 90&ndash;120 minutes</span>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-13.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-15.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+</body>
+</html>

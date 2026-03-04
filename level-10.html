@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 10: MCP &mdash; Giving Claude Code Superpowers | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-09.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-11.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 10</div>
+    <h1>MCP: Giving Claude Code Superpowers</h1>
+    <p class="level-subtitle">Claude Code ships with a powerful set of built-in tools. MCP lets you bolt on entirely new ones &mdash; connecting Claude to databases, browsers, APIs, Slack, and anything else you can imagine &mdash; without modifying Claude Code itself.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: What MCP Is -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.1</span> What MCP Is</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>You've already seen what Claude Code can do with its built-in tools: read files, write files, run bash commands, search code. Those tools cover a lot of ground. But what happens when you want Claude to query your production database directly? Or post a message to Slack? Or scrape a website with a real browser? Or remember things across conversations?</p>
+
+  <p>Without MCP, your only option is to have Claude write a script, run it in bash, and parse the output. That works, but it's clunky. MCP gives Claude direct, structured access to external capabilities &mdash; no wrapper scripts needed.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Analogy: Your phone and its apps.</strong> When you buy a new phone, it comes with built-in apps: camera, calculator, notes. Those are Claude Code's built-in tools. But the real power comes when you install new apps &mdash; Uber, Spotify, your bank's app. Each app gives your phone entirely new capabilities without changing the phone's hardware. MCP servers are like apps for Claude Code. Each one you install gives Claude a new set of capabilities it didn't have before.
+  </div>
+
+  <h3>The Technical Definition</h3>
+
+  <div class="definition">
+    <p><span class="term">MCP (Model Context Protocol)</span> &mdash; An open standard created by Anthropic that defines how AI tools (like Claude Code) connect to external services. It provides a structured, secure way for an AI assistant to discover and use tools provided by separate server processes.</p>
+  </div>
+
+  <p>The key word is <strong>protocol</strong>. Just like HTTP is a standard way for browsers to talk to web servers, MCP is a standard way for AI clients to talk to tool servers. Because it's a standard, anyone can build an MCP server and any MCP-compatible client can use it.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>MCP is not Claude-specific. It's an open protocol. Tools built as MCP servers work with Claude Code, Claude Desktop, and any other client that supports MCP. When you build or install an MCP server, you're not locked into a single tool.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Architecture -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.2</span> Architecture: How the Pieces Fit Together</h2>
+
+  <h3>The Client-Server Model</h3>
+
+  <p>MCP uses a simple client-server architecture. Here's how the pieces connect:</p>
+
+  <ul>
+    <li><strong>Client</strong> &mdash; Claude Code itself. It discovers available MCP servers, connects to them, and calls their tools when needed.</li>
+    <li><strong>Server</strong> &mdash; A separate process that runs on your machine (or remotely). Each server exposes a set of tools with defined inputs and outputs.</li>
+    <li><strong>Transport</strong> &mdash; The communication layer between client and server. Most commonly <code>stdio</code> (standard input/output) for local servers, or <code>SSE</code> (Server-Sent Events) for remote ones.</li>
+  </ul>
+
+  <p>Here's what the architecture looks like in practice:</p>
+
+  <div class="code-label">diagram</div>
+<pre><code><span class="syn-comment">┌─────────────────────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-keyword">Claude Code</span> (MCP Client)                              <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>                                                         <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  <span class="syn-string">"Query the users table"</span>                               <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  <span class="syn-string">"Post this to Slack"</span>                                  <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>  <span class="syn-string">"Take a screenshot of this URL"</span>                       <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>                                                         <span class="syn-comment">│</span>
+<span class="syn-comment">└────────┬──────────────┬──────────────┬──────────────────┘</span>
+         <span class="syn-comment">│</span>              <span class="syn-comment">│</span>              <span class="syn-comment">│</span>
+    <span class="syn-variable">stdio</span>          <span class="syn-variable">stdio</span>          <span class="syn-variable">stdio</span>
+         <span class="syn-comment">│</span>              <span class="syn-comment">│</span>              <span class="syn-comment">│</span>
+<span class="syn-comment">┌────────▼────┐  ┌──────▼──────┐  ┌──────▼──────────────┐</span>
+<span class="syn-comment">│</span> <span class="syn-function">SQLite</span>      <span class="syn-comment">│  │</span> <span class="syn-function">Slack</span>       <span class="syn-comment">│  │</span> <span class="syn-function">Puppeteer</span>            <span class="syn-comment">│</span>
+<span class="syn-comment">│</span> <span class="syn-function">MCP Server</span>  <span class="syn-comment">│  │</span> <span class="syn-function">MCP Server</span>  <span class="syn-comment">│  │</span> <span class="syn-function">MCP Server</span>           <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>             <span class="syn-comment">│  │</span>             <span class="syn-comment">│  │</span>                      <span class="syn-comment">│</span>
+<span class="syn-comment">│</span> Tools:      <span class="syn-comment">│  │</span> Tools:      <span class="syn-comment">│  │</span> Tools:               <span class="syn-comment">│</span>
+<span class="syn-comment">│</span> - query     <span class="syn-comment">│  │</span> - send_msg  <span class="syn-comment">│  │</span> - navigate           <span class="syn-comment">│</span>
+<span class="syn-comment">│</span> - execute   <span class="syn-comment">│  │</span> - list_chan  <span class="syn-comment">│  │</span> - screenshot         <span class="syn-comment">│</span>
+<span class="syn-comment">│</span> - schema    <span class="syn-comment">│  │</span> - search    <span class="syn-comment">│  │</span> - click              <span class="syn-comment">│</span>
+<span class="syn-comment">└─────────────┘  └─────────────┘  └──────────────────────┘</span></code></pre>
+
+  <p>Each MCP server is an independent process. Claude Code launches them, discovers their tools, and calls those tools as needed during your conversation. You can have multiple servers running simultaneously, each providing different capabilities.</p>
+
+  <h3>What Happens When You Start Claude Code</h3>
+
+  <ol>
+    <li>Claude Code reads your MCP configuration (from settings files)</li>
+    <li>It launches each configured MCP server as a child process</li>
+    <li>It asks each server: "What tools do you provide?"</li>
+    <li>Each server responds with a list of tools, including their names, descriptions, and input schemas</li>
+    <li>Claude now knows about all these tools and can call them during your session</li>
+  </ol>
+
+  <p>When you ask Claude something that requires an external tool &mdash; like "query the database for all users" &mdash; Claude recognizes it has a <code>query</code> tool from the SQLite server and calls it directly. The server executes the query and returns the results to Claude, who then presents them to you.</p>
+
+  <div class="callout info">
+    <div class="callout-title">Note</div>
+    <p>MCP servers run locally on your machine by default. Your data doesn't leave your computer unless the server explicitly connects to an external API. A SQLite MCP server, for example, reads your local database file &mdash; nothing goes to the cloud.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: Installing MCP Servers -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.3</span> Installing MCP Servers</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>The MCP ecosystem already has dozens of pre-built servers for common integrations. Installing one takes about two minutes and immediately gives Claude Code new capabilities. This is the fastest way to extend what Claude can do.</p>
+
+  <h3>Two Ways to Install</h3>
+
+  <p>MCP servers come in two main flavors, depending on the language they're written in:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th>Command</th>
+        <th>Requires</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>npm (Node.js)</td>
+        <td><code>npx -y @modelcontextprotocol/server-xxx</code></td>
+        <td>Node.js 18+</td>
+      </tr>
+      <tr>
+        <td>PyPI (Python)</td>
+        <td><code>uvx mcp-server-xxx</code></td>
+        <td>Python 3.10+, uv</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>You don't install these globally. Instead, you tell Claude Code how to run them by adding a configuration block to your settings file. Claude Code handles the launching.</p>
+
+  <h3>Where Configuration Lives</h3>
+
+  <p>MCP server configuration goes in a <code>settings.json</code> file. There are two places it can live:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Scope</th>
+        <th>Use When</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>~/.claude/settings.json</code></td>
+        <td>Global &mdash; all projects</td>
+        <td>Tools you want everywhere (Slack, memory, browser)</td>
+      </tr>
+      <tr>
+        <td><code>.claude/settings.json</code> (in project root)</td>
+        <td>Project-specific</td>
+        <td>Database server for this project, project-specific APIs</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Put globally useful servers (Slack, browser, memory) in <code>~/.claude/settings.json</code>. Put project-specific servers (your app's database, a custom API) in the project's <code>.claude/settings.json</code>. This keeps your configuration clean and portable.</p>
+  </div>
+
+  <h3>The Configuration Format</h3>
+
+  <p>Here's the structure of the <code>mcpServers</code> block in settings.json. Each server gets a name and a launch configuration:</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"server-name"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"the-command-to-run"</span>,
+      <span class="syn-property">"args"</span>: [<span class="syn-string">"arg1"</span>, <span class="syn-string">"arg2"</span>],
+      <span class="syn-property">"env"</span>: {
+        <span class="syn-property">"ENV_VAR"</span>: <span class="syn-string">"value"</span>
+      }
+    }
+  }
+}</code></pre>
+
+  <p>Let's break that down:</p>
+  <ul>
+    <li><strong><code>"server-name"</code></strong> &mdash; A label you choose. Claude shows this name when listing available tools.</li>
+    <li><strong><code>"command"</code></strong> &mdash; The executable to run. Usually <code>npx</code> for Node.js servers or <code>uvx</code> for Python servers.</li>
+    <li><strong><code>"args"</code></strong> &mdash; An array of command-line arguments passed to the command.</li>
+    <li><strong><code>"env"</code></strong> &mdash; Optional. Environment variables the server needs (API keys, config values).</li>
+  </ul>
+
+  <h3>Finding the Full Path (Important for Reliability)</h3>
+
+  <p>A common gotcha: Claude Code might not find <code>npx</code> or <code>uvx</code> if your shell PATH isn't configured the same way in the spawned process. To avoid this, use the full path to the command.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'path-mac')">macOS</button>
+      <button onclick="switchTab(event, 'path-win')">Windows</button>
+    </div>
+    <div id="path-mac" class="os-tab-content active">
+<pre><code><span class="syn-comment"># Find the full path to npx</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">which</span> npx
+<span class="syn-path">/usr/local/bin/npx</span>
+
+<span class="syn-comment"># Find the full path to uvx</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">which</span> uvx
+<span class="syn-path">/Users/you/.local/bin/uvx</span></code></pre>
+    </div>
+    <div id="path-win" class="os-tab-content">
+<pre><code><span class="syn-comment"># Find the full path to npx</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">where</span> npx
+<span class="syn-path">C:\Program Files\nodejs\npx.cmd</span>
+
+<span class="syn-comment"># Find the full path to uvx</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-builtin">where</span> uvx
+<span class="syn-path">C:\Users\you\.local\bin\uvx.exe</span></code></pre>
+    </div>
+  </div>
+
+  <p>Use the full path in your configuration if you run into "command not found" errors. This eliminates PATH ambiguity entirely.</p>
+
+  <h3>Quick-Start: Your First MCP Server</h3>
+
+  <p>Let's install the filesystem MCP server as a concrete first example. This server gives Claude advanced file operations beyond its built-in tools (like moving files, searching by pattern, and getting detailed metadata).</p>
+
+  <p>Add this to your <code>~/.claude/settings.json</code>:</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'first-mac')">macOS</button>
+      <button onclick="switchTab(event, 'first-win')">Windows</button>
+    </div>
+    <div id="first-mac" class="os-tab-content active">
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"filesystem"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"-y"</span>,
+        <span class="syn-string">"@modelcontextprotocol/server-filesystem"</span>,
+        <span class="syn-string">"/Users/you/projects"</span>
+      ]
+    }
+  }
+}</code></pre>
+    </div>
+    <div id="first-win" class="os-tab-content">
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"filesystem"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx.cmd"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"-y"</span>,
+        <span class="syn-string">"@modelcontextprotocol/server-filesystem"</span>,
+        <span class="syn-string">"C:\\Users\\you\\projects"</span>
+      ]
+    }
+  }
+}</code></pre>
+    </div>
+  </div>
+
+  <p>The last argument (<code>/Users/you/projects</code>) is the directory the server is allowed to access. This is a security boundary &mdash; the server can't read files outside this path. Replace it with your actual projects directory.</p>
+
+  <p>After saving, restart Claude Code. You should see the filesystem server's tools become available. You can verify by asking Claude: "What MCP tools do you have available?"</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>On Windows, use <code>npx.cmd</code> instead of <code>npx</code> in the command field. The <code>.cmd</code> extension is needed because Windows resolves executables differently than macOS/Linux.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: Practical MCP Server Examples -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.4</span> Practical MCP Server Examples</h2>
+
+  <p>Here are six of the most useful MCP servers you can install today, with complete configuration and an overview of what tools each one provides.</p>
+
+  <!-- 4.1: Filesystem -->
+  <h3>Filesystem Server</h3>
+
+  <p>Gives Claude advanced file operations beyond its built-in read/write: directory listings, file moving/copying, metadata inspection, and pattern-based search.</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"filesystem"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"-y"</span>,
+        <span class="syn-string">"@modelcontextprotocol/server-filesystem"</span>,
+        <span class="syn-string">"/Users/you/allowed-directory"</span>
+      ]
+    }
+  }
+}</code></pre>
+
+  <p><strong>Tools provided:</strong></p>
+  <ul>
+    <li><code>read_file</code> &mdash; Read a file's contents</li>
+    <li><code>write_file</code> &mdash; Create or overwrite a file</li>
+    <li><code>edit_file</code> &mdash; Make targeted edits using pattern matching</li>
+    <li><code>list_directory</code> &mdash; List contents of a directory</li>
+    <li><code>move_file</code> &mdash; Move or rename files</li>
+    <li><code>search_files</code> &mdash; Search for files matching a pattern</li>
+    <li><code>get_file_info</code> &mdash; Get metadata (size, dates, permissions)</li>
+    <li><code>list_allowed_directories</code> &mdash; Show which directories the server can access</li>
+  </ul>
+
+  <p>Useful when you want Claude to reorganize project structures, bulk-rename files, or explore directories outside the current project scope.</p>
+
+  <!-- 4.2: SQLite -->
+  <h3>SQLite / Database Server</h3>
+
+  <p>Lets Claude directly query and modify SQLite databases. Instead of writing Python scripts to run queries, Claude can just query the database and get structured results.</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"sqlite"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"uvx"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"mcp-server-sqlite"</span>,
+        <span class="syn-string">"--db-path"</span>,
+        <span class="syn-string">"/path/to/your/database.db"</span>
+      ]
+    }
+  }
+}</code></pre>
+
+  <p><strong>Tools provided:</strong></p>
+  <ul>
+    <li><code>read_query</code> &mdash; Run a SELECT query and return results</li>
+    <li><code>write_query</code> &mdash; Run INSERT, UPDATE, DELETE statements</li>
+    <li><code>create_table</code> &mdash; Create a new table</li>
+    <li><code>list_tables</code> &mdash; Show all tables in the database</li>
+    <li><code>describe_table</code> &mdash; Show a table's schema</li>
+    <li><code>append_insight</code> &mdash; Store analysis notes about the data</li>
+  </ul>
+
+  <p>This is particularly useful if you've built apps with local databases. Instead of "write a script to count users grouped by signup month," you can just say "how many users signed up each month?" and Claude queries the database directly.</p>
+
+  <!-- 4.3: Puppeteer -->
+  <h3>Browser Automation (Puppeteer)</h3>
+
+  <p>Gives Claude a real browser. It can navigate to URLs, take screenshots, click buttons, fill forms, and extract content from web pages.</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"puppeteer"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"-y"</span>,
+        <span class="syn-string">"@modelcontextprotocol/server-puppeteer"</span>
+      ]
+    }
+  }
+}</code></pre>
+
+  <p><strong>Tools provided:</strong></p>
+  <ul>
+    <li><code>puppeteer_navigate</code> &mdash; Go to a URL</li>
+    <li><code>puppeteer_screenshot</code> &mdash; Take a screenshot of the current page</li>
+    <li><code>puppeteer_click</code> &mdash; Click an element (by CSS selector)</li>
+    <li><code>puppeteer_fill</code> &mdash; Type text into an input field</li>
+    <li><code>puppeteer_evaluate</code> &mdash; Run JavaScript in the browser console</li>
+  </ul>
+
+  <p>Think about this: you could tell Claude "go to my deployed app, fill in the login form with test credentials, navigate to the dashboard, and take a screenshot." It can do that now. This is incredibly powerful for testing, visual verification, and web scraping.</p>
+
+  <!-- 4.4: Slack -->
+  <h3>Slack Integration</h3>
+
+  <p>Connects Claude to your Slack workspace. It can read messages, post updates, and search conversations.</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"slack"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"-y"</span>,
+        <span class="syn-string">"@modelcontextprotocol/server-slack"</span>
+      ],
+      <span class="syn-property">"env"</span>: {
+        <span class="syn-property">"SLACK_BOT_TOKEN"</span>: <span class="syn-string">"xoxb-your-bot-token"</span>,
+        <span class="syn-property">"SLACK_TEAM_ID"</span>: <span class="syn-string">"T01234567"</span>
+      }
+    }
+  }
+}</code></pre>
+
+  <p><strong>Tools provided:</strong></p>
+  <ul>
+    <li><code>slack_list_channels</code> &mdash; List available channels</li>
+    <li><code>slack_post_message</code> &mdash; Send a message to a channel</li>
+    <li><code>slack_reply_to_thread</code> &mdash; Reply in a thread</li>
+    <li><code>slack_get_channel_history</code> &mdash; Read recent messages</li>
+    <li><code>slack_search_messages</code> &mdash; Search across the workspace</li>
+  </ul>
+
+  <p>You'll need to create a Slack bot and get a bot token from the Slack API dashboard. The <code>env</code> block passes your credentials to the server securely &mdash; they're never stored in Claude's context.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p>Never commit settings files containing API tokens to git. Add <code>.claude/settings.json</code> to your <code>.gitignore</code> if it contains secrets, or use environment variables instead of hardcoding tokens.</p>
+  </div>
+
+  <!-- 4.5: GitHub -->
+  <h3>GitHub Integration</h3>
+
+  <p>Gives Claude structured access to GitHub beyond what <code>gh</code> CLI provides: creating issues, managing PRs, reading repo metadata, and more &mdash; all through clean tool interfaces.</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"github"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"-y"</span>,
+        <span class="syn-string">"@modelcontextprotocol/server-github"</span>
+      ],
+      <span class="syn-property">"env"</span>: {
+        <span class="syn-property">"GITHUB_PERSONAL_ACCESS_TOKEN"</span>: <span class="syn-string">"ghp_your_token_here"</span>
+      }
+    }
+  }
+}</code></pre>
+
+  <p><strong>Tools provided:</strong></p>
+  <ul>
+    <li><code>create_or_update_file</code> &mdash; Create or update a file in a repo</li>
+    <li><code>search_repositories</code> &mdash; Search for repos</li>
+    <li><code>create_issue</code> &mdash; Create a new issue</li>
+    <li><code>create_pull_request</code> &mdash; Open a PR</li>
+    <li><code>list_issues</code> &mdash; List issues with filters</li>
+    <li><code>get_file_contents</code> &mdash; Read a file from a repo</li>
+    <li><code>push_files</code> &mdash; Push multiple files in one commit</li>
+  </ul>
+
+  <p>The GitHub server works with GitHub's API directly. You need a Personal Access Token (Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Fine-grained tokens). Give it the minimum permissions needed for what you're doing.</p>
+
+  <!-- 4.6: Memory -->
+  <h3>Memory / Knowledge Base Server</h3>
+
+  <p>This is one of the most interesting MCP servers. It gives Claude persistent memory across conversations using a local knowledge graph.</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"memory"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"-y"</span>,
+        <span class="syn-string">"@modelcontextprotocol/server-memory"</span>
+      ]
+    }
+  }
+}</code></pre>
+
+  <p><strong>Tools provided:</strong></p>
+  <ul>
+    <li><code>create_entities</code> &mdash; Store named entities (people, projects, concepts)</li>
+    <li><code>create_relations</code> &mdash; Define relationships between entities</li>
+    <li><code>add_observations</code> &mdash; Attach observations to entities</li>
+    <li><code>search_nodes</code> &mdash; Search the knowledge graph</li>
+    <li><code>open_nodes</code> &mdash; Retrieve specific entities with all their data</li>
+    <li><code>delete_entities</code> / <code>delete_relations</code> &mdash; Clean up the graph</li>
+  </ul>
+
+  <p>The memory server stores data as a JSON file on disk. Across conversations, Claude can remember facts you've told it: your preferences, project architecture decisions, team members' responsibilities, recurring patterns in your codebase. Think of it as Claude's notebook.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Combine the memory server with a CLAUDE.md instruction like "At the start of every conversation, check the memory server for context about this project." Now Claude remembers decisions, patterns, and context between sessions &mdash; something it can't do on its own.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Putting It All Together -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.5</span> Putting It All Together: A Multi-Server Config</h2>
+
+  <p>In practice, you'll run multiple MCP servers simultaneously. Here's what a realistic global configuration looks like with several servers combined:</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"memory"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [<span class="syn-string">"-y"</span>, <span class="syn-string">"@modelcontextprotocol/server-memory"</span>]
+    },
+    <span class="syn-property">"github"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [<span class="syn-string">"-y"</span>, <span class="syn-string">"@modelcontextprotocol/server-github"</span>],
+      <span class="syn-property">"env"</span>: {
+        <span class="syn-property">"GITHUB_PERSONAL_ACCESS_TOKEN"</span>: <span class="syn-string">"ghp_xxxxxxxxxxxx"</span>
+      }
+    },
+    <span class="syn-property">"puppeteer"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [<span class="syn-string">"-y"</span>, <span class="syn-string">"@modelcontextprotocol/server-puppeteer"</span>]
+    },
+    <span class="syn-property">"slack"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"npx"</span>,
+      <span class="syn-property">"args"</span>: [<span class="syn-string">"-y"</span>, <span class="syn-string">"@modelcontextprotocol/server-slack"</span>],
+      <span class="syn-property">"env"</span>: {
+        <span class="syn-property">"SLACK_BOT_TOKEN"</span>: <span class="syn-string">"xoxb-xxxxxxxxxxxx"</span>,
+        <span class="syn-property">"SLACK_TEAM_ID"</span>: <span class="syn-string">"T01234567"</span>
+      }
+    }
+  }
+}</code></pre>
+
+  <p>Each server runs as its own process. They don't interact with each other &mdash; they all independently provide tools to Claude Code. Claude chooses which tools to call based on what you're asking it to do.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Security -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.6</span> Security Considerations</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>MCP servers are powerful. A database server can delete tables. A Slack server can post messages as you. A filesystem server can read sensitive files. This power demands careful thought about trust and access.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Every MCP server you install is code running on your machine with the permissions you've granted it. Treat installing an MCP server with the same caution you'd treat installing any software. Only use servers from sources you trust.</p>
+  </div>
+
+  <h3>The Principle of Least Privilege</h3>
+
+  <p>Give each server only the access it needs:</p>
+
+  <ul>
+    <li><strong>Filesystem server:</strong> Restrict it to specific directories. Don't give it access to <code>/</code> or <code>C:\</code>.</li>
+    <li><strong>Database server:</strong> Point it at a development database, not production. Consider using a read-only database connection.</li>
+    <li><strong>API servers:</strong> Use tokens with minimal scopes. A GitHub token for reading repos doesn't need write access.</li>
+    <li><strong>Slack server:</strong> Limit the bot to specific channels if possible.</li>
+  </ul>
+
+  <h3>What to Check Before Installing a Server</h3>
+
+  <ol>
+    <li><strong>Source:</strong> Is it from the official <code>@modelcontextprotocol</code> npm scope? Or a trusted third party? Or some random repo?</li>
+    <li><strong>Tools exposed:</strong> What tools does the server declare? Does a "read-only" server secretly have write tools?</li>
+    <li><strong>Network access:</strong> Does the server need to connect to the internet? Where does your data go?</li>
+    <li><strong>Permissions:</strong> What environment variables and file paths is it asking for?</li>
+  </ol>
+
+  <p>Claude Code will ask for your permission before calling MCP tools (unless you've granted blanket permission in your settings). Always review what a tool is about to do the first few times you use it.</p>
+
+  <h3>Managing Secrets</h3>
+
+  <p>API tokens in your <code>settings.json</code> are stored in plain text on disk. Some safer alternatives:</p>
+
+  <ul>
+    <li>Use environment variables in your shell profile and reference them in the config</li>
+    <li>Never commit <code>.claude/settings.json</code> to git if it contains tokens</li>
+    <li>Rotate tokens regularly</li>
+    <li>Use fine-grained tokens with expiration dates</li>
+  </ul>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Building Your Own MCP Server -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.7</span> Building Your Own MCP Server</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Pre-built servers cover common use cases, but the real power of MCP is building servers tailored to your specific workflow. Want Claude to query your company's internal API? Check the status of your deploys? Look up customer data in your CRM? You build an MCP server for that.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Analogy: Building a custom app.</strong> Installing pre-built MCP servers is like downloading apps from the App Store. Building your own MCP server is like building a custom app that connects to your company's specific systems. The protocol is the same &mdash; you just define what tools your "app" provides.
+  </div>
+
+  <h3>Complete Walkthrough: A SQLite Query Server</h3>
+
+  <p>We'll build a simple MCP server in TypeScript that exposes two tools: one to list tables in a SQLite database, and one to run a read-only query. This is a practical example you can adapt for any data source.</p>
+
+  <h4>Step 1: Set Up the Project</h4>
+
+  <p>Create a new directory and initialize it:</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">mkdir</span> <span class="syn-path">my-mcp-server</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cd</span> <span class="syn-path">my-mcp-server</span>
+<span class="syn-prompt">$</span> npm init <span class="syn-flag">-y</span>
+<span class="syn-prompt">$</span> npm install <span class="syn-string">@modelcontextprotocol/sdk</span> <span class="syn-string">better-sqlite3</span>
+<span class="syn-prompt">$</span> npm install <span class="syn-flag">-D</span> <span class="syn-string">typescript</span> <span class="syn-string">@types/better-sqlite3</span> <span class="syn-string">@types/node</span></code></pre>
+
+  <p>This installs the MCP SDK (the library that handles the protocol for you) and better-sqlite3 (a fast SQLite driver for Node.js). The TypeScript packages are for development only.</p>
+
+  <h4>Step 2: Configure TypeScript</h4>
+
+  <p>Create a <code>tsconfig.json</code>:</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"compilerOptions"</span>: {
+    <span class="syn-property">"target"</span>: <span class="syn-string">"ES2022"</span>,
+    <span class="syn-property">"module"</span>: <span class="syn-string">"Node16"</span>,
+    <span class="syn-property">"moduleResolution"</span>: <span class="syn-string">"Node16"</span>,
+    <span class="syn-property">"outDir"</span>: <span class="syn-string">"./dist"</span>,
+    <span class="syn-property">"rootDir"</span>: <span class="syn-string">"./src"</span>,
+    <span class="syn-property">"strict"</span>: <span class="syn-keyword">true</span>,
+    <span class="syn-property">"esModuleInterop"</span>: <span class="syn-keyword">true</span>,
+    <span class="syn-property">"declaration"</span>: <span class="syn-keyword">true</span>
+  },
+  <span class="syn-property">"include"</span>: [<span class="syn-string">"src/**/*"</span>]
+}</code></pre>
+
+  <p>This tells TypeScript to compile modern JavaScript and output to a <code>dist</code> folder. Don't worry about memorizing these options &mdash; this is a standard configuration.</p>
+
+  <h4>Step 3: Write the Server</h4>
+
+  <p>Create <code>src/index.ts</code>. This is the entire server. Let's walk through it piece by piece, then show the full file.</p>
+
+  <p>First, the imports and server setup:</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-keyword">import</span> { <span class="syn-variable">McpServer</span> } <span class="syn-keyword">from</span> <span class="syn-string">"@modelcontextprotocol/sdk/server/mcp.js"</span>;
+<span class="syn-keyword">import</span> { <span class="syn-variable">StdioServerTransport</span> } <span class="syn-keyword">from</span> <span class="syn-string">"@modelcontextprotocol/sdk/server/stdio.js"</span>;
+<span class="syn-keyword">import</span> { <span class="syn-variable">z</span> } <span class="syn-keyword">from</span> <span class="syn-string">"zod"</span>;
+<span class="syn-keyword">import</span> <span class="syn-variable">Database</span> <span class="syn-keyword">from</span> <span class="syn-string">"better-sqlite3"</span>;
+
+<span class="syn-comment">// Get the database path from command-line arguments</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">dbPath</span> <span class="syn-operator">=</span> <span class="syn-variable">process</span>.<span class="syn-property">argv</span>[<span class="syn-number">2</span>];
+<span class="syn-keyword">if</span> (<span class="syn-operator">!</span><span class="syn-variable">dbPath</span>) {
+  <span class="syn-variable">console</span>.<span class="syn-function">error</span>(<span class="syn-string">"Usage: node dist/index.js &lt;path-to-database.db&gt;"</span>);
+  <span class="syn-variable">process</span>.<span class="syn-function">exit</span>(<span class="syn-number">1</span>);
+}
+
+<span class="syn-comment">// Open the database in read-only mode for safety</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">db</span> <span class="syn-operator">=</span> <span class="syn-keyword">new</span> <span class="syn-function">Database</span>(<span class="syn-variable">dbPath</span>, { <span class="syn-property">readonly</span>: <span class="syn-keyword">true</span> });</code></pre>
+
+  <p>We import the MCP SDK, the zod validation library (included with the SDK), and our SQLite driver. The database path comes from the command line, and we open it read-only so Claude can't accidentally modify your data.</p>
+
+  <p>Next, create the server and define tools:</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// Create the MCP server</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">server</span> <span class="syn-operator">=</span> <span class="syn-keyword">new</span> <span class="syn-function">McpServer</span>({
+  <span class="syn-property">name</span>: <span class="syn-string">"my-sqlite-server"</span>,
+  <span class="syn-property">version</span>: <span class="syn-string">"1.0.0"</span>,
+});
+
+<span class="syn-comment">// Tool 1: List all tables in the database</span>
+<span class="syn-variable">server</span>.<span class="syn-function">tool</span>(
+  <span class="syn-string">"list_tables"</span>,
+  <span class="syn-string">"List all tables in the connected SQLite database"</span>,
+  {},  <span class="syn-comment">// No input parameters needed</span>
+  <span class="syn-keyword">async</span> () <span class="syn-operator">=&gt;</span> {
+    <span class="syn-keyword">const</span> <span class="syn-variable">tables</span> <span class="syn-operator">=</span> <span class="syn-variable">db</span>
+      .<span class="syn-function">prepare</span>(<span class="syn-string">"SELECT name FROM sqlite_master WHERE type='table'"</span>)
+      .<span class="syn-function">all</span>() <span class="syn-keyword">as</span> { <span class="syn-property">name</span>: <span class="syn-builtin">string</span> }[];
+
+    <span class="syn-keyword">return</span> {
+      <span class="syn-property">content</span>: [{
+        <span class="syn-property">type</span>: <span class="syn-string">"text"</span>,
+        <span class="syn-property">text</span>: <span class="syn-variable">tables</span>.<span class="syn-function">map</span>(<span class="syn-variable">t</span> <span class="syn-operator">=&gt;</span> <span class="syn-variable">t</span>.<span class="syn-property">name</span>).<span class="syn-function">join</span>(<span class="syn-string">"\n"</span>),
+      }],
+    };
+  }
+);</code></pre>
+
+  <p>The <code>server.tool()</code> method takes four arguments: a tool name, a description (Claude reads this to decide when to use the tool), an input schema (defined with zod), and a handler function that does the actual work.</p>
+
+  <p>Now the query tool, which takes user input:</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// Tool 2: Run a read-only SQL query</span>
+<span class="syn-variable">server</span>.<span class="syn-function">tool</span>(
+  <span class="syn-string">"query"</span>,
+  <span class="syn-string">"Run a read-only SQL query against the database"</span>,
+  {
+    <span class="syn-property">sql</span>: <span class="syn-variable">z</span>.<span class="syn-function">string</span>().<span class="syn-function">describe</span>(<span class="syn-string">"The SQL SELECT query to execute"</span>),
+  },
+  <span class="syn-keyword">async</span> ({ <span class="syn-variable">sql</span> }) <span class="syn-operator">=&gt;</span> {
+    <span class="syn-keyword">try</span> {
+      <span class="syn-comment">// Safety check: only allow SELECT statements</span>
+      <span class="syn-keyword">const</span> <span class="syn-variable">trimmed</span> <span class="syn-operator">=</span> <span class="syn-variable">sql</span>.<span class="syn-function">trim</span>().<span class="syn-function">toUpperCase</span>();
+      <span class="syn-keyword">if</span> (<span class="syn-operator">!</span><span class="syn-variable">trimmed</span>.<span class="syn-function">startsWith</span>(<span class="syn-string">"SELECT"</span>)) {
+        <span class="syn-keyword">return</span> {
+          <span class="syn-property">content</span>: [{
+            <span class="syn-property">type</span>: <span class="syn-string">"text"</span>,
+            <span class="syn-property">text</span>: <span class="syn-string">"Error: Only SELECT queries are allowed."</span>,
+          }],
+          <span class="syn-property">isError</span>: <span class="syn-keyword">true</span>,
+        };
+      }
+
+      <span class="syn-keyword">const</span> <span class="syn-variable">results</span> <span class="syn-operator">=</span> <span class="syn-variable">db</span>.<span class="syn-function">prepare</span>(<span class="syn-variable">sql</span>).<span class="syn-function">all</span>();
+      <span class="syn-keyword">return</span> {
+        <span class="syn-property">content</span>: [{
+          <span class="syn-property">type</span>: <span class="syn-string">"text"</span>,
+          <span class="syn-property">text</span>: <span class="syn-variable">JSON</span>.<span class="syn-function">stringify</span>(<span class="syn-variable">results</span>, <span class="syn-keyword">null</span>, <span class="syn-number">2</span>),
+        }],
+      };
+    } <span class="syn-keyword">catch</span> (<span class="syn-variable">error</span>) {
+      <span class="syn-keyword">return</span> {
+        <span class="syn-property">content</span>: [{
+          <span class="syn-property">type</span>: <span class="syn-string">"text"</span>,
+          <span class="syn-property">text</span>: <span class="syn-string">`Query error: </span>${<span class="syn-variable">error</span>}<span class="syn-string">`</span>,
+        }],
+        <span class="syn-property">isError</span>: <span class="syn-keyword">true</span>,
+      };
+    }
+  }
+);</code></pre>
+
+  <p>Notice the input schema: <code>{ sql: z.string().describe("...") }</code>. This tells Claude what parameter the tool expects and provides a description. The handler receives the validated input, checks it's a SELECT statement (defense in depth on top of the read-only database), runs the query, and returns the results as JSON.</p>
+
+  <p>Finally, start the server:</p>
+
+  <div class="code-label">typescript</div>
+<pre><code><span class="syn-comment">// Start the server using stdio transport</span>
+<span class="syn-keyword">async function</span> <span class="syn-function">main</span>() {
+  <span class="syn-keyword">const</span> <span class="syn-variable">transport</span> <span class="syn-operator">=</span> <span class="syn-keyword">new</span> <span class="syn-function">StdioServerTransport</span>();
+  <span class="syn-keyword">await</span> <span class="syn-variable">server</span>.<span class="syn-function">connect</span>(<span class="syn-variable">transport</span>);
+  <span class="syn-variable">console</span>.<span class="syn-function">error</span>(<span class="syn-string">"SQLite MCP Server running on stdio"</span>);
+}
+
+<span class="syn-function">main</span>();</code></pre>
+
+  <p>The <code>StdioServerTransport</code> connects the server to stdin/stdout, which is how Claude Code communicates with it. The <code>console.error</code> message goes to stderr (not stdout), so it doesn't interfere with the MCP protocol.</p>
+
+  <h4>Step 4: Build and Test</h4>
+
+  <p>Add a build script to your <code>package.json</code>:</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"scripts"</span>: {
+    <span class="syn-property">"build"</span>: <span class="syn-string">"tsc"</span>
+  }
+}</code></pre>
+
+  <p>Then compile and verify:</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> npm run build
+<span class="syn-comment"># This creates dist/index.js</span>
+
+<span class="syn-comment"># Quick test: make sure it runs without crashing</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">echo</span> <span class="syn-string">""</span> <span class="syn-operator">|</span> node dist/index.js <span class="syn-path">/path/to/test.db</span>
+<span class="syn-comment"># Should exit without errors (it's waiting for MCP messages on stdin)</span></code></pre>
+
+  <p>If the server starts without errors, it's ready to be registered with Claude Code.</p>
+
+  <h4>Step 5: Register with Claude Code</h4>
+
+  <p>Add your server to your project's <code>.claude/settings.json</code>:</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'register-mac')">macOS</button>
+      <button onclick="switchTab(event, 'register-win')">Windows</button>
+    </div>
+    <div id="register-mac" class="os-tab-content active">
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"my-sqlite"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"node"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"/Users/you/my-mcp-server/dist/index.js"</span>,
+        <span class="syn-string">"/Users/you/projects/myapp/data.db"</span>
+      ]
+    }
+  }
+}</code></pre>
+    </div>
+    <div id="register-win" class="os-tab-content">
+<pre><code>{
+  <span class="syn-property">"mcpServers"</span>: {
+    <span class="syn-property">"my-sqlite"</span>: {
+      <span class="syn-property">"command"</span>: <span class="syn-string">"node"</span>,
+      <span class="syn-property">"args"</span>: [
+        <span class="syn-string">"C:\\Users\\you\\my-mcp-server\\dist\\index.js"</span>,
+        <span class="syn-string">"C:\\Users\\you\\projects\\myapp\\data.db"</span>
+      ]
+    }
+  }
+}</code></pre>
+    </div>
+  </div>
+
+  <p>Notice the difference from npm-based servers: here we use <code>node</code> as the command and pass the path to our compiled JavaScript file. The second argument is the database path our server expects.</p>
+
+  <h4>Step 6: Test It End to End</h4>
+
+  <p>Restart Claude Code and try these prompts:</p>
+
+  <div class="code-label">text</div>
+<pre><code><span class="syn-prompt">You:</span> <span class="syn-string">What MCP tools do you have?</span>
+<span class="syn-comment"># Claude should list your server's tools: list_tables and query</span>
+
+<span class="syn-prompt">You:</span> <span class="syn-string">What tables are in the database?</span>
+<span class="syn-comment"># Claude calls list_tables and shows you the result</span>
+
+<span class="syn-prompt">You:</span> <span class="syn-string">Show me the first 5 rows from the users table</span>
+<span class="syn-comment"># Claude calls query with "SELECT * FROM users LIMIT 5"</span></code></pre>
+
+  <p>If Claude uses your custom tools and returns results, congratulations &mdash; you've built and deployed your first MCP server.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>The Python MCP SDK works the same way conceptually. Install it with <code>pip install mcp</code>, define tools with decorators, and connect via stdio. If you're more comfortable with Python, check the official MCP Python SDK documentation for the equivalent patterns.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Debugging -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.8</span> Debugging MCP Servers</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Things will go wrong. The server won't start. Claude won't see the tools. Queries will fail silently. Having a debugging playbook saves you hours of frustration.</p>
+
+  <h3>Common Issues and Fixes</h3>
+
+  <h4>Problem: "Server not found" or tools don't appear</h4>
+
+  <ul>
+    <li><strong>Check the command path.</strong> Can you run the exact command from your terminal? Try it manually.</li>
+    <li><strong>Windows users:</strong> Use <code>npx.cmd</code> instead of <code>npx</code>, and <code>node.exe</code> instead of <code>node</code> if needed.</li>
+    <li><strong>Check JSON syntax.</strong> A missing comma or bracket in <code>settings.json</code> will silently break everything. Use a JSON validator.</li>
+    <li><strong>Restart Claude Code.</strong> Configuration changes require a restart.</li>
+  </ul>
+
+  <h4>Problem: Server starts but tools fail</h4>
+
+  <ul>
+    <li><strong>Check stderr output.</strong> MCP servers log errors to stderr. Run the server manually in your terminal to see error messages.</li>
+    <li><strong>Verify arguments.</strong> Is the database path correct? Does the file exist? Does the API token have the right permissions?</li>
+    <li><strong>Check permissions.</strong> On macOS/Linux, ensure the server file is executable: <code>chmod +x dist/index.js</code></li>
+  </ul>
+
+  <h4>Problem: Server crashes after starting</h4>
+
+  <p>Run the server manually to see the error output:</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment"># For a Node.js server:</span>
+<span class="syn-prompt">$</span> node <span class="syn-path">/path/to/server/dist/index.js</span> <span class="syn-path">/path/to/data.db</span> <span class="syn-number">2</span><span class="syn-operator">&gt;&amp;</span><span class="syn-number">1</span>
+
+<span class="syn-comment"># For an npx-based server:</span>
+<span class="syn-prompt">$</span> npx <span class="syn-flag">-y</span> <span class="syn-string">@modelcontextprotocol/server-filesystem</span> <span class="syn-path">/tmp</span> <span class="syn-number">2</span><span class="syn-operator">&gt;&amp;</span><span class="syn-number">1</span></code></pre>
+
+  <p>The <code>2&gt;&amp;1</code> redirects stderr to stdout so you can see all output. Look for error messages about missing dependencies, bad paths, or permission issues.</p>
+
+  <h4>Using the MCP Inspector</h4>
+
+  <p>The MCP project provides an inspector tool for debugging. It lets you connect to an MCP server, see its tools, and call them manually &mdash; all from your browser.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> npx <span class="syn-flag">-y</span> <span class="syn-string">@modelcontextprotocol/inspector</span> node <span class="syn-path">dist/index.js</span> <span class="syn-path">/path/to/data.db</span></code></pre>
+
+  <p>This opens a web interface where you can see exactly what tools the server exposes, what their schemas look like, and test calling them with custom inputs. It's the single best debugging tool for MCP development.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>When an MCP server isn't working, always debug it outside of Claude Code first. Run it manually, use the inspector, verify it works in isolation. Only then troubleshoot the Claude Code integration. This saves enormous time.</p>
+  </div>
+
+  <h3>Checking Server Status in Claude Code</h3>
+
+  <p>Inside a Claude Code session, you can ask Claude directly about MCP status:</p>
+
+  <ul>
+    <li>"What MCP servers are connected?" &mdash; Lists active servers</li>
+    <li>"What MCP tools do you have?" &mdash; Lists all available tools from all servers</li>
+    <li>"Can you use the query tool?" &mdash; Tests whether a specific tool is available</li>
+  </ul>
+
+  <p>If Claude doesn't know about your server's tools, the server either didn't start or has an error in its tool definitions.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: MCP vs Other Approaches -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.9</span> MCP vs. Other Approaches</h2>
+
+  <p>You might be wondering: when should I use MCP, and when should I just have Claude run a bash command or use hooks? Here's a clear comparison:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Best For</th>
+        <th>Limitations</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Bash commands</strong></td>
+        <td>One-off tasks, quick scripts, system commands</td>
+        <td>Unstructured output, error handling is messy, Claude has to parse text</td>
+      </tr>
+      <tr>
+        <td><strong>Hooks</strong></td>
+        <td>Automating things that happen around Claude's actions (pre/post file edit, pre/post command)</td>
+        <td>React to events, can't be called on demand by Claude</td>
+      </tr>
+      <tr>
+        <td><strong>MCP servers</strong></td>
+        <td>Structured, on-demand access to external services, databases, APIs</td>
+        <td>Requires setup, server must be running, slight overhead</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>When to Choose Each</h3>
+
+  <p><strong>Use bash</strong> when the task is simple and one-off. "Run this script." "Check if port 3000 is in use." "What's my IP address?" Bash is fast and requires no setup.</p>
+
+  <p><strong>Use hooks</strong> when you want something to happen automatically every time Claude does a specific action. "Run the linter after every file edit." "Check types before every commit." Hooks are event-driven &mdash; Claude doesn't call them, they fire automatically.</p>
+
+  <p><strong>Use MCP</strong> when you want Claude to have ongoing, structured access to an external system. "Query my database." "Post to Slack." "Search my knowledge base." MCP tools are first-class &mdash; Claude can choose to use them intelligently based on your requests.</p>
+
+  <div class="analogy">
+    <strong>Analogy:</strong> Bash is like telling someone to "go run this errand." Hooks are like setting up automatic reminders that fire at specific times. MCP is like giving someone a phone with apps installed &mdash; they can use any app whenever they need it.
+  </div>
+
+  <h3>They Work Together</h3>
+
+  <p>These aren't competing approaches. In a real workflow, you'll use all three:</p>
+
+  <ul>
+    <li>MCP for database queries and Slack notifications</li>
+    <li>Hooks for auto-formatting and lint checks</li>
+    <li>Bash for running your app, checking logs, and ad-hoc tasks</li>
+  </ul>
+
+  <p>Each tool has its sweet spot. MCP's sweet spot is persistent, structured connections to external systems that Claude can use on demand.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 10: Common Mistakes -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">10.10</span> Common Mistakes and Gotchas</h2>
+
+  <ol>
+    <li><strong>Forgetting to restart Claude Code after changing settings.</strong> MCP configuration is read at startup. Always restart after editing <code>settings.json</code>.</li>
+    <li><strong>Using relative paths.</strong> Always use absolute paths in your MCP configuration. Relative paths resolve differently depending on the working directory.</li>
+    <li><strong>JSON syntax errors.</strong> A single missing comma breaks the entire config. Use a JSON formatter/validator when editing settings files.</li>
+    <li><strong>Overly permissive access.</strong> Don't give the filesystem server access to your entire drive. Don't use admin-level API tokens. Start restrictive, expand if needed.</li>
+    <li><strong>Too many servers at once.</strong> Each server is a running process. Start with one or two, verify they work, then add more. Debugging three broken servers simultaneously is miserable.</li>
+    <li><strong>Not checking npm/Python requirements.</strong> MCP servers need Node.js 18+ or Python 3.10+. An outdated runtime causes cryptic errors.</li>
+    <li><strong>Hardcoding secrets in project settings.</strong> If your <code>.claude/settings.json</code> contains API tokens and you commit it to git, those tokens are now public. Use your global settings file for secrets, or reference environment variables.</li>
+    <li><strong>Ignoring server errors.</strong> If Claude says "I don't have a tool for that" when you expect it to, the server likely crashed. Check the server manually.</li>
+  </ol>
+
+  <!-- ============================================================ -->
+  <!-- Checkpoint Project -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <div class="checkpoint-icon">&#127919;</div>
+      <h3>Checkpoint Project: The Bridge Builder</h3>
+    </div>
+
+    <h4>What You'll Build</h4>
+    <p>You'll install and configure two pre-built MCP servers for tools you actually use. Then you'll build a simple custom MCP server (in TypeScript or Python) that exposes a useful tool &mdash; such as querying a local SQLite database, hitting a specific API, or reading from a local data file. You'll register all three with Claude Code and verify they work end to end.</p>
+
+    <h4>Steps</h4>
+    <ol>
+      <li>Choose two pre-built MCP servers from Section 10.4 that are relevant to your workflow (e.g., filesystem + memory, GitHub + Puppeteer).</li>
+      <li>Configure them in your <code>~/.claude/settings.json</code> with proper arguments and environment variables.</li>
+      <li>Restart Claude Code and verify Claude can see and use the tools from both servers.</li>
+      <li>Create a new TypeScript (or Python) project for your custom MCP server.</li>
+      <li>Implement at least two tools in your server (e.g., <code>list_tables</code> and <code>query</code>, or <code>fetch_data</code> and <code>summarize</code>).</li>
+      <li>Register your custom server in <code>.claude/settings.json</code> and test it in a Claude Code session.</li>
+    </ol>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>Two pre-built MCP servers are configured and running &mdash; Claude can list their tools when you ask.</li>
+      <li>You can use a tool from each pre-built server successfully (e.g., navigate a page with Puppeteer, search memory, list a directory).</li>
+      <li>Your custom MCP server compiles/runs without errors when launched manually.</li>
+      <li>Your custom server exposes at least two tools, and Claude can call both of them.</li>
+      <li>You can explain what each part of the MCP configuration does: <code>command</code>, <code>args</code>, <code>env</code>.</li>
+      <li>Your custom server handles errors gracefully &mdash; passing bad input to a tool returns an error message rather than crashing the server.</li>
+      <li>You've verified your server works using either the MCP Inspector or by testing it manually in the terminal before registering it with Claude Code.</li>
+      <li>No secrets (API tokens, passwords) are committed to version control.</li>
+    </ul>
+
+    <div class="time-estimate">Estimated time: 90 &ndash; 120 minutes</div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-09.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-11.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+<script>
+function switchTab(event, tabId) {
+  const tabContainer = event.target.closest('.os-tabs');
+  tabContainer.querySelectorAll('.os-tab-buttons button').forEach(btn => btn.classList.remove('active'));
+  tabContainer.querySelectorAll('.os-tab-content').forEach(content => content.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+</script>
+
+</body>
+</html>

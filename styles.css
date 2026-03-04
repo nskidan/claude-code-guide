@@ -1,0 +1,731 @@
+/* ============================================================
+   Claude Code Mastery Guide — Shared Stylesheet
+   ============================================================ */
+
+/* ---------- Google Fonts ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ---------- CSS Custom Properties ---------- */
+:root {
+  --bg-primary: #FAF6F1;
+  --bg-secondary: #F3ECE2;
+  --bg-code: #2B2118;
+  --text-primary: #3B2F2F;
+  --text-secondary: #6B5B4F;
+  --text-muted: #8B7B6F;
+  --accent: #D4793A;
+  --accent-light: #E89B5E;
+  --accent-bg: rgba(212, 121, 58, 0.08);
+  --accent-border: rgba(212, 121, 58, 0.3);
+  --border: #E0D5C8;
+  --border-light: #EBE3D9;
+  --white: #FFFFFF;
+  --shadow-sm: 0 1px 3px rgba(59, 47, 47, 0.06);
+  --shadow-md: 0 4px 12px rgba(59, 47, 47, 0.08);
+  --shadow-lg: 0 8px 24px rgba(59, 47, 47, 0.1);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --max-width: 780px;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 17px;
+  scroll-behavior: smooth;
+  color-scheme: light only;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.72;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- Layout ---------- */
+.page-wrapper {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* ---------- Typography ---------- */
+h1, h2, h3, h4 {
+  color: var(--text-primary);
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.6rem;
+  margin-top: 2.8rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--border);
+}
+
+h3 {
+  font-size: 1.25rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+h4 {
+  font-size: 1.05rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+p {
+  margin-bottom: 1.1rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+a:hover {
+  border-bottom-color: var(--accent);
+}
+
+strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+em {
+  font-style: italic;
+}
+
+ul, ol {
+  margin-bottom: 1.1rem;
+  padding-left: 1.5rem;
+}
+
+li {
+  margin-bottom: 0.4rem;
+}
+
+li > ul, li > ol {
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem 0;
+}
+
+/* ---------- Level Header ---------- */
+.level-header {
+  margin-bottom: 2.5rem;
+}
+
+.level-number {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  padding: 0.25rem 0.75rem;
+  border-radius: 100px;
+  margin-bottom: 0.75rem;
+}
+
+.level-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.level-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ---------- Navigation ---------- */
+.level-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+}
+
+.level-nav.bottom {
+  border-bottom: none;
+  border-top: 1px solid var(--border);
+  margin-bottom: 0;
+  margin-top: 3rem;
+  padding-top: 1rem;
+}
+
+.level-nav a {
+  color: var(--accent);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.level-nav .nav-spacer {
+  color: var(--text-muted);
+}
+
+/* ---------- Code Blocks ---------- */
+pre {
+  background: var(--bg-code);
+  color: #E8DDD0;
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.65;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(43, 33, 24, 0.15);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--bg-secondary);
+  color: var(--accent);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+/* Code block label (language tag) */
+.code-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  margin-bottom: -1px;
+  position: relative;
+  top: 1px;
+}
+
+/* Syntax Highlighting (inline styles in HTML, but classes for common tokens) */
+.syn-keyword { color: #E8927C; }
+.syn-string { color: #A8D4A0; }
+.syn-comment { color: #7B8B6F; font-style: italic; }
+.syn-function { color: #8CC8E8; }
+.syn-number { color: #D4A8E0; }
+.syn-variable { color: #E8DDD0; }
+.syn-property { color: #C8B898; }
+.syn-operator { color: #C8B898; }
+.syn-tag { color: #E8927C; }
+.syn-attr { color: #C8B898; }
+.syn-value { color: #A8D4A0; }
+.syn-builtin { color: #E8C870; }
+.syn-flag { color: #8CC8E8; }
+.syn-path { color: #D4A8E0; }
+.syn-prompt { color: #7B8B6F; }
+
+/* ---------- OS Tabs (macOS / Windows) ---------- */
+.os-tabs {
+  margin: 1.25rem 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.os-tab-buttons {
+  display: flex;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.os-tab-buttons button {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.os-tab-buttons button.active {
+  color: var(--accent);
+  background: var(--white);
+  border-bottom-color: var(--accent);
+}
+
+.os-tab-buttons button:hover:not(.active) {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.5);
+}
+
+.os-tab-content {
+  display: none;
+  padding: 0;
+}
+
+.os-tab-content.active {
+  display: block;
+}
+
+.os-tab-content pre {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* ---------- Callout Boxes ---------- */
+.callout {
+  border-left: 4px solid var(--accent);
+  background: var(--accent-bg);
+  padding: 1.1rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.callout p:last-child {
+  margin-bottom: 0;
+}
+
+.callout-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+/* High Impact variant */
+.callout.high-impact {
+  border-left-color: var(--accent);
+  background: linear-gradient(135deg, rgba(212, 121, 58, 0.08), rgba(212, 121, 58, 0.03));
+  border: 1px solid var(--accent-border);
+  border-left: 4px solid var(--accent);
+}
+
+.callout.high-impact .callout-title::before {
+  content: "\2B50  ";
+}
+
+/* Tip variant */
+.callout.tip {
+  border-left-color: #5B9E4B;
+  background: rgba(91, 158, 75, 0.06);
+}
+
+.callout.tip .callout-title {
+  color: #5B9E4B;
+}
+
+/* Warning variant */
+.callout.warning {
+  border-left-color: #C4612A;
+  background: rgba(196, 97, 42, 0.06);
+}
+
+.callout.warning .callout-title {
+  color: #C4612A;
+}
+
+/* Info variant */
+.callout.info {
+  border-left-color: #4A7FB5;
+  background: rgba(74, 127, 181, 0.06);
+}
+
+.callout.info .callout-title {
+  color: #4A7FB5;
+}
+
+/* ---------- Checkpoint Project ---------- */
+.checkpoint {
+  background: var(--white);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin: 2.5rem 0;
+  box-shadow: var(--shadow-md);
+}
+
+.checkpoint-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.checkpoint-icon {
+  font-size: 1.5rem;
+}
+
+.checkpoint-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--accent);
+}
+
+.checkpoint h4 {
+  font-size: 1rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.checkpoint ul {
+  margin-bottom: 0.75rem;
+}
+
+.checkpoint .time-estimate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  padding: 0.4rem 0.8rem;
+  border-radius: 100px;
+  margin-top: 0.5rem;
+}
+
+/* ---------- Table ---------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.92rem;
+}
+
+th, td {
+  padding: 0.7rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  background: var(--bg-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------- Index / TOC Page ---------- */
+.hero {
+  text-align: center;
+  padding: 3rem 0 2rem;
+}
+
+.hero h1 {
+  font-size: 2.6rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.03em;
+}
+
+.hero .subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+.toc-tier {
+  margin: 2rem 0;
+}
+
+.tier-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+}
+
+.toc-list li {
+  margin-bottom: 0;
+}
+
+.toc-list a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-md);
+  border-bottom: none;
+  transition: background 0.15s, transform 0.15s;
+  text-decoration: none;
+}
+
+.toc-list a:hover {
+  background: var(--bg-secondary);
+  border-bottom: none;
+  transform: translateX(4px);
+}
+
+.toc-level-num {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 2rem;
+}
+
+.toc-level-title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toc-level-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-left: 2.75rem;
+  margin-top: -0.3rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.toc-list li:last-child .toc-level-desc {
+  border-bottom: none;
+}
+
+/* ---------- Section Numbers ---------- */
+.section-number {
+  color: var(--accent);
+  font-weight: 700;
+  margin-right: 0.3rem;
+}
+
+/* ---------- Key Term Definitions ---------- */
+.definition {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+}
+
+.definition .term {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ---------- Analogy Block ---------- */
+.analogy {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 1.15rem 1.25rem;
+  margin: 1.25rem 0;
+  border-left: 3px solid var(--text-muted);
+  font-style: italic;
+}
+
+.analogy strong {
+  font-style: normal;
+}
+
+/* ---------- Two-Column Comparison ---------- */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.comparison-col {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.15rem;
+}
+
+.comparison-col h4 {
+  margin-top: 0;
+  font-size: 0.95rem;
+}
+
+/* ---------- Utility Classes ---------- */
+.mt-0 { margin-top: 0; }
+.mb-0 { margin-bottom: 0; }
+.text-muted { color: var(--text-secondary); }
+.text-small { font-size: 0.88rem; }
+.text-center { text-align: center; }
+
+/* ---------- Dark Mode Override ---------- */
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: light only !important;
+  }
+  body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  pre {
+    background: var(--bg-code) !important;
+  }
+  .checkpoint {
+    background: var(--white) !important;
+  }
+  a {
+    color: var(--accent) !important;
+  }
+  code {
+    background: var(--bg-secondary) !important;
+    color: var(--accent) !important;
+  }
+  table th {
+    background: var(--bg-secondary) !important;
+  }
+  img {
+    filter: none !important;
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+  html {
+    font-size: 15.5px;
+  }
+
+  .page-wrapper {
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  h1 {
+    font-size: 1.7rem;
+  }
+
+  .hero h1 {
+    font-size: 1.9rem;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  pre {
+    padding: 1rem;
+    font-size: 0.8rem;
+  }
+
+  .checkpoint {
+    padding: 1.25rem;
+  }
+
+  .comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .level-nav {
+    font-size: 0.82rem;
+  }
+
+  .toc-list a {
+    padding: 0.6rem 0.5rem;
+  }
+
+  .os-tab-buttons button {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  table {
+    font-size: 0.83rem;
+  }
+
+  th, td {
+    padding: 0.5rem 0.6rem;
+  }
+}
+
+/* ---------- OS Tab JavaScript (inlined in each page) ---------- */
+/* See the initOSTabs() function in each HTML file */
+
+/* ---------- Print Styles ---------- */
+@media print {
+  body {
+    background: white;
+    font-size: 12pt;
+  }
+
+  .level-nav, .os-tab-buttons {
+    display: none;
+  }
+
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: none;
+    page-break-inside: avoid;
+  }
+
+  .checkpoint {
+    page-break-inside: avoid;
+  }
+
+  a {
+    color: var(--text-primary);
+    border-bottom: none;
+  }
+}

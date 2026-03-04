@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 15: Agent Teams — Parallel Minds | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-14.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-16.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 15</div>
+    <h1>Agent Teams: Parallel Minds</h1>
+    <p class="level-subtitle">Move beyond one-shot subagents. Assemble persistent teams of Claude instances that decompose, delegate, execute, and review work in parallel &mdash; like a real engineering squad.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: What Agent Teams Are -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">15.1</span> What Agent Teams Are</h2>
+
+  <p>In previous levels, you learned about subagents &mdash; isolated Claude instances that you send off to do a single task and then come back with a result. Subagents are useful, but they have a ceiling. They're one-shot. They don't talk to each other. They don't share context. The parent agent sits idle while each one works.</p>
+
+  <p>Agent teams blow past that ceiling. Instead of dispatching individual couriers one at a time, you're assembling a coordinated group that works together, in parallel, on a shared project.</p>
+
+  <div class="analogy">
+    <strong>The analogy:</strong> Subagents are like sending someone on a quick errand &mdash; "go buy milk and come back." Agent teams are like assembling a project team in a war room. There's a lead architect at the whiteboard, multiple developers at their stations, a shared task board on the wall, ongoing communication, and coordinated effort. The lead breaks the project into pieces, assigns work, reviews results, and keeps the big picture in focus. The developers pick up tasks, execute independently, and report back. Nobody waits around &mdash; everyone works simultaneously.
+  </div>
+
+  <p>This is the most powerful orchestration pattern in Claude Code. It's also the most expensive, the most complex, and the one most likely to go sideways if you don't understand what you're doing. That's why it's Level 15.</p>
+
+  <div class="definition">
+    <p><span class="term">Agent team:</span> A coordinated group of Claude Code instances consisting of one lead agent and one or more teammate agents, sharing a task list and working in parallel on a decomposed project. The lead orchestrates; teammates execute.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Teams vs. Subagents -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">15.2</span> Teams vs. Subagents</h2>
+
+  <p>Before going deeper, you need to understand exactly where teams diverge from the subagent pattern you already know. These are not just "better subagents." They're a fundamentally different model of work.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong>Subagents are sequential delegation. Teams are parallel collaboration.</strong> With subagents, the parent does work, delegates a chunk, waits, gets the result, does more work, delegates again. With teams, the lead sets up the work and multiple teammates execute simultaneously. The lead doesn't wait &mdash; it monitors, reviews, and adjusts.</p>
+  </div>
+
+  <h3>Side-by-Side Comparison</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th>Subagents</th>
+        <th>Agent Teams</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Execution model</strong></td>
+        <td>Fire and forget, one at a time</td>
+        <td>Persistent, parallel, coordinated</td>
+      </tr>
+      <tr>
+        <td><strong>Parent behavior</strong></td>
+        <td>Waits for subagent to finish</td>
+        <td>Lead orchestrates and reviews</td>
+      </tr>
+      <tr>
+        <td><strong>Communication</strong></td>
+        <td>Input goes in, output comes back</td>
+        <td>Shared task list, file system, ongoing</td>
+      </tr>
+      <tr>
+        <td><strong>Persistence</strong></td>
+        <td>Subagent dies after returning result</td>
+        <td>Teammates persist until all tasks done</td>
+      </tr>
+      <tr>
+        <td><strong>Parallelism</strong></td>
+        <td>None &mdash; parent is blocked</td>
+        <td>Full &mdash; all teammates work simultaneously</td>
+      </tr>
+      <tr>
+        <td><strong>Shared state</strong></td>
+        <td>None &mdash; isolated context</td>
+        <td>Shared task list and file system</td>
+      </tr>
+      <tr>
+        <td><strong>Cost model</strong></td>
+        <td>One extra instance at a time</td>
+        <td>Multiple simultaneous instances</td>
+      </tr>
+      <tr>
+        <td><strong>Best for</strong></td>
+        <td>Focused, independent tasks</td>
+        <td>Complex, multi-part projects</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Decision Framework: When to Use Which</h3>
+
+  <p>Here's the decision tree. Start from the top and follow the path that matches your situation.</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Use Subagents When</h4>
+      <ul>
+        <li>The task is self-contained and independent</li>
+        <li>You need a result before continuing your own work</li>
+        <li>There's no coordination needed between tasks</li>
+        <li>You're delegating 1&ndash;3 discrete jobs</li>
+        <li>Cost is a primary concern</li>
+        <li>Example: "Refactor this single file to use async/await"</li>
+        <li>Example: "Generate test fixtures for this schema"</li>
+      </ul>
+    </div>
+    <div class="comparison-col">
+      <h4>Use Teams When</h4>
+      <ul>
+        <li>The project has multiple interconnected parts</li>
+        <li>Work can happen in parallel across different files or modules</li>
+        <li>You need coordination and a shared understanding of progress</li>
+        <li>The project would take 30+ minutes solo</li>
+        <li>Speed of completion matters more than cost</li>
+        <li>Example: "Build a full CRUD feature with frontend, backend, and tests"</li>
+        <li>Example: "Migrate 8 modules from JavaScript to TypeScript"</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p><strong>Start with subagents.</strong> If you find yourself spawning multiple subagents sequentially for related tasks, that's a signal you should be using a team instead. Teams shine when the work is decomposable and parallelizable.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: The Mental Model -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">15.3</span> The Mental Model: Lead + Teammates</h2>
+
+  <p>Every agent team has a strict structure. Understanding the roles makes everything else click.</p>
+
+  <h3>The Lead Agent</h3>
+
+  <p>The lead is the architect. It's the Claude instance you interact with directly. When you invoke a team, the lead is responsible for:</p>
+
+  <ul>
+    <li><strong>Decomposing the project</strong> &mdash; breaking a large request into discrete, assignable tasks</li>
+    <li><strong>Writing the task list</strong> &mdash; creating clear, self-contained task descriptions that teammates can execute independently</li>
+    <li><strong>Assigning work</strong> &mdash; placing tasks on the shared board for teammates to pick up</li>
+    <li><strong>Reviewing results</strong> &mdash; checking completed work for correctness and consistency</li>
+    <li><strong>Maintaining the big picture</strong> &mdash; ensuring all the pieces fit together into a coherent whole</li>
+    <li><strong>Handling integration</strong> &mdash; resolving conflicts when teammates produce incompatible work</li>
+  </ul>
+
+  <p>The lead does not micromanage. It does not watch each teammate keystroke by keystroke. It sets up the work, monitors the task board, and steps in when something needs attention.</p>
+
+  <h3>Teammate Agents</h3>
+
+  <p>Teammates are worker instances. Each one is a full Claude Code session that can read files, write code, run commands, and use tools. Teammates:</p>
+
+  <ul>
+    <li><strong>Pick up tasks</strong> from the shared task list</li>
+    <li><strong>Execute independently</strong> &mdash; they have full Claude Code capabilities</li>
+    <li><strong>Report results</strong> by marking tasks as complete and writing their output</li>
+    <li><strong>Work simultaneously</strong> &mdash; all teammates operate in parallel</li>
+    <li><strong>Cannot directly talk to each other</strong> &mdash; all coordination goes through the task list and file system</li>
+  </ul>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong>The shared task list is the communication backbone.</strong> Teammates don't have a group chat. They don't pass messages to each other. All coordination happens through (1) the task list, which defines what needs to be done and what's been completed, and (2) the file system, where completed work is visible to everyone. This is a design constraint that keeps things clean but means your task descriptions need to be excellent.</p>
+  </div>
+
+  <h3>The Task List</h3>
+
+  <p>Think of the task list as a Kanban board. Each task has a status: pending, in-progress, or completed. The lead creates tasks. Teammates claim them, work on them, and mark them done. The lead can see the entire board and add new tasks as needed.</p>
+
+  <div class="analogy">
+    <strong>Think of it like a restaurant kitchen:</strong> The head chef (lead) writes orders on tickets and puts them on the rail. Line cooks (teammates) grab tickets, prepare their dishes independently, and put the finished plates in the window. The head chef checks each plate before it goes out. The cooks don't negotiate with each other about who's making what &mdash; they just grab the next ticket that matches their station.
+  </div>
+
+  <p>Good task decomposition is the difference between a team that hums and one that crashes. If tasks are too vague, teammates will produce inconsistent work. If tasks are too interdependent, teammates will step on each other's files. If tasks are well-scoped and independent, everything clicks.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: Setting Up Agent Teams -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">15.4</span> Setting Up Agent Teams</h2>
+
+  <p>Let's get concrete. Here's how to actually invoke and configure an agent team.</p>
+
+  <h3>Enabling Team Mode</h3>
+
+  <p>Agent teams are invoked through a prompt pattern that tells Claude Code to operate as a lead coordinating teammates. You configure this in your prompt or CLAUDE.md to establish the team structure.</p>
+
+  <p>The simplest way to invoke a team is through the <code>--team</code> flag or by configuring team behavior in your settings. Here's the basic invocation.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-function">claude</span> <span class="syn-flag">--team</span> <span class="syn-flag">--teammates</span> <span class="syn-number">3</span> <span class="syn-flag">-p</span> <span class="syn-string">"Build a full-stack todo app with React frontend, Express backend, and comprehensive tests"</span></code></pre>
+
+  <p>This tells Claude Code to operate as a lead agent with 3 teammates. The lead will decompose the task, create a task list, and the teammates will pick up and execute tasks in parallel.</p>
+
+  <h3>Configuration via Settings</h3>
+
+  <p>For more control, configure teams in your <code>settings.json</code>. This lets you set defaults so you don't have to pass flags every time.</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"team"</span>: {
+    <span class="syn-property">"enabled"</span>: <span class="syn-keyword">true</span>,
+    <span class="syn-property">"maxTeammates"</span>: <span class="syn-number">3</span>,
+    <span class="syn-property">"taskListPath"</span>: <span class="syn-string">".claude/tasks.json"</span>,
+    <span class="syn-property">"hooks"</span>: {
+      <span class="syn-property">"TeammateIdle"</span>: <span class="syn-string">"node .claude/hooks/teammate-idle.js"</span>,
+      <span class="syn-property">"TaskCompleted"</span>: <span class="syn-string">"node .claude/hooks/task-completed.js"</span>,
+      <span class="syn-property">"TeammateError"</span>: <span class="syn-string">"node .claude/hooks/teammate-error.js"</span>
+    }
+  }
+}</code></pre>
+
+  <p>The configuration sets the maximum number of teammates, where the shared task list lives, and hooks for key lifecycle events (more on hooks in Section 15.6).</p>
+
+  <h3>The Task List Mechanism</h3>
+
+  <p>When the lead decomposes a project, it creates a structured task list. This task list is the shared state between all agents. Here's what a typical task list looks like.</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"project"</span>: <span class="syn-string">"Full-stack Todo App"</span>,
+  <span class="syn-property">"created"</span>: <span class="syn-string">"2026-03-03T14:00:00Z"</span>,
+  <span class="syn-property">"tasks"</span>: [
+    {
+      <span class="syn-property">"id"</span>: <span class="syn-string">"task-001"</span>,
+      <span class="syn-property">"title"</span>: <span class="syn-string">"Set up Express backend with TypeScript"</span>,
+      <span class="syn-property">"description"</span>: <span class="syn-string">"Initialize Express server in server/. Set up TypeScript config. Create health check endpoint at GET /api/health. Use port from PORT env var with fallback to 3001."</span>,
+      <span class="syn-property">"status"</span>: <span class="syn-string">"completed"</span>,
+      <span class="syn-property">"assignee"</span>: <span class="syn-string">"teammate-1"</span>,
+      <span class="syn-property">"result"</span>: <span class="syn-string">"Server scaffolded in server/src/. TypeScript configured. Health check returns 200. Server starts on port 3001."</span>
+    },
+    {
+      <span class="syn-property">"id"</span>: <span class="syn-string">"task-002"</span>,
+      <span class="syn-property">"title"</span>: <span class="syn-string">"Build React frontend scaffold"</span>,
+      <span class="syn-property">"description"</span>: <span class="syn-string">"Create Vite + React + TypeScript app in client/. Set up routing with React Router. Create placeholder pages: Home, TodoList, About. Configure proxy to backend at localhost:3001."</span>,
+      <span class="syn-property">"status"</span>: <span class="syn-string">"in-progress"</span>,
+      <span class="syn-property">"assignee"</span>: <span class="syn-string">"teammate-2"</span>,
+      <span class="syn-property">"result"</span>: <span class="syn-keyword">null</span>
+    },
+    {
+      <span class="syn-property">"id"</span>: <span class="syn-string">"task-003"</span>,
+      <span class="syn-property">"title"</span>: <span class="syn-string">"Implement todo CRUD API endpoints"</span>,
+      <span class="syn-property">"description"</span>: <span class="syn-string">"In server/src/routes/todos.ts, create: POST /api/todos, GET /api/todos, PUT /api/todos/:id, DELETE /api/todos/:id. Use in-memory array for storage. Validate request bodies. Return consistent JSON responses."</span>,
+      <span class="syn-property">"status"</span>: <span class="syn-string">"pending"</span>,
+      <span class="syn-property">"assignee"</span>: <span class="syn-keyword">null</span>,
+      <span class="syn-property">"result"</span>: <span class="syn-keyword">null</span>
+    },
+    {
+      <span class="syn-property">"id"</span>: <span class="syn-string">"task-004"</span>,
+      <span class="syn-property">"title"</span>: <span class="syn-string">"Write tests for todo API"</span>,
+      <span class="syn-property">"description"</span>: <span class="syn-string">"Create server/tests/todos.test.ts with Vitest. Test all CRUD operations. Test validation errors. Test edge cases (empty title, non-existent ID). Minimum 8 test cases."</span>,
+      <span class="syn-property">"status"</span>: <span class="syn-string">"pending"</span>,
+      <span class="syn-property">"assignee"</span>: <span class="syn-keyword">null</span>,
+      <span class="syn-property">"result"</span>: <span class="syn-keyword">null</span>
+    },
+    {
+      <span class="syn-property">"id"</span>: <span class="syn-string">"task-005"</span>,
+      <span class="syn-property">"title"</span>: <span class="syn-string">"Build TodoList React component"</span>,
+      <span class="syn-property">"description"</span>: <span class="syn-string">"Create client/src/components/TodoList.tsx. Fetch todos from GET /api/todos. Display as list with checkboxes. Support add, toggle, and delete. Use React Query for server state."</span>,
+      <span class="syn-property">"status"</span>: <span class="syn-string">"pending"</span>,
+      <span class="syn-property">"assignee"</span>: <span class="syn-keyword">null</span>,
+      <span class="syn-property">"result"</span>: <span class="syn-keyword">null</span>
+    }
+  ]
+}</code></pre>
+
+  <p>Notice how each task is self-contained. A teammate picking up "Write tests for todo API" doesn't need to know anything about the React frontend. The task description includes everything needed to execute: what files to create, what patterns to follow, what the acceptance criteria are.</p>
+
+  <h3>How Teammates Pick Up Tasks</h3>
+
+  <p>The workflow is automatic. When a teammate finishes its current task (or starts fresh), it checks the task list for pending tasks, claims one by marking it as in-progress, and begins working. When done, it marks the task as completed and writes a result summary. Then it checks for the next pending task.</p>
+
+  <p>This continues until there are no more pending tasks. When a teammate has nothing left to do, the <code>TeammateIdle</code> hook fires (covered in Section 15.6), which you can use to trigger quality review or cleanup.</p>
+
+  <div class="callout info">
+    <div class="callout-title">How It Works Under the Hood</div>
+    <p>Each teammate is a full Claude Code session running in its own process. They all share the same filesystem (your project directory) and the same task list file. The lead agent monitors the task list for progress and can add new tasks, reassign stuck tasks, or intervene if something goes wrong.</p>
+  </div>
+
+  <h3>Full Invocation Example</h3>
+
+  <p>Here's a realistic end-to-end example of launching a team. This is the kind of prompt you'd give to kick off a multi-feature build.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-function">claude</span> <span class="syn-flag">--team</span> <span class="syn-flag">--teammates</span> <span class="syn-number">3</span> <span class="syn-flag">-p</span> <span class="syn-string">"Build a bookmark manager web app. Requirements:
+1. Express + TypeScript backend with SQLite database
+2. React + TypeScript frontend with search and tag filtering
+3. API endpoints: CRUD for bookmarks, tag management, search
+4. Comprehensive test suite for both backend and frontend
+5. Clean project structure following our CLAUDE.md conventions
+
+Decompose this into parallel tasks. Assign to teammates.
+Review all completed work for consistency before marking done."</span></code></pre>
+
+  <p>The lead will read this, analyze the requirements, break them into 6&ndash;10 tasks, populate the task list, and launch the teammates. Within seconds, all three teammates are working simultaneously &mdash; one on the backend scaffold, one on the frontend, one on the database schema and migrations.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Inter-Agent Communication -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">15.5</span> Inter-Agent Communication</h2>
+
+  <p>Teammates don't have a Slack channel. They can't send each other direct messages. So how do they coordinate? Through two shared resources: the task list and the file system.</p>
+
+  <h3>Communication Channel 1: The Shared Task List</h3>
+
+  <p>The task list is the primary coordination mechanism. Here's what each part communicates:</p>
+
+  <ul>
+    <li><strong>Task descriptions</strong> &mdash; the lead communicates requirements to teammates through detailed task descriptions. These are the "work orders" that define what needs to be built.</li>
+    <li><strong>Task status</strong> &mdash; tells everyone what's in progress and what's available. If teammate-1 sees that "Set up database schema" is completed, it knows it can now build on that schema.</li>
+    <li><strong>Task results</strong> &mdash; when a teammate completes a task, its result summary communicates what was built, where the files are, and any decisions that were made. This is how finished work gets communicated.</li>
+    <li><strong>New tasks</strong> &mdash; the lead can add tasks mid-execution in response to progress, errors, or new requirements discovered along the way.</li>
+  </ul>
+
+  <h3>Communication Channel 2: The File System</h3>
+
+  <p>All agents share the same project directory. This means:</p>
+
+  <ul>
+    <li>When teammate-1 creates <code>server/src/db/schema.ts</code>, teammate-2 can immediately read that file and build on it.</li>
+    <li>When teammate-2 writes the API types in <code>shared/types/todo.ts</code>, teammate-3 can import and use those types in the frontend.</li>
+    <li>Configuration files, package.json changes, and new dependencies are visible to all agents.</li>
+  </ul>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><strong>File conflicts are the biggest risk with teams.</strong> If two teammates try to modify the same file at the same time, one will overwrite the other's changes. This is why good task decomposition matters &mdash; tasks should operate on different files whenever possible. If two tasks must touch the same file, make them sequential (one depends on the other) rather than parallel.</p>
+  </div>
+
+  <h3>Communication Channel 3: Task Dependencies</h3>
+
+  <p>You can structure the task list so that certain tasks only become available after others complete. This creates an implicit communication flow.</p>
+
+  <p>Here's how to express dependencies in the task list.</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"id"</span>: <span class="syn-string">"task-004"</span>,
+  <span class="syn-property">"title"</span>: <span class="syn-string">"Build TodoList React component"</span>,
+  <span class="syn-property">"description"</span>: <span class="syn-string">"Depends on task-002 (frontend scaffold) and task-003 (API endpoints). Use the types defined in shared/types/. Connect to the API running on localhost:3001."</span>,
+  <span class="syn-property">"status"</span>: <span class="syn-string">"blocked"</span>,
+  <span class="syn-property">"dependsOn"</span>: [<span class="syn-string">"task-002"</span>, <span class="syn-string">"task-003"</span>],
+  <span class="syn-property">"assignee"</span>: <span class="syn-keyword">null</span>
+}</code></pre>
+
+  <p>The blocked status tells teammates to skip this task until its dependencies are resolved. Once task-002 and task-003 are both marked completed, the lead (or the system) unblocks task-004 and it becomes available for pickup.</p>
+
+  <h3>What Teammates Can and Can't See</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Visible to All Teammates</th>
+        <th>NOT Visible</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>The shared task list and all task statuses</td>
+        <td>Other teammates' conversation history</td>
+      </tr>
+      <tr>
+        <td>All files in the project directory</td>
+        <td>Other teammates' internal reasoning</td>
+      </tr>
+      <tr>
+        <td>The project's CLAUDE.md</td>
+        <td>What another teammate is currently typing</td>
+      </tr>
+      <tr>
+        <td>Completed task results and summaries</td>
+        <td>Real-time progress of in-flight tasks</td>
+      </tr>
+      <tr>
+        <td>Git history and changes</td>
+        <td>The lead's private notes or analysis</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>This visibility model means that teammates rely on <em>artifacts</em> (files and task results) rather than <em>conversations</em>. Write your task descriptions with this in mind: everything the teammate needs must either be in the task description or discoverable in the project files.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Team Hooks -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">15.6</span> Team Hooks: Lifecycle Events</h2>
+
+  <p>You learned about hooks in Level 11. Agent teams introduce three new lifecycle events specific to team coordination. These hooks are how you inject custom logic into the team workflow.</p>
+
+  <h3>TeammateIdle</h3>
+
+  <p>Fires when a teammate has no more pending tasks to pick up. This is your signal that a teammate is done with its work and available for new assignments.</p>
+
+  <p>The most powerful use of <code>TeammateIdle</code>: quality review. When a teammate finishes all its tasks, have it review the work of other teammates before the team disbands.</p>
+
+  <p>Here's a hook that triggers a code review when a teammate goes idle.</p>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-comment">// .claude/hooks/teammate-idle.js</span>
+<span class="syn-comment">// Fires when a teammate runs out of tasks</span>
+
+<span class="syn-keyword">import</span> { <span class="syn-variable">readFileSync</span>, <span class="syn-variable">writeFileSync</span> } <span class="syn-keyword">from</span> <span class="syn-string">'fs'</span>;
+
+<span class="syn-keyword">const</span> <span class="syn-variable">taskListPath</span> <span class="syn-operator">=</span> <span class="syn-string">'.claude/tasks.json'</span>;
+<span class="syn-keyword">const</span> <span class="syn-variable">taskList</span> <span class="syn-operator">=</span> <span class="syn-variable">JSON</span>.<span class="syn-function">parse</span>(<span class="syn-function">readFileSync</span>(<span class="syn-variable">taskListPath</span>, <span class="syn-string">'utf-8'</span>));
+
+<span class="syn-comment">// Find completed tasks that haven't been reviewed</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">unreviewed</span> <span class="syn-operator">=</span> <span class="syn-variable">taskList</span>.<span class="syn-property">tasks</span>.<span class="syn-function">filter</span>(
+  <span class="syn-variable">t</span> <span class="syn-operator">=></span> <span class="syn-variable">t</span>.<span class="syn-property">status</span> <span class="syn-operator">===</span> <span class="syn-string">'completed'</span> <span class="syn-operator">&&</span> !<span class="syn-variable">t</span>.<span class="syn-property">reviewed</span>
+);
+
+<span class="syn-keyword">if</span> (<span class="syn-variable">unreviewed</span>.<span class="syn-property">length</span> <span class="syn-operator">></span> <span class="syn-number">0</span>) {
+  <span class="syn-comment">// Add a review task for the idle teammate</span>
+  <span class="syn-variable">taskList</span>.<span class="syn-property">tasks</span>.<span class="syn-function">push</span>({
+    <span class="syn-property">id</span>: <span class="syn-string">`review-</span><span class="syn-variable">${Date.now()}</span><span class="syn-string">`</span>,
+    <span class="syn-property">title</span>: <span class="syn-string">`Review completed tasks: </span><span class="syn-variable">${unreviewed.map(t => t.id).join(', ')}</span><span class="syn-string">`</span>,
+    <span class="syn-property">description</span>: <span class="syn-string">`Review the following completed tasks for correctness:
+</span><span class="syn-variable">${unreviewed.map(t => `- ${t.id}: ${t.title} (files: ${t.result})`).join('\n')}</span><span class="syn-string">
+Check: code compiles, follows project conventions, no obvious bugs.
+Mark any issues in the task result.`</span>,
+    <span class="syn-property">status</span>: <span class="syn-string">'pending'</span>,
+    <span class="syn-property">assignee</span>: <span class="syn-keyword">null</span>,
+    <span class="syn-property">result</span>: <span class="syn-keyword">null</span>
+  });
+
+  <span class="syn-comment">// Mark reviewed tasks so they don't get re-reviewed</span>
+  <span class="syn-variable">unreviewed</span>.<span class="syn-function">forEach</span>(<span class="syn-variable">t</span> <span class="syn-operator">=></span> <span class="syn-variable">t</span>.<span class="syn-property">reviewed</span> <span class="syn-operator">=</span> <span class="syn-keyword">true</span>);
+  <span class="syn-function">writeFileSync</span>(<span class="syn-variable">taskListPath</span>, <span class="syn-variable">JSON</span>.<span class="syn-function">stringify</span>(<span class="syn-variable">taskList</span>, <span class="syn-keyword">null</span>, <span class="syn-number">2</span>));
+}
+</code></pre>
+
+  <p>This hook is elegant. When a teammate finishes its work, instead of just sitting idle, it gets assigned a review task to check other teammates' code. This gives you built-in quality assurance without any manual intervention.</p>
+
+  <h3>TaskCompleted</h3>
+
+  <p>Fires every time any task is marked as completed by any teammate. This is useful for tracking progress, logging, and triggering dependent workflows.</p>
+
+  <p>Here's a progress logging hook that writes a running log of completed tasks.</p>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-comment">// .claude/hooks/task-completed.js</span>
+<span class="syn-comment">// Fires when any task is marked done</span>
+
+<span class="syn-keyword">import</span> { <span class="syn-variable">appendFileSync</span>, <span class="syn-variable">readFileSync</span> } <span class="syn-keyword">from</span> <span class="syn-string">'fs'</span>;
+
+<span class="syn-keyword">const</span> <span class="syn-variable">event</span> <span class="syn-operator">=</span> <span class="syn-variable">JSON</span>.<span class="syn-function">parse</span>(<span class="syn-variable">process</span>.<span class="syn-property">env</span>.<span class="syn-property">CLAUDE_HOOK_EVENT</span> <span class="syn-operator">||</span> <span class="syn-string">'{}'</span>);
+<span class="syn-keyword">const</span> <span class="syn-variable">taskList</span> <span class="syn-operator">=</span> <span class="syn-variable">JSON</span>.<span class="syn-function">parse</span>(<span class="syn-function">readFileSync</span>(<span class="syn-string">'.claude/tasks.json'</span>, <span class="syn-string">'utf-8'</span>));
+
+<span class="syn-keyword">const</span> <span class="syn-variable">total</span> <span class="syn-operator">=</span> <span class="syn-variable">taskList</span>.<span class="syn-property">tasks</span>.<span class="syn-property">length</span>;
+<span class="syn-keyword">const</span> <span class="syn-variable">completed</span> <span class="syn-operator">=</span> <span class="syn-variable">taskList</span>.<span class="syn-property">tasks</span>.<span class="syn-function">filter</span>(<span class="syn-variable">t</span> <span class="syn-operator">=></span> <span class="syn-variable">t</span>.<span class="syn-property">status</span> <span class="syn-operator">===</span> <span class="syn-string">'completed'</span>).<span class="syn-property">length</span>;
+<span class="syn-keyword">const</span> <span class="syn-variable">timestamp</span> <span class="syn-operator">=</span> <span class="syn-keyword">new</span> <span class="syn-function">Date</span>().<span class="syn-function">toISOString</span>();
+
+<span class="syn-keyword">const</span> <span class="syn-variable">logLine</span> <span class="syn-operator">=</span> <span class="syn-string">`[</span><span class="syn-variable">${timestamp}</span><span class="syn-string">] Task </span><span class="syn-variable">${event.taskId}</span><span class="syn-string"> completed by </span><span class="syn-variable">${event.assignee}</span><span class="syn-string"> (</span><span class="syn-variable">${completed}</span><span class="syn-string">/</span><span class="syn-variable">${total}</span><span class="syn-string"> done)\n`</span>;
+<span class="syn-function">appendFileSync</span>(<span class="syn-string">'.claude/team-progress.log'</span>, <span class="syn-variable">logLine</span>);
+
+<span class="syn-comment">// Print progress to console</span>
+<span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-string">`Progress: </span><span class="syn-variable">${completed}</span><span class="syn-string">/</span><span class="syn-variable">${total}</span><span class="syn-string"> tasks completed (</span><span class="syn-variable">${Math.round(completed/total*100)}</span><span class="syn-string">%)`</span>);
+</code></pre>
+
+  <p>Now you have a running log file that tracks exactly when each task finished and which teammate did it. This is invaluable for understanding team performance and debugging issues.</p>
+
+  <h3>TeammateError</h3>
+
+  <p>Fires when a teammate encounters an unrecoverable error &mdash; a crashed process, a failed command that can't be retried, or a task that the teammate determines it cannot complete.</p>
+
+  <p>Here's a hook that reassigns failed tasks and sends a notification.</p>
+
+  <div class="code-label">javascript</div>
+<pre><code><span class="syn-comment">// .claude/hooks/teammate-error.js</span>
+<span class="syn-comment">// Fires when a teammate encounters an error</span>
+
+<span class="syn-keyword">import</span> { <span class="syn-variable">readFileSync</span>, <span class="syn-variable">writeFileSync</span>, <span class="syn-variable">appendFileSync</span> } <span class="syn-keyword">from</span> <span class="syn-string">'fs'</span>;
+
+<span class="syn-keyword">const</span> <span class="syn-variable">event</span> <span class="syn-operator">=</span> <span class="syn-variable">JSON</span>.<span class="syn-function">parse</span>(<span class="syn-variable">process</span>.<span class="syn-property">env</span>.<span class="syn-property">CLAUDE_HOOK_EVENT</span> <span class="syn-operator">||</span> <span class="syn-string">'{}'</span>);
+<span class="syn-keyword">const</span> <span class="syn-variable">taskListPath</span> <span class="syn-operator">=</span> <span class="syn-string">'.claude/tasks.json'</span>;
+<span class="syn-keyword">const</span> <span class="syn-variable">taskList</span> <span class="syn-operator">=</span> <span class="syn-variable">JSON</span>.<span class="syn-function">parse</span>(<span class="syn-function">readFileSync</span>(<span class="syn-variable">taskListPath</span>, <span class="syn-string">'utf-8'</span>));
+
+<span class="syn-comment">// Find the failed task and reset it to pending</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">failedTask</span> <span class="syn-operator">=</span> <span class="syn-variable">taskList</span>.<span class="syn-property">tasks</span>.<span class="syn-function">find</span>(<span class="syn-variable">t</span> <span class="syn-operator">=></span> <span class="syn-variable">t</span>.<span class="syn-property">id</span> <span class="syn-operator">===</span> <span class="syn-variable">event</span>.<span class="syn-property">taskId</span>);
+<span class="syn-keyword">if</span> (<span class="syn-variable">failedTask</span>) {
+  <span class="syn-variable">failedTask</span>.<span class="syn-property">status</span> <span class="syn-operator">=</span> <span class="syn-string">'pending'</span>;
+  <span class="syn-variable">failedTask</span>.<span class="syn-property">assignee</span> <span class="syn-operator">=</span> <span class="syn-keyword">null</span>;
+  <span class="syn-variable">failedTask</span>.<span class="syn-property">errorLog</span> <span class="syn-operator">=</span> <span class="syn-variable">event</span>.<span class="syn-property">error</span>;
+  <span class="syn-variable">failedTask</span>.<span class="syn-property">retryCount</span> <span class="syn-operator">=</span> (<span class="syn-variable">failedTask</span>.<span class="syn-property">retryCount</span> <span class="syn-operator">||</span> <span class="syn-number">0</span>) <span class="syn-operator">+</span> <span class="syn-number">1</span>;
+
+  <span class="syn-comment">// If retried too many times, mark as failed permanently</span>
+  <span class="syn-keyword">if</span> (<span class="syn-variable">failedTask</span>.<span class="syn-property">retryCount</span> <span class="syn-operator">>=</span> <span class="syn-number">3</span>) {
+    <span class="syn-variable">failedTask</span>.<span class="syn-property">status</span> <span class="syn-operator">=</span> <span class="syn-string">'failed'</span>;
+    <span class="syn-variable">console</span>.<span class="syn-function">error</span>(<span class="syn-string">`ALERT: Task </span><span class="syn-variable">${failedTask.id}</span><span class="syn-string"> failed 3 times. Manual intervention needed.`</span>);
+  }
+
+  <span class="syn-function">writeFileSync</span>(<span class="syn-variable">taskListPath</span>, <span class="syn-variable">JSON</span>.<span class="syn-function">stringify</span>(<span class="syn-variable">taskList</span>, <span class="syn-keyword">null</span>, <span class="syn-number">2</span>));
+}
+
+<span class="syn-comment">// Log the error</span>
+<span class="syn-keyword">const</span> <span class="syn-variable">logLine</span> <span class="syn-operator">=</span> <span class="syn-string">`[</span><span class="syn-variable">${new Date().toISOString()}</span><span class="syn-string">] ERROR: </span><span class="syn-variable">${event.taskId}</span><span class="syn-string"> failed (</span><span class="syn-variable">${event.assignee}</span><span class="syn-string">): </span><span class="syn-variable">${event.error}</span><span class="syn-string">\n`</span>;
+<span class="syn-function">appendFileSync</span>(<span class="syn-string">'.claude/team-errors.log'</span>, <span class="syn-variable">logLine</span>);
+</code></pre>
+
+  <p>This hook implements automatic retry logic. When a teammate fails, the task goes back to pending so another teammate can pick it up. After three failures, it's marked as permanently failed and requires your attention. The error gets logged for debugging.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong>Combine all three hooks for robust team operations.</strong> TaskCompleted gives you visibility. TeammateIdle gives you quality review. TeammateError gives you resilience. Together, they transform a team from "hope it works" to "I know exactly what's happening and problems get handled automatically."</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Monitoring and Managing Teams -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">15.7</span> Monitoring and Managing Teams</h2>
+
+  <p>Once a team is running, you need to observe it. You can't just fire and forget &mdash; teams need supervision, especially for your first few runs.</p>
+
+  <h3>Reading the Task Board</h3>
+
+  <p>The task list file is your primary monitoring tool. You can read it at any time to see the current state of all tasks.</p>
+
+  <p>Here's a simple script that prints a human-readable status report from the task list.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-function">cat</span> <span class="syn-path">.claude/tasks.json</span> <span class="syn-operator">|</span> <span class="syn-function">jq</span> <span class="syn-string">'.tasks[] | "\(.status | ascii_upcase)  \(.id): \(.title) [\(.assignee // "unassigned")]"'</span> <span class="syn-flag">-r</span></code></pre>
+
+  <p>This gives you a quick glance at what's happening.</p>
+
+  <div class="code-label">output</div>
+<pre><code><span class="syn-string">COMPLETED</span>  task-001: Set up Express backend [teammate-1]
+<span class="syn-string">COMPLETED</span>  task-002: Build React frontend scaffold [teammate-2]
+<span class="syn-keyword">IN-PROGRESS</span>  task-003: Implement todo CRUD API [teammate-1]
+<span class="syn-keyword">IN-PROGRESS</span>  task-005: Build TodoList React component [teammate-3]
+<span class="syn-comment">PENDING</span>  task-004: Write tests for todo API [unassigned]
+<span class="syn-comment">PENDING</span>  task-006: Integration testing [unassigned]</code></pre>
+
+  <p>At a glance: two tasks done, two in flight, two waiting. Everything's on track.</p>
+
+  <h3>The Progress Log</h3>
+
+  <p>If you set up the <code>TaskCompleted</code> hook from Section 15.6, you'll have a running log file. Tail it for live updates.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-function">tail</span> <span class="syn-flag">-f</span> <span class="syn-path">.claude/team-progress.log</span></code></pre>
+
+  <p>This streams completed tasks as they happen, giving you a real-time feed of team progress.</p>
+
+  <h3>When to Intervene</h3>
+
+  <p>Most of the time, a well-configured team runs itself. But there are situations where you need to step in:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Signal</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>A task has been in-progress for a very long time</td>
+        <td>Check the teammate's output. It may be stuck in a loop. Kill and reassign.</td>
+      </tr>
+      <tr>
+        <td>The error log shows repeated failures</td>
+        <td>The task description may be ambiguous or the prerequisite work is wrong. Rewrite the task.</td>
+      </tr>
+      <tr>
+        <td>Completed work has obvious conflicts</td>
+        <td>Two teammates modified overlapping code. The lead (or you) needs to resolve the merge.</td>
+      </tr>
+      <tr>
+        <td>You realize a task is missing</td>
+        <td>Add it to the task list manually. The next idle teammate will pick it up.</td>
+      </tr>
+      <tr>
+        <td>A teammate's completed work doesn't match the spec</td>
+        <td>Reset the task to pending with updated instructions and let another teammate redo it.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Redirecting Work Mid-Execution</h3>
+
+  <p>You can modify the task list while the team is running. This is how you redirect work. Want to add a new task? Edit the JSON file and add a new task object with status "pending." Want to cancel a task? Change its status to "cancelled." Want to reprioritize? The next available teammate will pick up whatever pending task matches its capabilities.</p>
+
+  <p>Here's how to add a task to a running team.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-function">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Add a new task to .claude/tasks.json: Write API documentation in docs/api.md covering all endpoints, request/response formats, and error codes. Set status to pending."</span></code></pre>
+
+  <p>The lead agent (or you, via a quick Claude command) can inject tasks at any time. The next idle teammate will pick it up.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Cost Management -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">15.8</span> Cost Management</h2>
+
+  <p>Agent teams are the most expensive thing you can do in Claude Code. This section is about understanding the costs, estimating them in advance, and keeping them reasonable.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong>Each teammate is a separate Claude instance consuming tokens.</strong> A team of 3 teammates means 4 simultaneous Claude sessions (1 lead + 3 teammates), each with its own context window, each reading files, each generating code. Running a 3-teammate team for 30 minutes can cost 5&ndash;10x what a solo session would for the same work.</p>
+  </div>
+
+  <h3>How Costs Accumulate</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Cost Factor</th>
+        <th>What Drives It</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Number of teammates</strong></td>
+        <td>More teammates = more parallel token usage. Linear cost increase.</td>
+      </tr>
+      <tr>
+        <td><strong>Task complexity</strong></td>
+        <td>Complex tasks require more back-and-forth with the model, more file reads, more iterations.</td>
+      </tr>
+      <tr>
+        <td><strong>Context size</strong></td>
+        <td>If your project has large files, each teammate reading them costs input tokens.</td>
+      </tr>
+      <tr>
+        <td><strong>Team duration</strong></td>
+        <td>Longer-running teams accumulate more cost. Stuck teammates burn tokens without producing results.</td>
+      </tr>
+      <tr>
+        <td><strong>Review passes</strong></td>
+        <td>Using TeammateIdle for reviews adds quality but also adds cost. It's usually worth it.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Estimating Costs Before You Start</h3>
+
+  <p>Before launching a team, do a quick estimate.</p>
+
+  <div class="definition">
+    <p><span class="term">Cost estimation formula:</span> <code>(number of teammates + 1) x (estimated solo cost per task) x (number of tasks / teammates)</code>. This gives a rough upper bound. In practice, parallel execution means less wall-clock time but similar or higher total token cost.</p>
+  </div>
+
+  <p>For example: if a solo agent session for a similar project would cost $2, running it as a 3-teammate team might cost $5&ndash;$8 total (higher cost, but finished in 1/3 the time).</p>
+
+  <h3>Strategies for Keeping Costs Reasonable</h3>
+
+  <ol>
+    <li><strong>Start with 2 teammates, not 5.</strong> More teammates doesn't always mean faster. The coordination overhead increases with team size. 2&ndash;3 teammates is the sweet spot for most projects.</li>
+    <li><strong>Write excellent task descriptions.</strong> Vague tasks cause teammates to wander, read unnecessary files, and burn tokens figuring out what they're supposed to do. Precise tasks execute fast and cheap.</li>
+    <li><strong>Keep your CLAUDE.md tight.</strong> Every teammate reads your CLAUDE.md. If it's 2,000 words of unnecessary context, you're paying for those input tokens multiplied by every agent.</li>
+    <li><strong>Use dependencies to avoid wasted work.</strong> If task B depends on task A, mark that dependency. Otherwise, a teammate might start task B prematurely, fail, and retry &mdash; burning tokens on doomed work.</li>
+    <li><strong>Set up the TeammateError hook.</strong> A teammate stuck in a retry loop is a token bonfire. Catch errors early and fail fast after 3 retries.</li>
+    <li><strong>Don't use teams for simple tasks.</strong> If a solo agent can do the job in 10 minutes, a team is overkill. The setup overhead alone will cost more than the time you save.</li>
+  </ol>
+
+  <h3>When Teams Are Overkill</h3>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Teams Are Worth It</h4>
+      <ul>
+        <li>Multi-feature builds (frontend + backend + tests)</li>
+        <li>Codebase migrations across many modules</li>
+        <li>Bug bashes with 5+ independent bugs</li>
+        <li>Projects that would take 1+ hours solo</li>
+        <li>Time-sensitive work where speed matters</li>
+      </ul>
+    </div>
+    <div class="comparison-col">
+      <h4>Teams Are Overkill</h4>
+      <ul>
+        <li>Single-file changes or refactors</li>
+        <li>Bug fixes in one module</li>
+        <li>Writing documentation</li>
+        <li>Projects with highly interdependent code</li>
+        <li>Exploratory work where you don't yet know the scope</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p><strong>Track your costs per team run.</strong> After each team session, check your API usage. Build a mental model of "a 3-teammate team on a medium project costs roughly $X." This calibration helps you make better decisions about when teams are worth the investment.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: Practical Team Patterns -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">15.9</span> Practical Team Patterns</h2>
+
+  <p>Theory only takes you so far. Here are three proven patterns for using agent teams on real projects. Each pattern includes the task decomposition, teammate assignments, and what to watch out for.</p>
+
+  <h3>Pattern 1: Full-Stack Feature Build</h3>
+
+  <p>You need to build a complete feature &mdash; backend API, frontend UI, and tests. This is the most common team pattern.</p>
+
+  <p>Here's how to decompose and assign work for a "user profile" feature across 3 teammates.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-string">"Build a user profile feature with the following task decomposition:
+
+Teammate 1 (Backend):
+- Create user profile API endpoints (GET/PUT /api/profile)
+- Add profile fields to database schema
+- Write input validation middleware
+- Create backend unit tests
+
+Teammate 2 (Frontend):
+- Build ProfilePage component with edit form
+- Create useProfile hook for API integration
+- Add profile route to React Router
+- Style with CSS Modules following existing patterns
+
+Teammate 3 (Testing & Integration):
+- Write API integration tests with real HTTP requests
+- Write frontend component tests with React Testing Library
+- Test the full user flow: load profile, edit, save, verify
+- Document the feature in docs/features/profile.md
+
+Dependencies: Teammate 3 starts testing after Teammates 1 and 2
+have completed their core implementation tasks."</span></code></pre>
+
+  <p>The key insight: each teammate owns a vertical slice of the stack. Teammate 1 never touches React files. Teammate 2 never touches API routes. This minimizes file conflicts.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Watch Out</div>
+    <p>The shared types file (<code>shared/types/profile.ts</code>) is the danger zone. Both the backend and frontend teammates might try to create it. Include this in the task description for whichever teammate creates it first, and tell the other to read (not write) that file.</p>
+  </div>
+
+  <h3>Pattern 2: Codebase Migration</h3>
+
+  <p>You need to migrate 8 modules from CommonJS to ES modules, or from JavaScript to TypeScript, or from one library to another. This is perfectly parallelizable.</p>
+
+  <p>Here's the task structure for a JS-to-TypeScript migration.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-string">"Migrate the following modules from JavaScript to TypeScript.
+Each teammate handles different modules to avoid conflicts.
+
+Teammate 1:
+- Migrate src/auth/ (3 files)
+- Migrate src/users/ (4 files)
+- Add type definitions for auth and user interfaces
+
+Teammate 2:
+- Migrate src/billing/ (3 files)
+- Migrate src/notifications/ (2 files)
+- Add type definitions for billing and notification interfaces
+
+Teammate 3:
+- Migrate src/utils/ (5 files)
+- Migrate src/config/ (2 files)
+- Update shared type exports in src/types/index.ts
+
+Rules for all teammates:
+- Rename .js to .ts (or .jsx to .tsx)
+- Add type annotations to all function signatures
+- Replace 'any' with proper types
+- Run 'tsc --noEmit' after each file to verify
+- Do NOT change any logic — this is a type-only migration"</span></code></pre>
+
+  <p>This pattern works beautifully because each module is independent. The teammates are never touching the same files. The "do NOT change any logic" rule is critical &mdash; it scopes the work tightly and prevents teammates from "improving" things while they migrate.</p>
+
+  <h3>Pattern 3: Bug Bash</h3>
+
+  <p>You have a list of bugs from your issue tracker. Multiple teammates can investigate and fix different bugs simultaneously.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-string">"Bug bash: fix the following reported issues in parallel.
+
+Teammate 1:
+- Bug #142: Login form doesn't validate email format
+- Bug #145: Password reset link expires immediately instead of after 24h
+- Bug #151: Error message not shown when API returns 500
+
+Teammate 2:
+- Bug #143: Dashboard chart doesn't render on Safari
+- Bug #147: Date picker shows wrong timezone
+- Bug #149: Mobile nav menu doesn't close after clicking a link
+
+Teammate 3:
+- Bug #144: CSV export includes deleted records
+- Bug #148: Search results don't update when filters change
+- Bug #150: Pagination breaks when total count is exactly the page size
+
+For each bug:
+1. Reproduce the issue (describe how)
+2. Identify the root cause
+3. Fix it
+4. Write a regression test
+5. Document the fix in the task result"</span></code></pre>
+
+  <p>The bug bash pattern works because bugs are typically independent. Each fix touches different files and different code paths. The "write a regression test" step is important &mdash; it's easy to skip when you're moving fast, but the TeammateIdle hook can review whether tests were actually written.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Concept</div>
+    <p><strong>The quality of your task decomposition determines the quality of the team's output.</strong> Spend 5 minutes writing precise, self-contained task descriptions before launching the team. This prevents 30 minutes of confused teammates producing conflicting code. The lead's most important job is not coordinating during execution &mdash; it's the upfront decomposition.</p>
+  </div>
+
+  <h3>Writing Great Task Descriptions</h3>
+
+  <p>Since task descriptions are the primary way the lead communicates with teammates, they need to be excellent. Here's the formula for a task description that a teammate can execute independently.</p>
+
+  <p>Every task description should answer these five questions. If any answer is missing, the teammate will have to guess &mdash; and guessing burns tokens and produces inconsistent results.</p>
+
+  <ol>
+    <li><strong>What to build</strong> &mdash; the specific output (files, functions, components)</li>
+    <li><strong>Where to put it</strong> &mdash; exact file paths and directories</li>
+    <li><strong>What patterns to follow</strong> &mdash; reference existing code as examples</li>
+    <li><strong>What the acceptance criteria are</strong> &mdash; how the teammate knows it's done</li>
+    <li><strong>What to avoid</strong> &mdash; specific anti-patterns or files not to touch</li>
+  </ol>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Vague Task (Expensive)</h4>
+      <p>"Build the user API"</p>
+      <p class="text-muted text-small">Teammate will spend tokens reading the whole codebase to figure out what this means, what patterns to follow, and where to put things.</p>
+    </div>
+    <div class="comparison-col">
+      <h4>Precise Task (Efficient)</h4>
+      <p>"Create GET/PUT /api/users/:id in server/src/routes/users.ts. Follow the pattern in server/src/routes/posts.ts. Use UserService from server/src/services/. Return 404 for missing users. Write tests in server/tests/users.test.ts."</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#127919;</span>
+      <h3>Checkpoint Project: The War Room</h3>
+    </div>
+
+    <h4>What to Build</h4>
+    <p>Run an agent team on a real project. Set up a lead agent that decomposes a multi-feature application into tasks, with 2&ndash;3 teammates executing in parallel. The application should have at least a backend API, a frontend UI, and a test suite. Include a <code>TeammateIdle</code> hook that assigns code review tasks when a teammate finishes its work, and a <code>TaskCompleted</code> hook that logs progress to a file. After the team finishes, measure the total cost and wall-clock time, and compare it to an estimate of how long the same work would take solo.</p>
+
+    <h4>Requirements</h4>
+    <ul>
+      <li>Configure a team with 2&ndash;3 teammates in your settings or invocation flags</li>
+      <li>Write a prompt that the lead decomposes into at least 6 tasks</li>
+      <li>Tasks must span at least two layers (e.g., backend + frontend, or multiple modules)</li>
+      <li>Implement a <code>TeammateIdle</code> hook that creates review tasks for idle teammates</li>
+      <li>Implement a <code>TaskCompleted</code> hook that appends to a progress log file</li>
+      <li>Include at least one task dependency (a task that's blocked until another completes)</li>
+    </ul>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>The team runs to completion &mdash; all tasks reach "completed" status</li>
+      <li>The <code>.claude/team-progress.log</code> file shows timestamped completion entries for every task</li>
+      <li>At least one review task was automatically created by the <code>TeammateIdle</code> hook</li>
+      <li>The final code compiles and runs without errors</li>
+      <li>Tests pass (the teammate that wrote them verified they pass before marking the task done)</li>
+      <li>No file conflicts &mdash; no teammate overwrote another teammate's work</li>
+      <li>You can articulate the total cost of the team run and compare it to your estimate of solo execution cost</li>
+      <li>The task list JSON file shows the full history: tasks, assignees, statuses, and results</li>
+    </ul>
+
+    <h4>Bonus Challenge</h4>
+    <p>Add a <code>TeammateError</code> hook with retry logic. Intentionally include one task with an ambiguous description to see how the error/retry flow works. Observe the error log, fix the task description, and let the retry succeed.</p>
+
+    <span class="time-estimate">&#9202; Estimated time: 90&ndash;120 minutes</span>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-14.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-16.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+</body>
+</html>

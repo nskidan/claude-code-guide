@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 13: Headless Mode and Scripting &mdash; Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-12.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-14.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 13</div>
+    <h1>Headless Mode and Scripting</h1>
+    <p class="level-subtitle">Everything you've done with Claude Code so far has been a conversation &mdash; you type, Claude responds, you type again. Headless mode breaks that pattern entirely. You send instructions, walk away, and come back to finished work. This is where Claude Code stops being a tool you use and starts being a worker you dispatch.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: What Headless Mode Is                             -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">13.1</span> What Headless Mode Is</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Up until now, you've been sitting at the keyboard every time Claude Code does anything. You ask, it does, you review, you ask again. That's fine for building features or debugging &mdash; but what about tasks that should happen without you? Things like:</p>
+
+  <ul>
+    <li>Running a code review every time someone pushes a commit</li>
+    <li>Generating a daily summary report from a data source</li>
+    <li>Performing a batch migration across dozens of files at 3 AM</li>
+    <li>Formatting and linting your codebase before every release</li>
+  </ul>
+
+  <p>None of those require you to be in the loop. They need Claude Code to run <em>by itself</em>, from a script or a scheduled job, with no human sitting there pressing Enter.</p>
+
+  <p>That's headless mode.</p>
+
+  <h3>Mental Model</h3>
+
+  <div class="analogy">
+    <strong>The analogy:</strong> Using Claude Code normally is like a phone call &mdash; it's back-and-forth conversation in real time. You say something, Claude responds, you react, Claude adjusts. Headless mode is like sending a detailed letter with instructions and getting a completed package back. There's no interaction. No follow-up questions. Just input in, output out.
+  </div>
+
+  <h3>Technical Explanation</h3>
+
+  <p>Headless mode means running Claude Code <strong>non-interactively</strong>. Instead of launching the REPL (the interactive chat you're used to), you pass a prompt directly through the command line. Claude reads the prompt, executes the work, and returns the result &mdash; then exits. No waiting for you. No asking for clarification.</p>
+
+  <div class="definition">
+    <p><span class="term">Headless mode</span> &mdash; Running Claude Code without the interactive conversation interface. You provide a prompt via a command-line flag or standard input, Claude processes it, and the output is returned directly to your terminal or piped to another program. The process starts and ends without human intervention.</p>
+  </div>
+
+  <p>This is what makes it possible to embed Claude Code inside shell scripts, cron jobs, CI/CD pipelines, git hooks, and any other automated workflow. If a program can call a command-line tool, it can call Claude Code headlessly.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: The -p Flag                                       -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">13.2</span> The <code>-p</code> Flag</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>The <code>-p</code> flag (short for <code>--print</code>) is the single flag that switches Claude Code from interactive mode to headless mode. Every automated workflow you'll build starts here. Memorize it.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>The <code>-p</code> flag is the gateway to all automation with Claude Code. Without it, Claude Code launches the interactive REPL. With it, Claude Code becomes a command-line tool you can pipe, script, and schedule like any other Unix utility. This single flag is what transforms Claude Code from "a chat partner" into "a programmable worker."</p>
+  </div>
+
+  <h3>Basic Usage</h3>
+
+  <p>The simplest form: pass your prompt directly as a string argument.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"What files are in the current directory and what does each one do?"</span></code></pre>
+
+  <p>Claude Code reads your prompt, examines the current directory, and prints its analysis directly to stdout. When it's done, the process exits. No interactive session opens.</p>
+
+  <h3>Reading Prompts from Stdin</h3>
+
+  <p>You can also pipe a prompt into Claude Code. This is useful when the prompt itself is generated by another program or when it's too long for a command-line argument.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">echo</span> <span class="syn-string">"Explain what this project does"</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span></code></pre>
+
+  <p>When you use a pipe with <code>-p</code>, Claude reads the piped content as the prompt. This works with anything that writes to stdout.</p>
+
+  <h3>Piping File Contents for Analysis</h3>
+
+  <p>This is where headless mode starts to feel powerful. You can feed entire files to Claude for analysis.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'pipe-mac')">macOS / Linux</button>
+      <button onclick="switchTab(event, 'pipe-win')">Windows</button>
+    </div>
+    <div id="pipe-mac" class="os-tab-content active">
+<pre><code><span class="syn-comment"># Review a single file</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cat</span> <span class="syn-path">src/app.js</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review this code for bugs and security issues"</span>
+
+<span class="syn-comment"># Analyze a log file</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cat</span> <span class="syn-path">error.log</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Summarize the errors and suggest fixes"</span>
+
+<span class="syn-comment"># Feed multiple files using process substitution</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">cat</span> <span class="syn-path">src/api.js</span> <span class="syn-path">src/routes.js</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Do these two files have any inconsistencies?"</span></code></pre>
+    </div>
+    <div id="pipe-win" class="os-tab-content">
+<pre><code><span class="syn-comment"># Review a single file (PowerShell)</span>
+<span class="syn-prompt">PS&gt;</span> <span class="syn-builtin">Get-Content</span> <span class="syn-path">src\app.js</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review this code for bugs and security issues"</span>
+
+<span class="syn-comment"># Analyze a log file</span>
+<span class="syn-prompt">PS&gt;</span> <span class="syn-builtin">Get-Content</span> <span class="syn-path">error.log</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Summarize the errors and suggest fixes"</span>
+
+<span class="syn-comment"># Feed multiple files</span>
+<span class="syn-prompt">PS&gt;</span> <span class="syn-builtin">Get-Content</span> <span class="syn-path">src\api.js</span>, <span class="syn-path">src\routes.js</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Do these two files have any inconsistencies?"</span></code></pre>
+    </div>
+  </div>
+
+  <p>When you pipe content <em>and</em> provide a prompt string with <code>-p</code>, Claude receives both. The piped content becomes the context, and the <code>-p</code> string becomes the instruction. Think of it as handing someone a document and saying "do this with it."</p>
+
+  <h3>Saving Output to a File</h3>
+
+  <p>Since headless mode writes to stdout, you can redirect the output anywhere.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment"># Save a code review to a file</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review all JavaScript files in src/ for common mistakes"</span> &gt; <span class="syn-path">review.md</span>
+
+<span class="syn-comment"># Append to an existing log</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Summarize today's changes in git log"</span> &gt;&gt; <span class="syn-path">changelog.md</span></code></pre>
+
+  <p>The <code>&gt;</code> operator writes output to a new file (overwriting if it exists). The <code>&gt;&gt;</code> operator appends to an existing file. You've seen these in the terminal level &mdash; they work exactly the same way here.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: Output Formats                                    -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">13.3</span> Output Formats</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>When a human reads Claude's output, plain text is fine. But when <em>another program</em> needs to read Claude's output, plain text is a nightmare to parse. The <code>--output-format</code> flag lets you control exactly how Claude formats its response, which is critical for building reliable automation pipelines.</p>
+
+  <h3>Text Format (Default)</h3>
+
+  <p>If you don't specify a format, you get plain text. This is the same output you'd see in an interactive session.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"How many lines of code are in src/?"</span> <span class="syn-flag">--output-format</span> <span class="syn-variable">text</span></code></pre>
+
+  <p>Output looks like natural language:</p>
+
+  <div class="code-label">output</div>
+<pre><code>The src/ directory contains 1,247 lines of code across 14 files.
+The breakdown is:
+- JavaScript: 892 lines (8 files)
+- CSS: 355 lines (6 files)</code></pre>
+
+  <p>This is good for human-readable reports and logs. It's bad for extracting specific values programmatically.</p>
+
+  <h3>JSON Format</h3>
+
+  <p>For programmatic use, JSON is what you want. It gives you structured data that any programming language can parse.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"How many lines of code are in src/?"</span> <span class="syn-flag">--output-format</span> <span class="syn-variable">json</span></code></pre>
+
+  <p>Output is a JSON object containing the full result with metadata:</p>
+
+  <div class="code-label">json</div>
+<pre><code>{
+  <span class="syn-property">"type"</span>: <span class="syn-string">"result"</span>,
+  <span class="syn-property">"subtype"</span>: <span class="syn-string">"success"</span>,
+  <span class="syn-property">"cost_usd"</span>: <span class="syn-number">0.003</span>,
+  <span class="syn-property">"is_error"</span>: <span class="syn-keyword">false</span>,
+  <span class="syn-property">"duration_ms"</span>: <span class="syn-number">4521</span>,
+  <span class="syn-property">"duration_api_ms"</span>: <span class="syn-number">3800</span>,
+  <span class="syn-property">"num_turns"</span>: <span class="syn-number">1</span>,
+  <span class="syn-property">"result"</span>: <span class="syn-string">"The src/ directory contains 1,247 lines..."</span>,
+  <span class="syn-property">"session_id"</span>: <span class="syn-string">"abc123..."</span>
+}</code></pre>
+
+  <p>The key field is <code>result</code> &mdash; that's Claude's actual response text. The rest is metadata: how much the call cost, how long it took, whether it errored out. This is gold for automation because your script can check <code>is_error</code> before acting on the result, and you can track costs with <code>cost_usd</code>.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>Use <code>jq</code> (a command-line JSON processor) to extract specific fields from JSON output. For example: <code>claude -p "..." --output-format json | jq -r '.result'</code> gives you just the response text. On Windows, you can install <code>jq</code> via <code>winget install jqlang.jq</code> or use PowerShell's <code>ConvertFrom-Json</code>.</p>
+  </div>
+
+  <h3>Stream-JSON Format</h3>
+
+  <p>Stream-JSON gives you a sequence of JSON objects as they're generated, one per line. This is useful for real-time processing or when you need to display progress.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Analyze the architecture of this project"</span> <span class="syn-flag">--output-format</span> <span class="syn-variable">stream-json</span></code></pre>
+
+  <p>Output arrives as newline-delimited JSON messages as Claude works:</p>
+
+  <div class="code-label">json (stream)</div>
+<pre><code>{<span class="syn-property">"type"</span>: <span class="syn-string">"assistant"</span>, <span class="syn-property">"message"</span>: {<span class="syn-property">"type"</span>: <span class="syn-string">"text"</span>, <span class="syn-property">"text"</span>: <span class="syn-string">"Let me examine..."</span>}}
+{<span class="syn-property">"type"</span>: <span class="syn-string">"tool_use"</span>, <span class="syn-property">"tool"</span>: <span class="syn-string">"Read"</span>, <span class="syn-property">"input"</span>: {<span class="syn-property">"file_path"</span>: <span class="syn-string">"src/index.js"</span>}}
+{<span class="syn-property">"type"</span>: <span class="syn-string">"tool_result"</span>, <span class="syn-property">"tool"</span>: <span class="syn-string">"Read"</span>, ...}
+{<span class="syn-property">"type"</span>: <span class="syn-string">"assistant"</span>, <span class="syn-property">"message"</span>: {<span class="syn-property">"type"</span>: <span class="syn-string">"text"</span>, <span class="syn-property">"text"</span>: <span class="syn-string">"The architecture..."</span>}}
+{<span class="syn-property">"type"</span>: <span class="syn-string">"result"</span>, <span class="syn-property">"subtype"</span>: <span class="syn-string">"success"</span>, <span class="syn-property">"result"</span>: <span class="syn-string">"..."</span>, ...}</code></pre>
+
+  <p>Each line is a separate JSON object representing one step in Claude's process. The final line with <code>"type": "result"</code> contains the same structured output as the regular JSON format. Stream-JSON is most useful when building UIs or dashboards that need to show progress in real time.</p>
+
+  <h3>Which Format Should You Use?</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Format</th>
+        <th>Why</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Saving reports for humans to read</td>
+        <td><code>text</code></td>
+        <td>Clean, readable, no parsing needed</td>
+      </tr>
+      <tr>
+        <td>Script needs to check success/failure</td>
+        <td><code>json</code></td>
+        <td><code>is_error</code> field is machine-readable</td>
+      </tr>
+      <tr>
+        <td>Extracting data for another program</td>
+        <td><code>json</code></td>
+        <td>Structured, parseable by any language</td>
+      </tr>
+      <tr>
+        <td>Tracking costs of automated runs</td>
+        <td><code>json</code></td>
+        <td><code>cost_usd</code> field gives exact cost</td>
+      </tr>
+      <tr>
+        <td>Building a real-time dashboard</td>
+        <td><code>stream-json</code></td>
+        <td>Shows progress as Claude works</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: The --allowedTools Flag                           -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">13.4</span> The <code>--allowedTools</code> Flag</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>When you run Claude Code interactively, it asks for permission before doing anything destructive &mdash; writing files, running commands, etc. In headless mode, there's nobody to ask. You need to tell Claude <em>upfront</em> what it's allowed to do.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>The <code>--allowedTools</code> flag is your safety boundary for unattended runs.</strong> Without it, Claude can only read and analyze. With it, you explicitly grant permission for specific tools &mdash; writing files, running commands, making network requests. Be intentional about what you allow. An overly permissive headless run is like giving someone the keys to your house and leaving town.</p>
+  </div>
+
+  <h3>How It Works</h3>
+
+  <p>The <code>--allowedTools</code> flag accepts a comma-separated list of tool names (or patterns) that Claude can use without asking for permission.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment"># Allow Claude to read and write files</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Fix the typos in all markdown files"</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Write,Edit"</span></code></pre>
+
+  <p>In this example, Claude can read files, write files, and edit files &mdash; but it cannot run bash commands, make network requests, or use any other tools. It's scoped to exactly what the task requires.</p>
+
+  <h3>Common Tool Patterns</h3>
+
+  <p>Here are the tools you'll grant most often and when to use them:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tool</th>
+        <th>What It Allows</th>
+        <th>When to Grant</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Read</code></td>
+        <td>Read any file</td>
+        <td>Almost always &mdash; Claude needs to see your code</td>
+      </tr>
+      <tr>
+        <td><code>Write</code></td>
+        <td>Create or overwrite files</td>
+        <td>When Claude needs to generate new files</td>
+      </tr>
+      <tr>
+        <td><code>Edit</code></td>
+        <td>Modify existing files</td>
+        <td>When Claude needs to change files in place</td>
+      </tr>
+      <tr>
+        <td><code>Bash(*)</code></td>
+        <td>Run any shell command</td>
+        <td>Dangerous &mdash; grants full shell access</td>
+      </tr>
+      <tr>
+        <td><code>Bash(git *)</code></td>
+        <td>Only git commands</td>
+        <td>When Claude needs to commit or branch</td>
+      </tr>
+      <tr>
+        <td><code>Bash(npm test)</code></td>
+        <td>Only <code>npm test</code></td>
+        <td>When you want Claude to run tests only</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>The Bash Tool Pattern Syntax</h3>
+
+  <p>The <code>Bash</code> tool is special because it supports pattern matching. Instead of granting <code>Bash(*)</code> (which allows <em>any</em> command), you can restrict it to specific commands.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment"># Only allow git commands and npm test</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Run the tests and commit if they pass"</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Edit,Bash(git *),Bash(npm test)"</span>
+
+<span class="syn-comment"># Only allow reading directories, not running arbitrary commands</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Analyze the project structure"</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Bash(ls *),Bash(find *)"</span>
+
+<span class="syn-comment"># Allow Claude to install dependencies and build</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Set up the project and run the build"</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Write,Bash(npm *),Bash(node *)"</span></code></pre>
+
+  <p>The pattern uses glob-style matching: <code>*</code> matches anything. So <code>Bash(git *)</code> matches <code>git status</code>, <code>git commit -m "fix"</code>, <code>git push</code> &mdash; any command that starts with <code>git</code>.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><strong>Be restrictive, not permissive.</strong> Start with the minimum set of tools the task needs and add more only if the task fails. <code>--allowedTools "Read,Write,Edit,Bash(*)"</code> basically gives Claude free rein to do anything on your system. For automated scripts that run unattended, this is a real risk. If Claude misunderstands the task, there's no one to hit cancel.</p>
+  </div>
+
+  <h3>Combining with <code>--max-turns</code></h3>
+
+  <p>Another safety valve: <code>--max-turns</code> limits how many agentic loops Claude can take. This prevents runaway execution if Claude gets stuck in a loop.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment"># Limit to 5 agentic turns (tool uses)</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Fix the formatting in README.md"</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Edit"</span> \
+  <span class="syn-flag">--max-turns</span> <span class="syn-number">5</span></code></pre>
+
+  <p>If the task takes more than 5 turns, Claude stops and returns what it has so far. Good for ensuring your automated runs don't spiral out of control (and out of budget).</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Building Shell Scripts                            -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">13.5</span> Building Shell Scripts with Claude Code</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>A single headless command is useful. A <em>script</em> that chains multiple commands together with error handling, logging, and conditional logic is where automation becomes genuinely powerful. This is where you go from "I can run Claude from the command line" to "I have a system that works while I sleep."</p>
+
+  <h3>A Simple Script</h3>
+
+  <p>Let's start with the simplest possible automation script: run Claude headlessly and save the output.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'simple-mac')">macOS / Linux (bash)</button>
+      <button onclick="switchTab(event, 'simple-win')">Windows (PowerShell)</button>
+    </div>
+    <div id="simple-mac" class="os-tab-content active">
+<pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># daily-review.sh — Run a code review and save the output</span>
+
+<span class="syn-variable">OUTPUT_DIR</span>=<span class="syn-string">"./reports"</span>
+<span class="syn-variable">TODAY</span>=$(<span class="syn-builtin">date</span> +<span class="syn-string">"%Y-%m-%d"</span>)
+<span class="syn-variable">OUTPUT_FILE</span>=<span class="syn-string">"${OUTPUT_DIR}/review-${TODAY}.md"</span>
+
+<span class="syn-comment"># Create the output directory if it doesn't exist</span>
+<span class="syn-builtin">mkdir</span> <span class="syn-flag">-p</span> <span class="syn-string">"$OUTPUT_DIR"</span>
+
+<span class="syn-comment"># Run the review</span>
+<span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review all files changed in the last 24 hours (use git log). \
+Focus on bugs, security issues, and code quality. \
+Format the output as a markdown report."</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Bash(git *)"</span> \
+  &gt; <span class="syn-string">"$OUTPUT_FILE"</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Review saved to $OUTPUT_FILE"</span></code></pre>
+    </div>
+    <div id="simple-win" class="os-tab-content">
+<pre><code><span class="syn-comment"># daily-review.ps1 — Run a code review and save the output</span>
+
+<span class="syn-variable">$OutputDir</span> = <span class="syn-string">".\reports"</span>
+<span class="syn-variable">$Today</span> = <span class="syn-builtin">Get-Date</span> <span class="syn-flag">-Format</span> <span class="syn-string">"yyyy-MM-dd"</span>
+<span class="syn-variable">$OutputFile</span> = <span class="syn-string">"$OutputDir\review-$Today.md"</span>
+
+<span class="syn-comment"># Create the output directory if it doesn't exist</span>
+<span class="syn-keyword">if</span> (-not (<span class="syn-builtin">Test-Path</span> <span class="syn-variable">$OutputDir</span>)) {
+    <span class="syn-builtin">New-Item</span> <span class="syn-flag">-ItemType</span> Directory <span class="syn-flag">-Path</span> <span class="syn-variable">$OutputDir</span>
+}
+
+<span class="syn-comment"># Run the review</span>
+<span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review all files changed in the last 24 hours (use git log). `
+Focus on bugs, security issues, and code quality. `
+Format the output as a markdown report."</span> `
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Bash(git *)"</span> `
+  | <span class="syn-builtin">Out-File</span> <span class="syn-flag">-FilePath</span> <span class="syn-variable">$OutputFile</span> <span class="syn-flag">-Encoding</span> utf8
+
+<span class="syn-builtin">Write-Host</span> <span class="syn-string">"Review saved to $OutputFile"</span></code></pre>
+    </div>
+  </div>
+
+  <p>This is bare bones, but it works. Claude examines git history, reviews the changes, and drops a markdown report in a <code>reports/</code> directory named with today's date. You could run this manually or (as you'll see later) schedule it.</p>
+
+  <h3>Adding Error Handling</h3>
+
+  <p>The simple script above has a problem: if Claude fails (network error, API rate limit, context window exceeded), the script silently produces an empty or broken file. Real automation scripts need to handle errors.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'error-mac')">macOS / Linux (bash)</button>
+      <button onclick="switchTab(event, 'error-win')">Windows (PowerShell)</button>
+    </div>
+    <div id="error-mac" class="os-tab-content active">
+<pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># daily-review.sh — With proper error handling</span>
+<span class="syn-keyword">set</span> <span class="syn-flag">-euo</span> pipefail
+
+<span class="syn-variable">OUTPUT_DIR</span>=<span class="syn-string">"./reports"</span>
+<span class="syn-variable">LOG_FILE</span>=<span class="syn-string">"./reports/automation.log"</span>
+<span class="syn-variable">TODAY</span>=$(<span class="syn-builtin">date</span> +<span class="syn-string">"%Y-%m-%d"</span>)
+<span class="syn-variable">TIMESTAMP</span>=$(<span class="syn-builtin">date</span> +<span class="syn-string">"%Y-%m-%d %H:%M:%S"</span>)
+<span class="syn-variable">OUTPUT_FILE</span>=<span class="syn-string">"${OUTPUT_DIR}/review-${TODAY}.md"</span>
+
+<span class="syn-builtin">mkdir</span> <span class="syn-flag">-p</span> <span class="syn-string">"$OUTPUT_DIR"</span>
+
+<span class="syn-comment"># Log function</span>
+<span class="syn-function">log</span>() {
+  <span class="syn-builtin">echo</span> <span class="syn-string">"[$TIMESTAMP] $1"</span> | <span class="syn-builtin">tee</span> <span class="syn-flag">-a</span> <span class="syn-string">"$LOG_FILE"</span>
+}
+
+<span class="syn-function">log</span> <span class="syn-string">"Starting daily code review..."</span>
+
+<span class="syn-comment"># Run Claude and capture exit code</span>
+<span class="syn-keyword">if</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review all files changed in the last 24 hours (use git log). \
+Focus on bugs, security issues, and code quality. \
+Format as a markdown report with sections."</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Bash(git *)"</span> \
+  <span class="syn-flag">--max-turns</span> <span class="syn-number">10</span> \
+  &gt; <span class="syn-string">"$OUTPUT_FILE"</span> <span class="syn-number">2</span>&gt;&gt; <span class="syn-string">"$LOG_FILE"</span>; <span class="syn-keyword">then</span>
+  <span class="syn-function">log</span> <span class="syn-string">"Review completed successfully: $OUTPUT_FILE"</span>
+<span class="syn-keyword">else</span>
+  <span class="syn-variable">EXIT_CODE</span>=$?
+  <span class="syn-function">log</span> <span class="syn-string">"ERROR: Review failed with exit code $EXIT_CODE"</span>
+  <span class="syn-builtin">exit</span> <span class="syn-number">1</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Verify the output isn't empty</span>
+<span class="syn-keyword">if</span> [ ! -s <span class="syn-string">"$OUTPUT_FILE"</span> ]; <span class="syn-keyword">then</span>
+  <span class="syn-function">log</span> <span class="syn-string">"ERROR: Output file is empty — something went wrong"</span>
+  <span class="syn-builtin">exit</span> <span class="syn-number">1</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-function">log</span> <span class="syn-string">"Done. Report size: $(wc -c &lt; "$OUTPUT_FILE") bytes"</span></code></pre>
+    </div>
+    <div id="error-win" class="os-tab-content">
+<pre><code><span class="syn-comment"># daily-review.ps1 — With proper error handling</span>
+<span class="syn-variable">$ErrorActionPreference</span> = <span class="syn-string">"Stop"</span>
+
+<span class="syn-variable">$OutputDir</span> = <span class="syn-string">".\reports"</span>
+<span class="syn-variable">$LogFile</span> = <span class="syn-string">".\reports\automation.log"</span>
+<span class="syn-variable">$Today</span> = <span class="syn-builtin">Get-Date</span> <span class="syn-flag">-Format</span> <span class="syn-string">"yyyy-MM-dd"</span>
+<span class="syn-variable">$Timestamp</span> = <span class="syn-builtin">Get-Date</span> <span class="syn-flag">-Format</span> <span class="syn-string">"yyyy-MM-dd HH:mm:ss"</span>
+<span class="syn-variable">$OutputFile</span> = <span class="syn-string">"$OutputDir\review-$Today.md"</span>
+
+<span class="syn-keyword">if</span> (-not (<span class="syn-builtin">Test-Path</span> <span class="syn-variable">$OutputDir</span>)) {
+    <span class="syn-builtin">New-Item</span> <span class="syn-flag">-ItemType</span> Directory <span class="syn-flag">-Path</span> <span class="syn-variable">$OutputDir</span>
+}
+
+<span class="syn-keyword">function</span> <span class="syn-function">Write-Log</span>(<span class="syn-variable">$Message</span>) {
+    <span class="syn-variable">$Entry</span> = <span class="syn-string">"[$Timestamp] $Message"</span>
+    <span class="syn-builtin">Write-Host</span> <span class="syn-variable">$Entry</span>
+    <span class="syn-builtin">Add-Content</span> <span class="syn-flag">-Path</span> <span class="syn-variable">$LogFile</span> <span class="syn-flag">-Value</span> <span class="syn-variable">$Entry</span>
+}
+
+<span class="syn-function">Write-Log</span> <span class="syn-string">"Starting daily code review..."</span>
+
+<span class="syn-keyword">try</span> {
+    <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review all files changed in the last 24 hours (use git log). `
+Focus on bugs, security issues, and code quality. `
+Format as a markdown report with sections."</span> `
+      <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Bash(git *)"</span> `
+      <span class="syn-flag">--max-turns</span> <span class="syn-number">10</span> `
+      | <span class="syn-builtin">Out-File</span> <span class="syn-flag">-FilePath</span> <span class="syn-variable">$OutputFile</span> <span class="syn-flag">-Encoding</span> utf8
+
+    <span class="syn-comment"># Verify the output isn't empty</span>
+    <span class="syn-keyword">if</span> ((<span class="syn-builtin">Get-Item</span> <span class="syn-variable">$OutputFile</span>).Length <span class="syn-operator">-eq</span> <span class="syn-number">0</span>) {
+        <span class="syn-keyword">throw</span> <span class="syn-string">"Output file is empty"</span>
+    }
+
+    <span class="syn-variable">$Size</span> = (<span class="syn-builtin">Get-Item</span> <span class="syn-variable">$OutputFile</span>).Length
+    <span class="syn-function">Write-Log</span> <span class="syn-string">"Review completed: $OutputFile ($Size bytes)"</span>
+}
+<span class="syn-keyword">catch</span> {
+    <span class="syn-function">Write-Log</span> <span class="syn-string">"ERROR: $($_.Exception.Message)"</span>
+    <span class="syn-builtin">exit</span> <span class="syn-number">1</span>
+}</code></pre>
+    </div>
+  </div>
+
+  <p>Key improvements over the simple version:</p>
+
+  <ul>
+    <li><strong><code>set -euo pipefail</code></strong> (bash) or <strong><code>$ErrorActionPreference = "Stop"</code></strong> (PowerShell) &mdash; makes the script fail loudly on errors instead of silently continuing</li>
+    <li><strong>Logging</strong> &mdash; every action is timestamped and logged to a file so you can debug failures after the fact</li>
+    <li><strong>Exit code checking</strong> &mdash; if Claude fails, the script captures the error and exits with a non-zero code (which is how other tools know something went wrong)</li>
+    <li><strong>Empty output detection</strong> &mdash; catches the case where Claude runs but produces nothing useful</li>
+    <li><strong><code>--max-turns 10</code></strong> &mdash; prevents runaway execution</li>
+  </ul>
+
+  <h3>Chaining Multiple Claude Calls</h3>
+
+  <p>Real workflows often need multiple steps, where each step builds on the previous one. Here's a script that chains three Claude calls together.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># analyze-and-fix.sh — Analyze code, then fix issues, then verify</span>
+<span class="syn-keyword">set</span> <span class="syn-flag">-euo</span> pipefail
+
+<span class="syn-variable">PROJECT_DIR</span>=<span class="syn-string">"$(pwd)"</span>
+<span class="syn-variable">REPORT</span>=<span class="syn-string">"./analysis-report.json"</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Step 1: Analyzing codebase for issues..."</span>
+
+<span class="syn-comment"># Step 1: Analyze (read-only, safe)</span>
+<span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Analyze all JavaScript files in src/ for bugs, \
+unused variables, and potential improvements. \
+Return a JSON array of issues with file, line, and description."</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read"</span> \
+  <span class="syn-flag">--output-format</span> json \
+  &gt; <span class="syn-string">"$REPORT"</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Step 2: Fixing identified issues..."</span>
+
+<span class="syn-comment"># Step 2: Fix (needs write access)</span>
+<span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Read the analysis report at $REPORT and fix \
+every issue listed. Only modify the files mentioned in the report."</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Edit"</span> \
+  <span class="syn-flag">--max-turns</span> <span class="syn-number">20</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Step 3: Verifying fixes..."</span>
+
+<span class="syn-comment"># Step 3: Verify (read-only again)</span>
+<span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Re-analyze the JavaScript files in src/. \
+Compare against the issues in $REPORT. \
+Confirm which issues are fixed and which remain."</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read"</span> \
+  &gt; <span class="syn-string">"./verification-report.md"</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Done. See verification-report.md for results."</span></code></pre>
+
+  <p>Notice how each step has different <code>--allowedTools</code>. Step 1 is read-only &mdash; it can only look. Step 2 can edit files &mdash; but only that. Step 3 goes back to read-only for verification. This is the principle of <strong>least privilege</strong>: each step gets only the permissions it needs.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Scheduled Execution                               -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">13.6</span> Scheduled Execution</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Scripts that you have to remember to run manually aren't really automated. True automation means your scripts run on a schedule, unattended, at exactly the times you specify. A daily report should generate itself at 8 AM. A nightly code review should run at midnight. You set it up once and forget about it.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'sched-mac')">macOS / Linux (cron)</button>
+      <button onclick="switchTab(event, 'sched-win')">Windows (Task Scheduler)</button>
+    </div>
+    <div id="sched-mac" class="os-tab-content active">
+      <div style="padding: 1.25rem 1.5rem;">
+
+      <h4 class="mt-0">Cron: The Unix Scheduler</h4>
+
+      <p>Cron is a time-based job scheduler built into macOS and Linux. You define schedules in a file called the <strong>crontab</strong> (cron table). Each line is one scheduled job.</p>
+
+      <p>Open your crontab for editing:</p>
+      </div>
+
+<pre><code><span class="syn-prompt">$</span> <span class="syn-builtin">crontab</span> <span class="syn-flag">-e</span></code></pre>
+
+      <div style="padding: 0 1.5rem;">
+      <p>This opens a text editor. Each line follows this format:</p>
+      </div>
+
+<pre><code><span class="syn-comment"># ┌───────────── minute (0 - 59)</span>
+<span class="syn-comment"># │ ┌───────────── hour (0 - 23)</span>
+<span class="syn-comment"># │ │ ┌───────────── day of month (1 - 31)</span>
+<span class="syn-comment"># │ │ │ ┌───────────── month (1 - 12)</span>
+<span class="syn-comment"># │ │ │ │ ┌───────────── day of week (0 - 7, 0 and 7 = Sunday)</span>
+<span class="syn-comment"># │ │ │ │ │</span>
+<span class="syn-comment"># * * * * * command-to-run</span>
+
+<span class="syn-comment"># Run daily code review at 8:00 AM</span>
+<span class="syn-number">0</span> <span class="syn-number">8</span> * * *  <span class="syn-path">/home/you/projects/myapp/daily-review.sh</span>
+
+<span class="syn-comment"># Run every Monday at 9:00 AM</span>
+<span class="syn-number">0</span> <span class="syn-number">9</span> * * <span class="syn-number">1</span>  <span class="syn-path">/home/you/projects/myapp/weekly-summary.sh</span>
+
+<span class="syn-comment"># Run every 6 hours</span>
+<span class="syn-number">0</span> */6 * * *  <span class="syn-path">/home/you/projects/myapp/check-status.sh</span>
+
+<span class="syn-comment"># Run at midnight on the 1st of every month</span>
+<span class="syn-number">0</span> <span class="syn-number">0</span> <span class="syn-number">1</span> * *  <span class="syn-path">/home/you/projects/myapp/monthly-report.sh</span></code></pre>
+
+      <div style="padding: 0 1.5rem;">
+      <p>Common cron schedule patterns:</p>
+
+      <table>
+        <thead>
+          <tr><th>Pattern</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>0 8 * * *</code></td><td>Every day at 8:00 AM</td></tr>
+          <tr><td><code>0 0 * * *</code></td><td>Every day at midnight</td></tr>
+          <tr><td><code>*/30 * * * *</code></td><td>Every 30 minutes</td></tr>
+          <tr><td><code>0 9 * * 1-5</code></td><td>Weekdays at 9:00 AM</td></tr>
+          <tr><td><code>0 0 * * 0</code></td><td>Every Sunday at midnight</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>Important:</strong> Cron runs commands with a minimal environment. Your script needs to use absolute paths for everything &mdash; including the <code>claude</code> command itself. Use <code>which claude</code> to find its full path, and set the working directory inside your script with <code>cd</code>.</p>
+
+<pre style="margin: 1rem 0; border-radius: var(--radius-md);"><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># Make sure cron can find claude and your project</span>
+<span class="syn-keyword">export</span> <span class="syn-variable">PATH</span>=<span class="syn-string">"/usr/local/bin:/usr/bin:$PATH"</span>
+<span class="syn-builtin">cd</span> <span class="syn-path">/home/you/projects/myapp</span> || <span class="syn-builtin">exit</span> <span class="syn-number">1</span>
+
+<span class="syn-comment"># Now your commands work normally</span>
+<span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Generate the daily report"</span> <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read"</span></code></pre>
+
+      </div>
+    </div>
+    <div id="sched-win" class="os-tab-content">
+      <div style="padding: 1.25rem 1.5rem;">
+
+      <h4 class="mt-0">Task Scheduler: The Windows Way</h4>
+
+      <p>Windows uses Task Scheduler instead of cron. You can set it up through the GUI or PowerShell.</p>
+
+      <p><strong>GUI method:</strong></p>
+      <ol>
+        <li>Open Task Scheduler (search for it in the Start menu)</li>
+        <li>Click "Create Basic Task" in the right panel</li>
+        <li>Name it (e.g., "Daily Claude Code Review")</li>
+        <li>Set the trigger (Daily, Weekly, etc.) and the time</li>
+        <li>Choose "Start a program" as the action</li>
+        <li>Program: <code>powershell.exe</code></li>
+        <li>Arguments: <code>-ExecutionPolicy Bypass -File "C:\Users\you\projects\myapp\daily-review.ps1"</code></li>
+        <li>Set "Start in" to your project directory</li>
+      </ol>
+
+      <p><strong>PowerShell method</strong> (faster if you're comfortable with it):</p>
+      </div>
+
+<pre><code><span class="syn-comment"># Create a scheduled task that runs daily at 8 AM</span>
+<span class="syn-variable">$Action</span> = <span class="syn-builtin">New-ScheduledTaskAction</span> `
+  <span class="syn-flag">-Execute</span> <span class="syn-string">"powershell.exe"</span> `
+  <span class="syn-flag">-Argument</span> <span class="syn-string">'-ExecutionPolicy Bypass -File "C:\Users\you\projects\myapp\daily-review.ps1"'</span> `
+  <span class="syn-flag">-WorkingDirectory</span> <span class="syn-string">"C:\Users\you\projects\myapp"</span>
+
+<span class="syn-variable">$Trigger</span> = <span class="syn-builtin">New-ScheduledTaskTrigger</span> <span class="syn-flag">-Daily</span> <span class="syn-flag">-At</span> <span class="syn-string">"8:00AM"</span>
+
+<span class="syn-builtin">Register-ScheduledTask</span> `
+  <span class="syn-flag">-TaskName</span> <span class="syn-string">"DailyClaudeReview"</span> `
+  <span class="syn-flag">-Action</span> <span class="syn-variable">$Action</span> `
+  <span class="syn-flag">-Trigger</span> <span class="syn-variable">$Trigger</span> `
+  <span class="syn-flag">-Description</span> <span class="syn-string">"Run Claude Code daily code review"</span></code></pre>
+
+      <div style="padding: 0 1.5rem;">
+      <p>Common trigger patterns:</p>
+
+      <table>
+        <thead>
+          <tr><th>PowerShell Trigger</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>New-ScheduledTaskTrigger -Daily -At "8:00AM"</code></td><td>Every day at 8 AM</td></tr>
+          <tr><td><code>New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At "9:00AM"</code></td><td>Mondays at 9 AM</td></tr>
+          <tr><td><code>New-ScheduledTaskTrigger -Once -At "3:00AM" -RepetitionInterval (New-TimeSpan -Hours 6)</code></td><td>Every 6 hours</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>Important:</strong> Make sure your PowerShell script uses full paths and that the "Start in" (working directory) is set correctly. Task Scheduler doesn't inherit your terminal environment.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-title">Note</div>
+    <p>Scheduled tasks run under your user account by default. Make sure your API key (or Anthropic account session) is accessible from the scheduling environment. For cron, environment variables set in <code>~/.bashrc</code> may not be loaded &mdash; you might need to export <code>ANTHROPIC_API_KEY</code> directly in your script or in the crontab file itself.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Practical Pipeline Examples                       -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">13.7</span> Practical Pipeline Examples</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Individual headless commands are building blocks. Pipelines are the real structures you build with them. Here are complete, practical examples you can adapt for your own work.</p>
+
+  <h3>Pipeline 1: Daily Data Pull and Summary</h3>
+
+  <p>This pipeline fetches data from a public API, uses Claude to generate a human-readable summary, and writes it to a timestamped file. Think of it as an automated briefing.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># daily-data-summary.sh — Fetch, analyze, summarize</span>
+<span class="syn-keyword">set</span> <span class="syn-flag">-euo</span> pipefail
+
+<span class="syn-variable">TODAY</span>=$(<span class="syn-builtin">date</span> +<span class="syn-string">"%Y-%m-%d"</span>)
+<span class="syn-variable">DATA_DIR</span>=<span class="syn-string">"./data"</span>
+<span class="syn-variable">SUMMARY_DIR</span>=<span class="syn-string">"./summaries"</span>
+<span class="syn-builtin">mkdir</span> <span class="syn-flag">-p</span> <span class="syn-string">"$DATA_DIR"</span> <span class="syn-string">"$SUMMARY_DIR"</span>
+
+<span class="syn-comment"># Step 1: Pull data from a public API</span>
+<span class="syn-builtin">echo</span> <span class="syn-string">"Fetching data..."</span>
+<span class="syn-builtin">curl</span> <span class="syn-flag">-s</span> <span class="syn-string">"https://api.example.com/daily-stats"</span> \
+  &gt; <span class="syn-string">"${DATA_DIR}/raw-${TODAY}.json"</span>
+
+<span class="syn-comment"># Step 2: Use Claude to generate a summary</span>
+<span class="syn-builtin">echo</span> <span class="syn-string">"Generating summary..."</span>
+<span class="syn-builtin">cat</span> <span class="syn-string">"${DATA_DIR}/raw-${TODAY}.json"</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"This is today's data from our API. \
+Create a concise executive summary covering: \
+1. Key metrics and how they changed from typical values \
+2. Any anomalies or concerns \
+3. Recommended actions if any \
+Format as clean markdown."</span> \
+  &gt; <span class="syn-string">"${SUMMARY_DIR}/summary-${TODAY}.md"</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Summary saved to ${SUMMARY_DIR}/summary-${TODAY}.md"</span></code></pre>
+
+  <p>The pattern is straightforward: fetch raw data, pipe it through Claude for analysis, save the result. You could add a third step that emails the summary or posts it to Slack using another CLI tool.</p>
+
+  <h3>Pipeline 2: Code Review on New Commits</h3>
+
+  <p>This script checks for new commits and, if any are found, generates a code review. You'd typically run this as a git hook or scheduled job.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># commit-review.sh — Review recent commits automatically</span>
+<span class="syn-keyword">set</span> <span class="syn-flag">-euo</span> pipefail
+
+<span class="syn-variable">LAST_REVIEWED_FILE</span>=<span class="syn-string">"./.last-reviewed-commit"</span>
+<span class="syn-variable">REVIEW_DIR</span>=<span class="syn-string">"./reviews"</span>
+<span class="syn-builtin">mkdir</span> <span class="syn-flag">-p</span> <span class="syn-string">"$REVIEW_DIR"</span>
+
+<span class="syn-comment"># Get the last reviewed commit (or default to HEAD~5)</span>
+<span class="syn-keyword">if</span> [ -f <span class="syn-string">"$LAST_REVIEWED_FILE"</span> ]; <span class="syn-keyword">then</span>
+  <span class="syn-variable">LAST_COMMIT</span>=$(<span class="syn-builtin">cat</span> <span class="syn-string">"$LAST_REVIEWED_FILE"</span>)
+<span class="syn-keyword">else</span>
+  <span class="syn-variable">LAST_COMMIT</span>=$(<span class="syn-builtin">git</span> rev-parse HEAD~5)
+<span class="syn-keyword">fi</span>
+
+<span class="syn-variable">CURRENT_COMMIT</span>=$(<span class="syn-builtin">git</span> rev-parse HEAD)
+
+<span class="syn-comment"># Skip if no new commits</span>
+<span class="syn-keyword">if</span> [ <span class="syn-string">"$LAST_COMMIT"</span> = <span class="syn-string">"$CURRENT_COMMIT"</span> ]; <span class="syn-keyword">then</span>
+  <span class="syn-builtin">echo</span> <span class="syn-string">"No new commits to review."</span>
+  <span class="syn-builtin">exit</span> <span class="syn-number">0</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-comment"># Get the diff</span>
+<span class="syn-variable">DIFF</span>=$(<span class="syn-builtin">git</span> diff <span class="syn-string">"${LAST_COMMIT}..${CURRENT_COMMIT}"</span>)
+
+<span class="syn-comment"># Run review</span>
+<span class="syn-builtin">echo</span> <span class="syn-string">"$DIFF"</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review this git diff. For each file changed: \
+1. Summarize what changed \
+2. Flag any bugs or logic errors \
+3. Note any security concerns \
+4. Suggest improvements \
+Be specific — reference line numbers and variable names."</span> \
+  <span class="syn-flag">--max-turns</span> <span class="syn-number">5</span> \
+  &gt; <span class="syn-string">"${REVIEW_DIR}/review-${CURRENT_COMMIT:0:8}.md"</span>
+
+<span class="syn-comment"># Update the last reviewed commit marker</span>
+<span class="syn-builtin">echo</span> <span class="syn-string">"$CURRENT_COMMIT"</span> &gt; <span class="syn-string">"$LAST_REVIEWED_FILE"</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Review complete for commits ${LAST_COMMIT:0:8}..${CURRENT_COMMIT:0:8}"</span></code></pre>
+
+  <p>This script tracks which commit it last reviewed using a marker file. On each run, it only reviews new commits. The diff is piped directly to Claude, keeping the prompt focused on exactly what changed.</p>
+
+  <h3>Pipeline 3: Content Generation</h3>
+
+  <p>This one's relevant to you &mdash; automated content generation. Here's a script that generates multiple pieces of content from a template.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># generate-content.sh — Batch content generation</span>
+<span class="syn-keyword">set</span> <span class="syn-flag">-euo</span> pipefail
+
+<span class="syn-variable">TOPICS_FILE</span>=<span class="syn-string">"./topics.txt"</span>
+<span class="syn-variable">OUTPUT_DIR</span>=<span class="syn-string">"./generated"</span>
+<span class="syn-builtin">mkdir</span> <span class="syn-flag">-p</span> <span class="syn-string">"$OUTPUT_DIR"</span>
+
+<span class="syn-comment"># topics.txt contains one topic per line</span>
+<span class="syn-keyword">while</span> IFS= <span class="syn-builtin">read</span> <span class="syn-flag">-r</span> topic; <span class="syn-keyword">do</span>
+  <span class="syn-comment"># Skip empty lines and comments</span>
+  [[ -z <span class="syn-string">"$topic"</span> || <span class="syn-string">"$topic"</span> == <span class="syn-string">"#"</span>* ]] &amp;&amp; <span class="syn-keyword">continue</span>
+
+  <span class="syn-comment"># Create a safe filename from the topic</span>
+  <span class="syn-variable">FILENAME</span>=$(<span class="syn-builtin">echo</span> <span class="syn-string">"$topic"</span> | <span class="syn-builtin">tr</span> <span class="syn-string">' '</span> <span class="syn-string">'-'</span> | <span class="syn-builtin">tr</span> <span class="syn-string">'[:upper:]'</span> <span class="syn-string">'[:lower:]'</span>)
+
+  <span class="syn-builtin">echo</span> <span class="syn-string">"Generating article: $topic"</span>
+
+  <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Write a 500-word article about: ${topic}. \
+Use a clear, engaging style. Include a compelling opening, \
+3 key points with examples, and a strong conclusion."</span> \
+    &gt; <span class="syn-string">"${OUTPUT_DIR}/${FILENAME}.md"</span>
+
+  <span class="syn-builtin">echo</span> <span class="syn-string">"  Saved: ${OUTPUT_DIR}/${FILENAME}.md"</span>
+
+  <span class="syn-comment"># Small delay to avoid rate limits</span>
+  <span class="syn-builtin">sleep</span> <span class="syn-number">2</span>
+<span class="syn-keyword">done</span> &lt; <span class="syn-string">"$TOPICS_FILE"</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"All articles generated."</span></code></pre>
+
+  <p>This reads topics from a text file and generates an article for each one. The <code>sleep 2</code> between calls is a simple rate-limit courtesy &mdash; when you're making many automated calls, spacing them out prevents hitting API limits.</p>
+
+  <h3>Pipeline 4: Automated Migration Script</h3>
+
+  <p>A practical example for codebase maintenance: updating deprecated patterns across your entire project.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># migrate-api-calls.sh — Update old API patterns to new ones</span>
+<span class="syn-keyword">set</span> <span class="syn-flag">-euo</span> pipefail
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Starting API migration..."</span>
+
+<span class="syn-comment"># Step 1: Find all affected files</span>
+<span class="syn-variable">AFFECTED</span>=$(<span class="syn-builtin">grep</span> <span class="syn-flag">-rl</span> <span class="syn-string">"oldApi.fetch"</span> <span class="syn-path">src/</span> || <span class="syn-builtin">true</span>)
+
+<span class="syn-keyword">if</span> [ -z <span class="syn-string">"$AFFECTED"</span> ]; <span class="syn-keyword">then</span>
+  <span class="syn-builtin">echo</span> <span class="syn-string">"No files need migration."</span>
+  <span class="syn-builtin">exit</span> <span class="syn-number">0</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Found $(echo "$AFFECTED" | wc -l) files to migrate."</span>
+
+<span class="syn-comment"># Step 2: Let Claude do the migration</span>
+<span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Migrate all uses of oldApi.fetch() to newApi.request() \
+in the src/ directory. The new API has this signature: \
+  newApi.request(url, { method, body, headers }) \
+The old API used: oldApi.fetch(url, method, body) \
+Update every call site. Preserve all existing functionality."</span> \
+  <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Edit"</span> \
+  <span class="syn-flag">--max-turns</span> <span class="syn-number">30</span>
+
+<span class="syn-comment"># Step 3: Run tests to verify nothing broke</span>
+<span class="syn-builtin">echo</span> <span class="syn-string">"Running tests..."</span>
+<span class="syn-builtin">npm</span> test
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Migration complete. All tests pass."</span></code></pre>
+
+  <p>The beauty of this approach is that Claude understands the <em>semantics</em> of the code, not just the text. It can handle different argument orders, optional parameters, and edge cases that a simple find-and-replace would miss.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Combining with Other Tools                        -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">13.8</span> Combining with Other Tools</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Headless Claude Code doesn't exist in isolation. Its real power shows up when you combine it with other automation tools you already use (or should be using).</p>
+
+  <h3>Git Hooks</h3>
+
+  <p>Git hooks are scripts that run automatically at specific points in the git workflow. You can use headless Claude Code as part of a git hook to do things like review code before it's committed.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment">#!/bin/bash</span>
+<span class="syn-comment"># .git/hooks/pre-commit — Review staged changes before committing</span>
+
+<span class="syn-variable">DIFF</span>=$(<span class="syn-builtin">git</span> diff <span class="syn-flag">--cached</span>)
+
+<span class="syn-keyword">if</span> [ -z <span class="syn-string">"$DIFF"</span> ]; <span class="syn-keyword">then</span>
+  <span class="syn-builtin">exit</span> <span class="syn-number">0</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"Running AI pre-commit review..."</span>
+
+<span class="syn-variable">REVIEW</span>=$(<span class="syn-builtin">echo</span> <span class="syn-string">"$DIFF"</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review this diff for critical issues only: \
+security vulnerabilities, obvious bugs, or accidentally committed secrets. \
+If you find a critical issue, start your response with BLOCK: \
+If everything looks acceptable, start with PASS:"</span> \
+  <span class="syn-flag">--max-turns</span> <span class="syn-number">3</span>)
+
+<span class="syn-keyword">if</span> <span class="syn-builtin">echo</span> <span class="syn-string">"$REVIEW"</span> | <span class="syn-builtin">grep</span> <span class="syn-flag">-q</span> <span class="syn-string">"^BLOCK:"</span>; <span class="syn-keyword">then</span>
+  <span class="syn-builtin">echo</span> <span class="syn-string">"Commit BLOCKED by AI review:"</span>
+  <span class="syn-builtin">echo</span> <span class="syn-string">"$REVIEW"</span>
+  <span class="syn-builtin">exit</span> <span class="syn-number">1</span>  <span class="syn-comment"># Non-zero exit blocks the commit</span>
+<span class="syn-keyword">fi</span>
+
+<span class="syn-builtin">echo</span> <span class="syn-string">"AI review passed."</span>
+<span class="syn-builtin">exit</span> <span class="syn-number">0</span></code></pre>
+
+  <p>This hook intercepts every <code>git commit</code> and feeds the staged diff to Claude. If Claude finds a critical issue, the commit is blocked. This is a lightweight safety net that catches things like accidentally committed API keys or obvious logic errors before they enter your history.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>Git hooks live in <code>.git/hooks/</code>. Make the file executable with <code>chmod +x .git/hooks/pre-commit</code>. On Windows, git hooks run in Git Bash, so bash syntax works even if you normally use PowerShell. Keep the prompt tight for pre-commit hooks &mdash; you don't want to wait 30 seconds every time you commit.</p>
+  </div>
+
+  <h3>CI/CD Pipelines</h3>
+
+  <p>Claude Code can be a step in your CI/CD pipeline (GitHub Actions, GitLab CI, etc.). The most common use cases:</p>
+
+  <ul>
+    <li><strong>Automated PR reviews</strong> &mdash; When a pull request is opened, run Claude headlessly on the diff and post the review as a comment</li>
+    <li><strong>Documentation generation</strong> &mdash; After a merge to main, have Claude update documentation based on code changes</li>
+    <li><strong>Changelog generation</strong> &mdash; Summarize commits since the last release into a human-readable changelog</li>
+    <li><strong>Test generation</strong> &mdash; Automatically generate test stubs for new code</li>
+  </ul>
+
+  <p>Here's what a GitHub Actions step might look like:</p>
+
+  <div class="code-label">yaml</div>
+<pre><code><span class="syn-property">name</span>: <span class="syn-string">AI Code Review</span>
+<span class="syn-property">on</span>: [<span class="syn-string">pull_request</span>]
+<span class="syn-property">jobs</span>:
+  <span class="syn-property">review</span>:
+    <span class="syn-property">runs-on</span>: <span class="syn-string">ubuntu-latest</span>
+    <span class="syn-property">steps</span>:
+      - <span class="syn-property">uses</span>: <span class="syn-string">actions/checkout@v4</span>
+        <span class="syn-property">with</span>:
+          <span class="syn-property">fetch-depth</span>: <span class="syn-number">0</span>
+
+      - <span class="syn-property">name</span>: <span class="syn-string">Install Claude Code</span>
+        <span class="syn-property">run</span>: <span class="syn-string">npm install -g @anthropic-ai/claude-code</span>
+
+      - <span class="syn-property">name</span>: <span class="syn-string">Run AI Review</span>
+        <span class="syn-property">env</span>:
+          <span class="syn-property">ANTHROPIC_API_KEY</span>: <span class="syn-variable">${{ secrets.ANTHROPIC_API_KEY }}</span>
+        <span class="syn-property">run</span>: |
+          <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Review the changes in this PR. \
+            Summarize what changed and flag any issues."</span> \
+            <span class="syn-flag">--allowedTools</span> <span class="syn-string">"Read,Bash(git *)"</span> \
+            &gt; review.md
+
+      - <span class="syn-property">name</span>: <span class="syn-string">Post Review Comment</span>
+        <span class="syn-property">uses</span>: <span class="syn-string">actions/github-script@v7</span>
+        <span class="syn-property">with</span>:
+          <span class="syn-property">script</span>: |
+            <span class="syn-keyword">const</span> fs = require(<span class="syn-string">'fs'</span>);
+            <span class="syn-keyword">const</span> review = fs.readFileSync(<span class="syn-string">'review.md'</span>, <span class="syn-string">'utf8'</span>);
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: review
+            });</code></pre>
+
+  <p>This GitHub Actions workflow triggers on every pull request. It installs Claude Code, runs a headless review on the PR's changes, and posts the review as a comment. The API key is stored as a GitHub secret &mdash; never hardcoded.</p>
+
+  <h3>Shell Pipelines</h3>
+
+  <p>Because headless Claude Code reads from stdin and writes to stdout, it slots into Unix pipelines naturally.</p>
+
+  <div class="code-label">bash</div>
+<pre><code><span class="syn-comment"># Find large functions and ask Claude to refactor them</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">grep</span> <span class="syn-flag">-rn</span> <span class="syn-string">"function"</span> <span class="syn-path">src/</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Which of these functions look overly complex?"</span>
+
+<span class="syn-comment"># Get a summary of today's git activity</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">git</span> log <span class="syn-flag">--since=</span><span class="syn-string">"1 day ago"</span> <span class="syn-flag">--oneline</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Summarize today's development activity"</span>
+
+<span class="syn-comment"># Analyze error logs</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">tail</span> <span class="syn-flag">-100</span> <span class="syn-path">/var/log/app/error.log</span> | <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"What's going wrong? Group by error type."</span>
+
+<span class="syn-comment"># Chain Claude output into another command</span>
+<span class="syn-prompt">$</span> <span class="syn-builtin">claude</span> <span class="syn-flag">-p</span> <span class="syn-string">"Generate a list of test cases for src/auth.js, one per line"</span> \
+  | <span class="syn-builtin">while</span> IFS= <span class="syn-builtin">read</span> <span class="syn-flag">-r</span> <span class="syn-variable">test_case</span>; <span class="syn-keyword">do</span>
+    <span class="syn-builtin">echo</span> <span class="syn-string">"TODO: $test_case"</span> &gt;&gt; <span class="syn-path">test-plan.md</span>
+  <span class="syn-keyword">done</span></code></pre>
+
+  <p>Each of these is a one-liner that combines a standard Unix tool with Claude's analysis capability. The key insight: any program that outputs text can feed Claude, and Claude's output can feed any program that reads text.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: Gotchas and Limitations                           -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">13.9</span> Gotchas and Limitations</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Headless mode is powerful, but it has sharp edges that don't exist in interactive mode. Knowing these upfront saves you from building pipelines that fail in confusing ways.</p>
+
+  <h3>No Interactive Follow-Up</h3>
+
+  <p>The biggest difference from interactive mode: Claude can't ask you questions. In interactive mode, if your prompt is ambiguous, Claude asks for clarification. In headless mode, Claude makes its best guess and moves on.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Your headless prompts must be unambiguous and complete.</strong> There's no "what did you mean?" in headless mode. Every instruction needs to be specific enough that there's only one reasonable interpretation. Instead of "clean up the code," say "remove unused imports and variables from all .js files in src/." Instead of "fix the bug," say "fix the null reference error in src/auth.js on line 42 where user.email is accessed before checking if user exists."</p>
+  </div>
+
+  <h3>Context Window Still Applies</h3>
+
+  <p>Claude's context window (the amount of text it can process at once) is the same in headless mode as in interactive mode. If you pipe in a massive file or ask Claude to read dozens of files, you can exceed the context window.</p>
+
+  <p>Strategies for staying within limits:</p>
+
+  <ul>
+    <li><strong>Be targeted</strong> &mdash; pipe only the relevant parts of files, not entire codebases</li>
+    <li><strong>Use multiple calls</strong> &mdash; break large tasks into smaller chunks, each with its own headless call</li>
+    <li><strong>Use <code>--max-turns</code></strong> &mdash; prevents Claude from spiraling into too many tool uses trying to read everything</li>
+  </ul>
+
+  <h3>Cost of Automated Runs</h3>
+
+  <p>Every headless call costs money (API tokens). When you're sitting at the keyboard, you naturally limit how often you call Claude. Automation removes that natural brake.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><strong>Automated runs can get expensive fast.</strong> A script that runs Claude every 5 minutes, 24/7, will cost significantly more than your interactive usage. Use <code>--output-format json</code> and check the <code>cost_usd</code> field to track spending. Set up budget alerts. Start with less frequent schedules (daily, not hourly) until you understand the cost profile. And always use <code>--max-turns</code> to cap execution length.</p>
+  </div>
+
+  <h3>API Key Security in Scripts</h3>
+
+  <p>Your scripts need access to your Anthropic API key (or active session). There are right and wrong ways to handle this.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Security</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Hardcoded in script</td>
+        <td><strong>Terrible</strong></td>
+        <td>Never do this. If the script is committed to git, the key is exposed forever.</td>
+      </tr>
+      <tr>
+        <td>Environment variable</td>
+        <td>Good</td>
+        <td>Set <code>ANTHROPIC_API_KEY</code> in your shell profile. The script reads it at runtime.</td>
+      </tr>
+      <tr>
+        <td>Secrets manager</td>
+        <td>Best</td>
+        <td>For CI/CD: use GitHub Secrets, AWS Secrets Manager, etc.</td>
+      </tr>
+      <tr>
+        <td><code>.env</code> file (not committed)</td>
+        <td>Acceptable</td>
+        <td>Fine for local automation. Make sure <code>.env</code> is in <code>.gitignore</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Idempotency Matters</h3>
+
+  <p>When a script runs on a schedule, it might run twice by accident (cron overlap, task scheduler restart, etc.). Your scripts should be <strong>idempotent</strong> &mdash; running them twice should produce the same result as running them once.</p>
+
+  <div class="definition">
+    <p><span class="term">Idempotent</span> &mdash; An operation that produces the same result whether you run it once or multiple times. For example, "set the value to 5" is idempotent (running it twice still gives you 5). "Add 1 to the value" is not idempotent (running it twice gives you a different result than running it once).</p>
+  </div>
+
+  <p>Practical tips for idempotent automation scripts:</p>
+
+  <ul>
+    <li>Check if the output file for today already exists before running Claude</li>
+    <li>Use marker files (like the <code>.last-reviewed-commit</code> example) to track state</li>
+    <li>Make Claude's task "ensure X is true" rather than "change X" &mdash; the first is naturally idempotent</li>
+  </ul>
+
+  <h3>Debugging Headless Runs</h3>
+
+  <p>When a headless run fails, you can't ask Claude "what happened?" Here are your debugging tools:</p>
+
+  <ul>
+    <li><strong>Log everything</strong> &mdash; redirect both stdout and stderr to log files (<code>&gt; output.log 2&gt; error.log</code>)</li>
+    <li><strong>Use JSON output</strong> &mdash; the <code>is_error</code> and <code>duration_ms</code> fields tell you a lot</li>
+    <li><strong>Use <code>--verbose</code></strong> &mdash; adds more detail to Claude's output about what it's doing</li>
+    <li><strong>Reproduce interactively</strong> &mdash; take the exact prompt from your script and run it in interactive Claude Code to see what happens step-by-step</li>
+  </ul>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT                                           -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <div class="checkpoint-icon">&#128295;</div>
+      <h3>Checkpoint Project: The Automaton</h3>
+    </div>
+
+    <p>Time to prove you can make Claude Code work while you're away from the keyboard. You're going to build a complete automated pipeline from scratch.</p>
+
+    <h4>What to Build</h4>
+
+    <p>Create an automated pipeline script that runs Claude Code headlessly to:</p>
+
+    <ol>
+      <li><strong>Pull data from a public API</strong> &mdash; Use any free public API (weather data, news headlines, stock quotes, a random fact API &mdash; your choice). Fetch the data using <code>curl</code> (bash) or <code>Invoke-WebRequest</code> (PowerShell) and save the raw response to a file.</li>
+      <li><strong>Generate a formatted summary</strong> &mdash; Pipe the raw data to Claude Code headlessly with a prompt that generates a clean, human-readable summary in markdown format.</li>
+      <li><strong>Write the summary to a timestamped file</strong> &mdash; Save the output to a file named with today's date (e.g., <code>summary-2026-03-03.md</code>) in an <code>output/</code> directory.</li>
+      <li><strong>Set it up to run on a schedule</strong> &mdash; Configure a cron job (macOS/Linux) or Task Scheduler entry (Windows) to run your script automatically once per day.</li>
+      <li><strong>Include error handling and logging</strong> &mdash; Your script should log what it does, detect failures, handle empty responses, and exit cleanly with informative messages.</li>
+    </ol>
+
+    <h4>Requirements</h4>
+
+    <ul>
+      <li>Write the script in both bash and PowerShell (use the OS tab pattern you've seen throughout this guide &mdash; but for submission, build whichever matches your system)</li>
+      <li>Use <code>--allowedTools</code> with the minimum permissions needed</li>
+      <li>Use <code>--max-turns</code> to prevent runaway execution</li>
+      <li>Include a <code>README.md</code> that documents how to set up and run the pipeline</li>
+    </ul>
+
+    <h4>Bonus Challenges</h4>
+
+    <ul>
+      <li>Add a second Claude call that compares today's summary with yesterday's and notes what changed</li>
+      <li>Use <code>--output-format json</code> and log the cost of each run</li>
+      <li>Make the script send the summary to yourself via email or a messaging webhook (Slack, Discord, etc.)</li>
+    </ul>
+
+    <h4>Success Criteria</h4>
+
+    <ul>
+      <li>The script runs end-to-end without errors when executed manually</li>
+      <li>The script uses <code>claude -p</code> with <code>--allowedTools</code> and <code>--max-turns</code> flags</li>
+      <li>Output files are timestamped and written to a dedicated directory</li>
+      <li>The script logs its activity (start time, each step, success/failure, end time) to a log file</li>
+      <li>Error handling catches and reports failures (non-zero exit code, empty output, missing dependencies)</li>
+      <li>A cron entry or Task Scheduler configuration exists and is documented in the README</li>
+      <li>Running the script twice on the same day doesn't create duplicate or corrupted output</li>
+    </ul>
+
+    <div class="time-estimate">Estimated time: 60 &ndash; 90 minutes</div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-12.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-14.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+<script>
+function switchTab(event, tabId) {
+  const tabContainer = event.target.closest('.os-tabs');
+  tabContainer.querySelectorAll('.os-tab-buttons button').forEach(btn => btn.classList.remove('active'));
+  tabContainer.querySelectorAll('.os-tab-content').forEach(content => content.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+</script>
+
+</body>
+</html>

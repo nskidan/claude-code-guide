@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 05: Prompt Engineering for Claude Code &mdash; Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-04.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-06.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <span class="level-number">Level 05</span>
+    <h1>Prompt Engineering for Claude Code</h1>
+    <p class="level-subtitle">Claude Code is not a chatbot. It's an agent. The way you communicate with it determines whether you get a helpful colleague or a confused intern. This level teaches you how to speak its language.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 1: How Prompting in Claude Code Differs         -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">5.1</span> You're Not Chatting &mdash; You're Delegating</h2>
+
+  <p>If your experience with AI is mostly ChatGPT, Claude.ai, or similar chatbots, you've built a mental model of prompting that goes something like: "I ask a question, the AI answers, I ask a follow-up." That model is comfortable. It's also the wrong model for Claude Code.</p>
+
+  <div class="analogy">
+    <strong>The mental model:</strong> Using a chatbot is like texting a friend who's good at trivia. Using Claude Code is like handing a work order to a skilled contractor. The contractor doesn't need small talk &mdash; they need a clear scope of work, a list of constraints, and a definition of "done."
+  </div>
+
+  <p>Here's what's actually different:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Chatbot Prompting</th>
+        <th>Claude Code Prompting</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>You ask questions</td>
+        <td>You assign tasks</td>
+      </tr>
+      <tr>
+        <td>AI responds with text</td>
+        <td>AI reads files, writes code, runs commands</td>
+      </tr>
+      <tr>
+        <td>Context = your conversation</td>
+        <td>Context = your conversation + your entire project</td>
+      </tr>
+      <tr>
+        <td>Vagueness prompts clarifying questions</td>
+        <td>Vagueness prompts the AI to guess (often wrong)</td>
+      </tr>
+      <tr>
+        <td>Output is disposable text</td>
+        <td>Output is code that actually runs in your project</td>
+      </tr>
+      <tr>
+        <td>You iterate on ideas</td>
+        <td>You iterate on real, working software</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout high-impact">
+    <div class="callout-title">Key Shift</div>
+    <p>When Claude Code misunderstands you, it doesn't just give a bad answer &mdash; it <strong>changes your files</strong>. It might restructure your project, overwrite working code, or install dependencies you don't want. The cost of a vague prompt is not a bad paragraph of text. It's a broken project. This is why prompt engineering matters more here than anywhere else.</p>
+  </div>
+
+  <p>In a chatbot, you can be casual. "Hey, help me think about my database design." That's fine &mdash; you're brainstorming. In Claude Code, that same sentence might cause Claude to start creating database schemas, installing PostgreSQL drivers, and restructuring your project. Claude Code is biased toward <em>action</em>. It assumes you want things done, not just discussed.</p>
+
+  <p>This means your prompt needs to clearly signal one of two things:</p>
+  <ol>
+    <li><strong>"Plan this"</strong> &mdash; think about it, outline it, but don't change anything.</li>
+    <li><strong>"Do this"</strong> &mdash; go make changes, and here's exactly what I want.</li>
+  </ol>
+
+  <p>If you don't signal which one, Claude defaults to "do this." Keep that in mind for everything that follows.</p>
+
+  <!-- ====================================================== -->
+  <!-- Section 2: Anatomy of a Great Prompt                    -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">5.2</span> The Anatomy of a Great Claude Code Prompt</h2>
+
+  <p>Every effective Claude Code prompt has four components. You don't always need all four, but the more complex the task, the more you need each one. Think of them as the blueprint for your work order.</p>
+
+  <div class="definition">
+    <p><span class="term">The Four Parts of a Prompt</span></p>
+    <ul>
+      <li><strong>Context</strong> &mdash; What exists right now? What has already been done? What files or systems are relevant?</li>
+      <li><strong>Intent</strong> &mdash; What do you want Claude to accomplish? What's the end state?</li>
+      <li><strong>Constraints</strong> &mdash; What should Claude avoid? What's off-limits? What existing behavior must be preserved?</li>
+      <li><strong>Success Criteria</strong> &mdash; How will you (and Claude) know the task is done correctly?</li>
+    </ul>
+  </div>
+
+  <p>Let's see this in practice. Say you want to add a search feature to a project. Here's how most people prompt versus how you should prompt:</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Weak Prompt</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>Add search to my app</code></pre>
+      <p class="text-small text-muted">No context. No constraints. Claude doesn't know what kind of app, what data to search, where to put the UI, or what "search" means to you. It will guess everything.</p>
+    </div>
+    <div class="comparison-col">
+      <h4>Strong Prompt</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>Add a search bar to the dashboard page
+(src/pages/Dashboard.jsx). It should
+filter the apartment listings that are
+already displayed in the ApartmentList
+component by address or neighborhood
+name. Client-side filtering only &mdash;
+don't add any API calls. Keep the
+existing sort functionality working.</code></pre>
+      <p class="text-small text-muted">Context (which file, which component). Intent (filter apartments by address/neighborhood). Constraints (client-side only, preserve sort). Clear scope.</p>
+    </div>
+  </div>
+
+  <p>Let's break down another example, this time labeling each part explicitly.</p>
+
+  <p>This prompt asks Claude to refactor an API handler. Notice how each sentence maps to one of the four components.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code><span class="syn-comment"># Context</span>
+The file src/api/reservations.js handles all API calls
+for the Resy sniper. Right now it has one giant function
+called makeReservation() that's about 200 lines long.
+
+<span class="syn-comment"># Intent</span>
+Refactor makeReservation() into smaller, focused functions.
+Each function should handle one step: authentication,
+finding available slots, selecting the best slot, and
+booking it.
+
+<span class="syn-comment"># Constraints</span>
+Don't change the function signature of makeReservation() &mdash;
+other files import it. Don't change the API endpoints or
+authentication flow. Keep all existing error handling.
+
+<span class="syn-comment"># Success criteria</span>
+After refactoring, the existing test in tests/reservations.test.js
+should still pass without modifications.</code></pre>
+
+  <p>This prompt is clear enough that Claude can execute it confidently. It knows what file to work in, what the goal is, what not to break, and how to verify success. You've eliminated guesswork.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>You don't need to literally write comments like <code># Context</code> in your prompts. Those labels are here for teaching purposes. In practice, a well-structured prompt naturally flows through these four parts. But if you're struggling with a complex task, try writing one sentence for each component before sending the prompt. It's a good forcing function.</p>
+  </div>
+
+  <h3>More Comparisons: Good vs. Bad</h3>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Too Vague</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>Fix the bug in my newsletter code</code></pre>
+      <p class="text-small text-muted">What bug? Where? What's the expected behavior? Claude will read your entire project trying to find "a bug," and may "fix" things that aren't broken.</p>
+    </div>
+    <div class="comparison-col">
+      <h4>Specific and Actionable</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>The newsletter send function in
+src/email/send.js throws a timeout
+error when the recipient list has
+more than 50 addresses. Add batching
+so it sends in groups of 25 with a
+2-second delay between batches.</code></pre>
+      <p class="text-small text-muted">Identifies the file, describes the bug, specifies the fix strategy, and gives concrete numbers.</p>
+    </div>
+  </div>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Too Prescriptive</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>On line 47 of index.js, change the
+variable name from 'x' to 'count'.
+Then on line 48 change the if
+statement to use count > 10 instead
+of x > 10. Then on line 52...</code></pre>
+      <p class="text-small text-muted">You're doing Claude's job for it. Line-by-line instructions are fragile (line numbers shift) and miss the forest for the trees. You hired a contractor &mdash; don't hold the hammer for them.</p>
+    </div>
+    <div class="comparison-col">
+      <h4>Right Level of Detail</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>The variable names in
+src/index.js are cryptic single
+letters (x, y, n). Rename them
+to be descriptive. The function
+calculates a running total of
+daily newsletter signups.</code></pre>
+      <p class="text-small text-muted">Describes the problem and the goal, gives Claude context about what the code does, and lets it figure out the right names. Claude is better at naming than you'd think.</p>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 3: Plan Mode vs. Direct Execution               -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">5.3</span> Plan Mode vs. Direct Execution</h2>
+
+  <p>Claude Code has two fundamentally different ways of working: it can <em>plan</em> or it can <em>execute</em>. Understanding when to use each is one of the highest-leverage skills you'll develop.</p>
+
+  <div class="analogy">
+    <strong>The mental model:</strong> Imagine you're renovating a house. Before you swing a sledgehammer at a wall, you want an architect to draw up plans. You review the plans, make changes on paper (cheap), and only then start demolition (expensive). Plan mode is the architect's drawing. Direct execution is the sledgehammer.
+  </div>
+
+  <div class="definition">
+    <p><span class="term">Plan Mode</span> &mdash; Claude analyzes your request, reads relevant files, and outlines what it <em>would</em> do, step by step, without making any changes. You review the plan, adjust it, then tell Claude to execute.</p>
+  </div>
+
+  <h3>How to Enter Plan Mode</h3>
+
+  <p>There are two ways to get Claude Code to plan instead of execute.</p>
+
+  <p><strong>Option 1: Use the keyboard shortcut.</strong> Press <code>Shift+Tab</code> to toggle between "Plan" and "Normal" mode before sending your prompt. You'll see the mode indicator change in the input area.</p>
+
+  <p><strong>Option 2: Say it in your prompt.</strong> Just tell Claude what you want.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Don't make any changes yet. Just plan out how you
+would add user authentication to this Express app.
+Tell me what files you'd create, what you'd modify,
+and what packages you'd install.</code></pre>
+
+  <p>Claude will respond with a detailed plan. You can then review it, suggest modifications, and when you're satisfied:</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>That plan looks good. Go ahead and implement it.</code></pre>
+
+  <p>Or, if something needs adjustment:</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Good plan, but use Passport.js instead of rolling
+our own auth middleware. Also skip the "forgot
+password" flow for now. Implement the rest.</code></pre>
+
+  <h3>When to Use Plan Mode</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Use Plan Mode When...</th>
+        <th>Just Execute When...</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Changes span more than 3 files</td>
+        <td>It's a single-file change</td>
+      </tr>
+      <tr>
+        <td>You're adding a new feature</td>
+        <td>You're fixing a specific bug</td>
+      </tr>
+      <tr>
+        <td>You're unsure about the right approach</td>
+        <td>You know exactly what you want</td>
+      </tr>
+      <tr>
+        <td>The change could break existing functionality</td>
+        <td>The change is isolated and low-risk</td>
+      </tr>
+      <tr>
+        <td>You want to learn from the approach</td>
+        <td>You just need it done</td>
+      </tr>
+      <tr>
+        <td>You're restructuring or refactoring</td>
+        <td>You're adding something small and self-contained</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High-Impact Habit</div>
+    <p>When in doubt, plan first. The cost of planning is a 30-second review. The cost of a bad execution is undoing changes across multiple files and possibly losing work you care about. Make "plan then execute" your default for anything non-trivial.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 4: Task Decomposition                           -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">5.4</span> Task Decomposition: Breaking Big Work into Small Wins</h2>
+
+  <p>This is where most people's Claude Code experience goes from "frustrating" to "magical." The concept is simple: instead of asking Claude to do one huge thing, break it into a sequence of smaller, focused tasks.</p>
+
+  <div class="analogy">
+    <strong>The mental model:</strong> You wouldn't tell a moving company "move my entire life to a new city" in one instruction. You'd break it down: pack the kitchen, pack the bedroom, load the truck, drive to the new place, unload. Each step is verifiable. Each step has a clear "done" state. If the kitchen boxes arrive damaged, you don't have to re-do the bedroom.
+  </div>
+
+  <h3>Why "Build Me an Entire App" Fails</h3>
+
+  <p>When you give Claude Code a massive prompt like "build me a full-stack apartment dashboard with login, data visualization, alerts, and email notifications," several things go wrong:</p>
+
+  <ol>
+    <li><strong>Context overload.</strong> Claude has to hold the entire architecture in its context window while making hundreds of micro-decisions. Quality degrades on later files because earlier context gets compressed.</li>
+    <li><strong>Error compounding.</strong> If Claude makes a bad decision in step 3 of 20, every subsequent step builds on that mistake. By the time you notice, it's deeply embedded.</li>
+    <li><strong>Unverifiable output.</strong> When Claude writes 15 files at once, how do you check if it's all correct? You can't run the app until everything is done, so errors hide.</li>
+    <li><strong>No course correction.</strong> You can't adjust the approach mid-stream because you didn't see the intermediate results.</li>
+  </ol>
+
+  <h3>A Real Decomposition Example</h3>
+
+  <p>Let's say you want to add a notification system to your apartment dashboard. Here's how you'd decompose it into a sequence of Claude Code prompts.</p>
+
+  <p><strong>Phase 1: Plan the feature.</strong></p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>I want to add email notifications to my apartment
+dashboard. When a new listing matches the user's
+saved search criteria, they should get an email.
+Don't implement anything yet &mdash; just plan the
+approach. What components do I need? What's the
+data flow?</code></pre>
+
+  <p>Review the plan. Ask questions. Adjust. Then move on.</p>
+
+  <p><strong>Phase 2: Build the data layer.</strong></p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Based on the plan above, implement just the database
+model for saved searches. Add a SavedSearch model with
+fields for: user ID, neighborhood (string), max price
+(number), min bedrooms (number), and active status
+(boolean). Add it to the existing Prisma schema.</code></pre>
+
+  <p>Verify the schema looks right. Run the migration. Then continue.</p>
+
+  <p><strong>Phase 3: Build the matching logic.</strong></p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Now create a function in src/services/matcher.js that
+takes a new apartment listing and returns all saved
+searches that match it. A match means: the listing's
+neighborhood matches the saved search, the price is
+at or below max_price, and bedrooms are at or above
+min_bedrooms. Write tests for this function.</code></pre>
+
+  <p>Run the tests. Fix any issues. Then continue.</p>
+
+  <p><strong>Phase 4: Build the email sending.</strong></p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Create an email notification service in
+src/services/notifier.js. It should use the Resend
+SDK (already installed) to send an email when a match
+is found. Use the existing email template pattern in
+src/templates/. Don't integrate it with the matcher
+yet &mdash; just build the standalone notification function
+with a test.</code></pre>
+
+  <p><strong>Phase 5: Connect everything.</strong></p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Now wire the matcher and notifier together. In the
+existing function that processes new listings
+(src/jobs/processListings.js), add a step after
+saving the listing that runs it through the matcher
+and sends notifications for any matches. Add error
+handling so a failed notification doesn't stop
+listing processing.</code></pre>
+
+  <p>Each phase is focused, verifiable, and builds on confirmed working code from the previous phase. If Phase 3 has a bug, you catch it before it corrupts Phases 4 and 5.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">The Decomposition Rule</div>
+    <p>If your prompt describes work that would take a human developer more than 30 minutes, it's too big for a single prompt. Break it down. Each prompt should represent 5&ndash;15 minutes of focused work. You'll get dramatically better results and waste less time fixing compound errors.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 5: The Art of the Follow-Up Prompt              -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">5.5</span> The Art of the Follow-Up Prompt</h2>
+
+  <p>Getting the first output right is great. Getting the second iteration right is more important. Most of your time in Claude Code is spent refining, adjusting, and iterating on what Claude just did. This is where follow-up prompting skills make the difference.</p>
+
+  <h3>Be Specific About What to Change</h3>
+
+  <p>After Claude makes changes, don't say "that's not quite right." Say <em>what</em> isn't right and <em>what</em> you want instead.</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Vague Follow-Up</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>The styling is off. Fix it.</code></pre>
+      <p class="text-small text-muted">Claude doesn't know what "off" means to you. It will make random CSS changes that might make things worse.</p>
+    </div>
+    <div class="comparison-col">
+      <h4>Specific Follow-Up</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>The notification cards are too wide on
+mobile. They should be full-width below
+600px and max 400px on desktop. Also
+the font size on the timestamp is too
+small &mdash; bump it from 11px to 13px.</code></pre>
+      <p class="text-small text-muted">Exact components, exact breakpoints, exact values. Claude can execute this precisely.</p>
+    </div>
+  </div>
+
+  <h3>Reference What Claude Already Did</h3>
+
+  <p>Claude remembers what it did in the current session. You can refer to its previous work directly.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>In the notification service you just created, add
+rate limiting. No user should receive more than 3
+emails per hour. Store the send timestamps in the
+same database you already set up.</code></pre>
+
+  <p>This is more effective than re-describing the whole system. Claude has the context of what it just built. Use phrases like "the function you just created," "the file you just modified," or "following the same pattern you used in the matcher."</p>
+
+  <h3>Building on Partial Results vs. Starting Over</h3>
+
+  <p>Sometimes Claude's output is 80% right and 20% wrong. You have two choices:</p>
+
+  <ol>
+    <li><strong>Iterate on the partial result.</strong> Tell Claude to keep what works and fix what doesn't. This is usually faster and preserves good work.</li>
+    <li><strong>Start over on that specific piece.</strong> If the approach is fundamentally wrong, tell Claude to scrap it and try a different approach.</li>
+  </ol>
+
+  <p>Here's what each looks like.</p>
+
+  <p><strong>Iterating on a partial result:</strong></p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>The email template looks good, but two things need
+to change: (1) the listing price should be formatted
+as currency with commas, not raw numbers, and (2) add
+the listing's photo URL as an image at the top of
+the email. Keep everything else as-is.</code></pre>
+
+  <p><strong>Scrapping a specific piece:</strong></p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>The matching logic isn't right. You're doing exact
+string matching on neighborhoods but the data has
+inconsistent capitalization and sometimes uses
+abbreviations. Scrap the current matching approach
+and use case-insensitive fuzzy matching with the
+Fuse.js library instead.</code></pre>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>When you tell Claude to "keep everything else as-is," you're adding a critical constraint. Without it, Claude may decide to "improve" other parts of the file while it's in there. Be explicit about scope: change <em>this</em>, don't touch <em>that</em>.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 6: When to Start Fresh vs. Continue             -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">5.6</span> When to Start Fresh vs. Continue</h2>
+
+  <p>Every Claude Code session has a context window &mdash; a limited amount of information Claude can hold in "memory" at once. As you work, that window fills up with conversation history, file contents Claude has read, and tool output. When it gets full, things start going wrong.</p>
+
+  <div class="analogy">
+    <strong>The mental model:</strong> Imagine you're working at a desk that can hold 100 pages. As you work, you keep adding pages. Once the desk is full, adding a new page pushes the oldest page off the edge. You don't notice the exact moment something falls off, but eventually you reach for a reference that's gone. That's what happens when the context window fills up &mdash; Claude "forgets" earlier parts of the conversation.
+  </div>
+
+  <h3>Signs You Need a Fresh Session</h3>
+
+  <ul>
+    <li><strong>Claude forgets instructions you gave earlier.</strong> You told it to use Tailwind, and now it's writing vanilla CSS.</li>
+    <li><strong>Claude repeats mistakes you already corrected.</strong> You fixed a bug in round 3, and round 7 reintroduces it.</li>
+    <li><strong>Claude starts contradicting itself.</strong> "I'll use approach A" and then immediately uses approach B.</li>
+    <li><strong>Responses get slower and less coherent.</strong> When the context is packed, Claude spends more tokens managing context and less on quality output.</li>
+    <li><strong>You've switched topics significantly.</strong> You started on the backend API and now you're working on frontend styling. The old backend context is just noise.</li>
+  </ul>
+
+  <h3>When /compact Is Enough vs. When You Need a Clean Start</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Use /compact</th>
+        <th>Start a New Session</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Same task, same files, but the conversation is long</td>
+        <td>Switching to a completely different task</td>
+      </tr>
+      <tr>
+        <td>You've been iterating and want to free up space</td>
+        <td>Claude keeps making the same mistake despite corrections</td>
+      </tr>
+      <tr>
+        <td>The work is going well but responses are slowing</td>
+        <td>The session feels "confused" or inconsistent</td>
+      </tr>
+      <tr>
+        <td>You want to continue the current thread of work</td>
+        <td>You want a completely fresh approach to a problem</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ====================================================== -->
+  <!-- Section 7: The /compact Command                         -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">5.7</span> The /compact Command</h2>
+
+  <p>The <code>/compact</code> command is one of the most useful tools in Claude Code, and one of the least understood. Here's what it actually does and when to reach for it.</p>
+
+  <div class="definition">
+    <p><span class="term">/compact</span> &mdash; Summarizes the current conversation history, replacing the full back-and-forth with a condensed version. This frees up context window space so Claude can continue working effectively.</p>
+  </div>
+
+  <h3>What Happens When You Run /compact</h3>
+
+  <ol>
+    <li>Claude reads through the entire conversation so far.</li>
+    <li>It creates a compressed summary of what's been discussed, decided, and implemented.</li>
+    <li>The full conversation history is replaced with this summary.</li>
+    <li>You continue working as if the conversation were shorter, but with the key decisions and context preserved.</li>
+  </ol>
+
+  <h3>What Gets Preserved</h3>
+  <ul>
+    <li>Key decisions and constraints you've established</li>
+    <li>What files have been created or modified</li>
+    <li>The current state of the task</li>
+    <li>Important patterns or approaches you've agreed on</li>
+  </ul>
+
+  <h3>What Can Get Lost</h3>
+  <ul>
+    <li>Nuanced details from early in the conversation</li>
+    <li>Specific wording of constraints you gave 20 messages ago</li>
+    <li>The exact reasoning behind early decisions</li>
+    <li>Subtle context that didn't seem important enough to summarize</li>
+  </ul>
+
+  <p>You can also provide a custom focus for the compaction. This tells Claude what to prioritize when summarizing.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>/compact focus on the API design decisions and the
+database schema we settled on</code></pre>
+
+  <p>This is especially useful when you know the next phase of work depends on specific earlier decisions.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p>After running <code>/compact</code>, it's a good practice to briefly restate any critical constraints that absolutely cannot be forgotten. Something like: "Just to confirm after compacting &mdash; we're still using Prisma with PostgreSQL, the API must stay REST (not GraphQL), and all endpoints need authentication." This takes five seconds and prevents painful errors.</p>
+  </div>
+
+  <h3>When to Use /compact</h3>
+
+  <p>Use it proactively, not reactively. Don't wait until Claude starts forgetting things. Good times to compact:</p>
+
+  <ul>
+    <li>After finishing a major phase and before starting the next</li>
+    <li>When the conversation has gone past 30+ back-and-forth messages</li>
+    <li>When you notice Claude re-reading files it already read earlier (a sign context is getting tight)</li>
+    <li>Before a complex task that will need a lot of context window space</li>
+  </ul>
+
+  <!-- ====================================================== -->
+  <!-- Section 8: Common Prompting Mistakes                    -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">5.8</span> Common Prompting Mistakes</h2>
+
+  <p>Now that you know what good prompting looks like, let's catalog the mistakes that cause the most wasted time. You've probably already made some of these. That's fine &mdash; everyone does. The goal is to recognize the patterns so you can avoid them.</p>
+
+  <h3>Mistake 1: The Wish Prompt</h3>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>The Mistake</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>Make the app better</code></pre>
+      <p class="text-small text-muted">"Better" according to whom? Better how? Claude will pick something &mdash; maybe performance, maybe UI, maybe code structure &mdash; and you probably won't get what you had in mind.</p>
+    </div>
+    <div class="comparison-col">
+      <h4>The Fix</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>The dashboard page loads slowly because
+it fetches all listings on mount. Add
+pagination: load 20 listings at a time
+with a "Load More" button.</code></pre>
+      <p class="text-small text-muted">Specific problem, specific solution, specific numbers.</p>
+    </div>
+  </div>
+
+  <h3>Mistake 2: The Kitchen Sink</h3>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>The Mistake</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>Add authentication, a user profile page,
+settings, email notifications, a dark
+mode toggle, and fix the bug on the
+listings page where prices show as NaN.</code></pre>
+      <p class="text-small text-muted">Six different tasks in one prompt. Claude will rush through each one, doing a mediocre job on all of them. The bug fix will probably get lost.</p>
+    </div>
+    <div class="comparison-col">
+      <h4>The Fix</h4>
+      <p class="text-small text-muted">Split into 6 separate prompts. Start with the bug fix (it's the most concrete), then tackle features one at a time. Each prompt gets Claude's full attention.</p>
+    </div>
+  </div>
+
+  <h3>Mistake 3: The Micromanager</h3>
+
+  <p>This is the opposite of being too vague. You specify every single line of code, every variable name, every implementation detail. Claude becomes a fancy autocomplete instead of a reasoning agent.</p>
+
+  <p>The fix: describe the <em>what</em> and the <em>why</em>, not the <em>how</em>. Let Claude figure out the implementation. You'll be surprised how often its approach is better than what you would have specified.</p>
+
+  <h3>Mistake 4: No Context</h3>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>The Mistake</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>The email function is broken, fix it.</code></pre>
+      <p class="text-small text-muted">Which email function? In which file? "Broken" how? What's the error message? What should it be doing?</p>
+    </div>
+    <div class="comparison-col">
+      <h4>The Fix</h4>
+      <span class="code-label">prompt</span>
+      <pre><code>The sendNewsletter() function in
+src/email/send.js returns success
+but the emails never arrive. The
+Resend dashboard shows the API calls
+are going through but the "to" field
+is empty. I think the subscriber query
+in getActiveSubscribers() might be
+returning empty results.</code></pre>
+      <p class="text-small text-muted">File path, function name, observed behavior, expected behavior, probable cause. Claude can start debugging immediately.</p>
+    </div>
+  </div>
+
+  <h3>Mistake 5: Not Checking Claude's Work</h3>
+
+  <p>This might be the most dangerous mistake. Claude writes code, you say "looks good," and you move on without testing. Three prompts later, you discover the foundation was wrong and everything built on it needs to be redone.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">The Verification Rule</div>
+    <p>After every Claude Code task, do at least one of these: (1) read the changed files and make sure the logic makes sense, (2) run the tests, (3) manually test the feature, or (4) ask Claude to verify its own work. "Trust but verify" is not optional &mdash; it's the entire workflow.</p>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- Section 9: Advanced Patterns                            -->
+  <!-- ====================================================== -->
+  <h2><span class="section-number">5.9</span> Advanced Prompting Patterns</h2>
+
+  <p>Once you're comfortable with the fundamentals, these patterns will take your Claude Code work to the next level. Each one is a technique you can reach for when the situation calls for it.</p>
+
+  <h3>Pattern 1: "Explain Before You Execute"</h3>
+
+  <p>Before Claude makes changes, ask it to explain what it's going to do. This catches bad approaches before they become bad code.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>I need to add real-time price alerts to the apartment
+dashboard. Before you write any code, explain your
+approach: what libraries you'd use, how you'd structure
+the real-time connection, and how you'd handle the
+case where the user has the app open on multiple tabs.</code></pre>
+
+  <p>This gives you a chance to course-correct before any files are touched. You might realize Claude is planning to use WebSockets when Server-Sent Events would be simpler, or that its multi-tab strategy won't work with your architecture.</p>
+
+  <h3>Pattern 2: "Think Step by Step"</h3>
+
+  <p>For complex debugging or analysis, explicitly asking Claude to think through the problem step by step produces better results than letting it jump to a solution.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>The reservation sniper is timing out intermittently.
+Think through this step by step: trace the request
+flow from the cron trigger through the API call to
+Resy, identify every point where a timeout could
+occur, and then suggest the most likely cause based
+on the error logs in src/logs/.</code></pre>
+
+  <p>This works because it forces Claude to reason through intermediate steps instead of pattern-matching to a quick (and often wrong) answer.</p>
+
+  <h3>Pattern 3: "Do X, Then Verify Y"</h3>
+
+  <p>Build verification directly into your prompt. Claude will perform the task and then check its own work before reporting back.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Refactor the price formatting logic into a shared
+utility function and update all files that format
+prices to use it. After making the changes, search
+the entire codebase for any remaining raw price
+formatting (toFixed, toLocaleString on price variables)
+that you might have missed.</code></pre>
+
+  <p>The verification step catches the 5% of cases that Claude would otherwise miss. It's especially valuable for refactoring tasks where you need to find <em>every</em> instance of something.</p>
+
+  <h3>Pattern 4: "Review Your Own Work"</h3>
+
+  <p>After Claude completes a task, ask it to put on a different hat and review what it just did.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Now review the code you just wrote as if you were a
+senior developer doing a code review. Look for: bugs,
+edge cases we didn't handle, security issues, and
+anything that would be hard to maintain. Be critical.</code></pre>
+
+  <p>Claude will often catch issues in review mode that it missed during implementation mode. It's like a second pair of eyes &mdash; except it's the same pair, looking from a different angle.</p>
+
+  <h3>Pattern 5: The Phased Approach with Checkpoints</h3>
+
+  <p>For large features, structure your prompt to define explicit phases with verification points between them.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Let's implement the saved search feature in three
+phases. After each phase, stop and tell me what
+you've done so I can verify before moving on.
+
+Phase 1: Create the database model and migration.
+Phase 2: Build the API endpoints (CRUD for saved
+searches).
+Phase 3: Add the frontend UI for managing saved
+searches.
+
+Start with Phase 1 only.</code></pre>
+
+  <p>This gives you natural breakpoints to verify work, adjust plans, and catch issues early.</p>
+
+  <h3>Pattern 6: Providing Examples of Desired Output</h3>
+
+  <p>When you have a specific format or style in mind, showing Claude an example is more effective than describing it.</p>
+
+  <span class="code-label">prompt</span>
+  <pre><code>Add error logging to all the API routes. Follow this
+pattern for each route:
+
+try {
+  // existing route logic
+} catch (error) {
+  logger.error({
+    route: '/api/listings',
+    method: 'GET',
+    error: error.message,
+    stack: error.stack,
+    timestamp: new Date().toISOString()
+  });
+  res.status(500).json({ error: 'Internal server error' });
+}
+
+Apply this same structure to every route in
+src/api/routes/.</code></pre>
+
+  <p>The example eliminates ambiguity. Claude knows exactly what format to follow and can replicate it consistently across files.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>These patterns combine well. You can use "explain before you execute" + "phased approach" + "review your own work" all in the same workflow. The best Claude Code users develop an intuition for which patterns to reach for based on the task at hand.</p>
+  </div>
+
+  <hr>
+
+  <h2>Putting It All Together</h2>
+
+  <p>Prompt engineering for Claude Code isn't about memorizing templates. It's about developing a habit of <em>clear communication</em> with a system that acts on what you say. The core principles are simple:</p>
+
+  <ol>
+    <li><strong>Be specific.</strong> The more precise your prompt, the more precise the output.</li>
+    <li><strong>Set boundaries.</strong> Tell Claude what not to change as clearly as you tell it what to change.</li>
+    <li><strong>Break big work into small steps.</strong> Verify each step before moving on.</li>
+    <li><strong>Plan before you execute.</strong> Especially for anything that touches multiple files.</li>
+    <li><strong>Iterate deliberately.</strong> Don't say "fix it" &mdash; say what's wrong and what right looks like.</li>
+    <li><strong>Manage your context window.</strong> Use <code>/compact</code> proactively. Start fresh when needed.</li>
+    <li><strong>Verify everything.</strong> Trust Claude's ability, but always check the output.</li>
+  </ol>
+
+  <p>These aren't rules to follow slavishly. They're habits to build. The more you practice them, the more natural they become, and the better your Claude Code results will be.</p>
+
+  <!-- ====================================================== -->
+  <!-- Checkpoint Project                                      -->
+  <!-- ====================================================== -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#127937;</span>
+      <h3>Checkpoint Project: The Rewrite</h3>
+    </div>
+
+    <h4>What to Build</h4>
+    <p>Pick one of your existing projects &mdash; the Resy sniper, the apartment dashboard, or the daily newsletter &mdash; and choose a significant feature you originally built in a single, unstructured Claude Code session. Now rebuild that feature from scratch using the structured prompting techniques from this level.</p>
+
+    <p>The process:</p>
+    <ol>
+      <li>Start a new Claude Code session in the same project directory.</li>
+      <li>Use plan mode to outline the feature before writing any code.</li>
+      <li>Decompose the feature into at least 3 focused phases.</li>
+      <li>Write each prompt using the four-part structure: context, intent, constraints, success criteria.</li>
+      <li>Verify the output of each phase before moving to the next.</li>
+      <li>Use at least one advanced pattern (explain before executing, self-review, or do-then-verify).</li>
+      <li>Document the experience: save your prompts, note what went differently, and compare the result to your original implementation.</li>
+    </ol>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>You used plan mode at least once before execution.</li>
+      <li>You decomposed the feature into 3 or more separate prompts (no "build everything at once" prompts).</li>
+      <li>Each prompt includes at least context and intent (constraints and success criteria where relevant).</li>
+      <li>You verified each phase before proceeding to the next (ran tests, manually checked output, or asked Claude to self-review).</li>
+      <li>You can identify at least two specific things that went better with structured prompting compared to your original approach (fewer errors, cleaner code, faster completion, better architecture, etc.).</li>
+      <li>You saved your prompt sequence so you could reproduce the process on a different feature.</li>
+    </ul>
+
+    <h4>Estimated Time</h4>
+    <span class="time-estimate">&#9201; 60 &ndash; 90 minutes</span>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-04.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-06.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+</body>
+</html>

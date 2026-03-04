@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 09: APIs — How Software Talks to Software | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-08.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-10.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 09</div>
+    <h1>APIs: How Software Talks to Software</h1>
+    <p class="level-subtitle">Every interesting thing you've built with Claude Code &mdash; the Resy sniper, the apartment dashboard, the newsletter &mdash; either already uses APIs or would be dramatically better with them. This level teaches you what's actually happening when software talks to other software.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: What an API Is -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">9.1</span> What an API Actually Is</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>When you asked Claude Code to build your Resy sniper, it didn't hack into Resy's database. It used Resy's <strong>API</strong> &mdash; a controlled, documented way to interact with Resy's system. Without understanding APIs, you're building in the dark. With understanding, you can connect your projects to almost any service on the internet: weather data, stock prices, email providers, AI models, payment processors, maps, social media, and thousands more.</p>
+
+  <h3>The Restaurant Analogy</h3>
+
+  <div class="analogy">
+    <strong>Think of an API as a restaurant.</strong> You (the client) walk in and sit down. You get a menu (the API documentation) that lists everything the kitchen can make. You don't barge into the kitchen and start cooking &mdash; you place an order with the waiter (the API endpoint). The waiter takes your order to the kitchen (the server), which prepares your food. The waiter brings your meal back (the response). You never see the kitchen. You don't know if they use gas or electric stoves, if there are three cooks or thirty. All you know is: you ordered a steak medium-rare, and a steak medium-rare arrived.
+  </div>
+
+  <p>This is exactly how APIs work. Your code (the client) sends a request to a specific URL (the endpoint/waiter), a server somewhere processes it, and sends back a response. You never see the server's code, its database, or how it works internally. You just follow the menu.</p>
+
+  <div class="definition">
+    <span class="term">API (Application Programming Interface)</span> &mdash; a set of rules and endpoints that let one piece of software request data or actions from another piece of software, without knowing or caring about the other's internal implementation.
+  </div>
+
+  <p>Every time you use an app on your phone, APIs are firing. When you check the weather, your phone calls a weather API. When you scroll Instagram, APIs load posts, stories, and ads. When you pay with Apple Pay, APIs talk to your bank. The internet runs on APIs.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>APIs are the reason you can build powerful applications without building everything from scratch. Want weather data? Don't build a weather station &mdash; call a weather API. Want AI text generation? Don't train a model &mdash; call the Anthropic API. Want to send an email? Don't build a mail server &mdash; call the SendGrid API. <strong>APIs let you stand on the shoulders of giants.</strong></p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: REST Basics -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">9.2</span> REST: The Most Common API Style</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>There are different architectural styles for APIs, but the one you'll encounter 90% of the time is called REST (Representational State Transfer). When someone says "API" without qualification, they almost always mean a REST API. Once you understand REST, you can work with most APIs on the internet.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Think of REST like a post office system.</strong> Every resource (user, post, order, etc.) has an address (URL). You send letters (requests) to those addresses using specific types of service: "please deliver this" (POST), "please read what's at this address" (GET), "please replace what's at this address" (PUT), "please remove what's at this address" (DELETE). The post office sends back a letter (response) with a status stamp telling you what happened.
+  </div>
+
+  <h3>Endpoints: The Addresses</h3>
+
+  <p>An endpoint is a specific URL that does a specific thing. Think of it like a direct phone line to a particular department.</p>
+
+  <p>Here are some examples of what real API endpoints look like.</p>
+
+  <div class="code-label">endpoints</div>
+  <pre><code><span class="syn-comment"># Get today's weather for New York</span>
+<span class="syn-function">https://api.openweathermap.org/data/2.5/weather?q=NewYork</span>
+
+<span class="syn-comment"># Get a specific user's profile</span>
+<span class="syn-function">https://api.example.com/users/42</span>
+
+<span class="syn-comment"># Get all posts in a blog</span>
+<span class="syn-function">https://api.example.com/posts</span>
+
+<span class="syn-comment"># Send a message to Claude</span>
+<span class="syn-function">https://api.anthropic.com/v1/messages</span></code></pre>
+
+  <p>Notice the pattern: a base URL, then a path that describes the resource. The <code>?q=NewYork</code> part is a <strong>query parameter</strong> &mdash; extra information you attach to refine your request, like asking the waiter "but can I get that with no onions?"</p>
+
+  <h3>HTTP Methods: What You Want to Do</h3>
+
+  <p>When you call an endpoint, you tell it <em>what action</em> you want to perform. There are four main HTTP methods, and they map perfectly to basic data operations.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Action</th>
+        <th>Restaurant Analogy</th>
+        <th>Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>GET</code></td>
+        <td>Read / retrieve data</td>
+        <td>Read the menu, ask what's available</td>
+        <td>Fetch a user's profile</td>
+      </tr>
+      <tr>
+        <td><code>POST</code></td>
+        <td>Create something new</td>
+        <td>Place a new order</td>
+        <td>Create a new account</td>
+      </tr>
+      <tr>
+        <td><code>PUT</code></td>
+        <td>Update / replace existing data</td>
+        <td>Change your order</td>
+        <td>Update your email address</td>
+      </tr>
+      <tr>
+        <td><code>DELETE</code></td>
+        <td>Remove something</td>
+        <td>Cancel your order</td>
+        <td>Delete a blog post</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Most of the time when you're starting out, you'll use <code>GET</code> (to read data) and <code>POST</code> (to send data). The Resy sniper probably used <code>POST</code> to make reservations and <code>GET</code> to check availability.</p>
+
+  <h3>Status Codes: What Happened</h3>
+
+  <p>Every API response comes with a numeric status code that tells you what happened. You don't need to memorize hundreds of them &mdash; just know the big categories and a few important ones.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Meaning</th>
+        <th>Translation</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>200</code></td>
+        <td>OK</td>
+        <td>Everything worked. Here's your data.</td>
+      </tr>
+      <tr>
+        <td><code>201</code></td>
+        <td>Created</td>
+        <td>The thing you asked to create was created successfully.</td>
+      </tr>
+      <tr>
+        <td><code>400</code></td>
+        <td>Bad Request</td>
+        <td>You sent something the server can't understand. Check your request.</td>
+      </tr>
+      <tr>
+        <td><code>401</code></td>
+        <td>Unauthorized</td>
+        <td>You didn't provide valid credentials. Who are you?</td>
+      </tr>
+      <tr>
+        <td><code>403</code></td>
+        <td>Forbidden</td>
+        <td>I know who you are, but you're not allowed to do this.</td>
+      </tr>
+      <tr>
+        <td><code>404</code></td>
+        <td>Not Found</td>
+        <td>That resource doesn't exist. Check the URL.</td>
+      </tr>
+      <tr>
+        <td><code>429</code></td>
+        <td>Too Many Requests</td>
+        <td>Slow down. You've hit the rate limit.</td>
+      </tr>
+      <tr>
+        <td><code>500</code></td>
+        <td>Internal Server Error</td>
+        <td>Something broke on <em>their</em> end. Not your fault.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="callout-title">Quick Rule</div>
+    <p><strong>2xx</strong> = success. <strong>4xx</strong> = you did something wrong. <strong>5xx</strong> = the server did something wrong. If you remember nothing else about status codes, remember this.</p>
+  </div>
+
+  <h3>Headers: Metadata on the Envelope</h3>
+
+  <p>Headers are extra pieces of information sent with both requests and responses. Think of them as what's written on the <em>outside</em> of an envelope, not the letter inside.</p>
+
+  <p>Common headers you'll see include the following.</p>
+
+  <div class="code-label">http headers</div>
+  <pre><code><span class="syn-comment"># Tell the server you want JSON back</span>
+<span class="syn-property">Content-Type</span>: <span class="syn-string">application/json</span>
+
+<span class="syn-comment"># Your API key for authentication</span>
+<span class="syn-property">Authorization</span>: <span class="syn-string">Bearer sk-ant-your-key-here</span>
+
+<span class="syn-comment"># Tell the server what format you'll accept</span>
+<span class="syn-property">Accept</span>: <span class="syn-string">application/json</span>
+
+<span class="syn-comment"># Anthropic-specific: which API version to use</span>
+<span class="syn-property">anthropic-version</span>: <span class="syn-string">2023-06-01</span></code></pre>
+
+  <p>You usually don't set headers manually &mdash; your HTTP client or Claude Code handles them. But when debugging a failing API call, checking the headers is often how you figure out what went wrong.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: JSON -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">9.3</span> JSON: The Universal Language of APIs</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>When you send data to an API or receive data back, that data needs to be in a format both sides understand. That format is almost always <strong>JSON</strong> (JavaScript Object Notation). If APIs are the conversations between software, JSON is the language they speak.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>JSON is like a very organized label maker.</strong> Imagine you're packing boxes for a move. Each box has labels on it &mdash; "contents: dishes", "room: kitchen", "fragile: yes". JSON works the same way: everything is labeled with a name (called a "key") and a value. It's just structured text that's easy for both humans and computers to read.
+  </div>
+
+  <h3>What JSON Looks Like</h3>
+
+  <p>Here's a simple JSON object. It describes a person.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"name"</span>: <span class="syn-string">"Alex"</span>,
+  <span class="syn-property">"age"</span>: <span class="syn-number">32</span>,
+  <span class="syn-property">"city"</span>: <span class="syn-string">"New York"</span>,
+  <span class="syn-property">"is_developer"</span>: <span class="syn-keyword">false</span>
+}</code></pre>
+
+  <p>In plain English, this says: "There's a person named Alex, they're 32 years old, they live in New York, and they're not a developer." Every piece of data has a <strong>key</strong> (the label, like <code>"name"</code>) and a <strong>value</strong> (the data, like <code>"Alex"</code>).</p>
+
+  <h3>JSON Data Types</h3>
+
+  <p>JSON supports a small set of value types. Here they all are.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"string_value"</span>: <span class="syn-string">"text goes in quotes"</span>,
+  <span class="syn-property">"number_value"</span>: <span class="syn-number">42</span>,
+  <span class="syn-property">"decimal_value"</span>: <span class="syn-number">3.14</span>,
+  <span class="syn-property">"boolean_true"</span>: <span class="syn-keyword">true</span>,
+  <span class="syn-property">"boolean_false"</span>: <span class="syn-keyword">false</span>,
+  <span class="syn-property">"null_value"</span>: <span class="syn-keyword">null</span>,
+  <span class="syn-property">"array_value"</span>: [<span class="syn-string">"item1"</span>, <span class="syn-string">"item2"</span>, <span class="syn-string">"item3"</span>],
+  <span class="syn-property">"object_value"</span>: {
+    <span class="syn-property">"nested_key"</span>: <span class="syn-string">"nested value"</span>
+  }
+}</code></pre>
+
+  <p>Strings are text in quotes. Numbers are plain numbers with no quotes. Booleans are <code>true</code> or <code>false</code>. <code>null</code> means "nothing" or "unknown." Arrays are lists of items in square brackets. Objects are curly braces containing key-value pairs &mdash; and they can nest inside each other.</p>
+
+  <h3>Real-World JSON: A Weather API Response</h3>
+
+  <p>Here's what a real weather API response might look like. This is the kind of data your apartment dashboard could receive.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"location"</span>: {
+    <span class="syn-property">"city"</span>: <span class="syn-string">"New York"</span>,
+    <span class="syn-property">"country"</span>: <span class="syn-string">"US"</span>,
+    <span class="syn-property">"coordinates"</span>: {
+      <span class="syn-property">"lat"</span>: <span class="syn-number">40.71</span>,
+      <span class="syn-property">"lon"</span>: <span class="syn-number">-74.01</span>
+    }
+  },
+  <span class="syn-property">"current"</span>: {
+    <span class="syn-property">"temperature"</span>: <span class="syn-number">72</span>,
+    <span class="syn-property">"feels_like"</span>: <span class="syn-number">75</span>,
+    <span class="syn-property">"humidity"</span>: <span class="syn-number">58</span>,
+    <span class="syn-property">"description"</span>: <span class="syn-string">"partly cloudy"</span>
+  },
+  <span class="syn-property">"forecast"</span>: [
+    {
+      <span class="syn-property">"day"</span>: <span class="syn-string">"Monday"</span>,
+      <span class="syn-property">"high"</span>: <span class="syn-number">78</span>,
+      <span class="syn-property">"low"</span>: <span class="syn-number">65</span>,
+      <span class="syn-property">"rain_chance"</span>: <span class="syn-number">0.2</span>
+    },
+    {
+      <span class="syn-property">"day"</span>: <span class="syn-string">"Tuesday"</span>,
+      <span class="syn-property">"high"</span>: <span class="syn-number">74</span>,
+      <span class="syn-property">"low"</span>: <span class="syn-number">62</span>,
+      <span class="syn-property">"rain_chance"</span>: <span class="syn-number">0.7</span>
+    }
+  ]
+}</code></pre>
+
+  <p>Reading this like English: the location is New York, US, at latitude 40.71 and longitude -74.01. Current temperature is 72 degrees, feels like 75, humidity is 58%, and it's partly cloudy. The forecast is an array (list) of two days: Monday will be 78/65 with a 20% rain chance, and Tuesday will be 74/62 with a 70% rain chance.</p>
+
+  <p>To access specific values in code, you chain the keys together with dots or brackets. For example, <code>response.current.temperature</code> gives you <code>72</code>. <code>response.forecast[0].day</code> gives you <code>"Monday"</code> (arrays start counting at 0, not 1).</p>
+
+  <div class="callout info">
+    <div class="callout-title">Quick Note</div>
+    <p>JSON is strict about syntax. Keys must be in double quotes (not single). No trailing commas after the last item. No comments. When Claude Code generates JSON for you, it handles these rules automatically &mdash; but when you're reading API docs or debugging, knowing these rules helps you spot typos.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: API Keys and Authentication -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">9.4</span> API Keys and Authentication</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Most useful APIs aren't open to the world. They need to know <em>who</em> is making the request, for billing, security, and rate limiting. This section teaches you how authentication works and &mdash; critically &mdash; how to keep your keys safe.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>An API key is like a VIP wristband at a club.</strong> The bouncer (server) checks your wristband (API key) at the door (endpoint). If it's valid, you get in. If it's expired, fake, or missing, you're turned away (401 Unauthorized). And just like a wristband, if someone steals yours, they can get in pretending to be you &mdash; and <em>you</em> get the bill.
+  </div>
+
+  <h3>Getting an API Key</h3>
+
+  <p>The process is similar across most services:</p>
+
+  <ol>
+    <li>Create an account on the service's website</li>
+    <li>Navigate to their developer portal or API section</li>
+    <li>Generate a new API key</li>
+    <li>Copy the key immediately (many services only show it once)</li>
+    <li>Store it safely (next section)</li>
+  </ol>
+
+  <p>For the Anthropic API specifically, you go to <code>console.anthropic.com</code>, create an account, navigate to API Keys, and generate one. It'll look something like <code>sk-ant-api03-xxxxx...</code>.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>NEVER put API keys directly in your code.</strong> Not in your JavaScript files. Not in your Python scripts. Not in your HTML. If your code ends up on GitHub (even accidentally), bots will find your key within minutes and run up charges on your account. This is not hypothetical &mdash; it happens constantly. People have woken up to $10,000+ bills because they committed an AWS key to a public repo.</p>
+  </div>
+
+  <h3>Storing Keys Safely: The .env File</h3>
+
+  <p>The standard approach is to store keys in a <code>.env</code> file &mdash; a special file that sits in your project directory and holds environment variables. Your code reads from this file, but it's never committed to version control.</p>
+
+  <p>Here's what a <code>.env</code> file looks like.</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-comment"># .env — NEVER commit this file</span>
+<span class="syn-variable">ANTHROPIC_API_KEY</span>=<span class="syn-string">sk-ant-api03-your-key-here</span>
+<span class="syn-variable">OPENWEATHER_API_KEY</span>=<span class="syn-string">abc123def456</span>
+<span class="syn-variable">DATABASE_URL</span>=<span class="syn-string">postgres://user:pass@localhost:5432/mydb</span></code></pre>
+
+  <p>No quotes around values (usually). One variable per line. Comments start with <code>#</code>.</p>
+
+  <p>Then in your <code>.gitignore</code> file (which tells git what NOT to track), you add the following.</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-comment"># .gitignore — add this line</span>
+.env</code></pre>
+
+  <p>This ensures your keys never accidentally get committed to version control. When you ask Claude Code to build something that needs an API key, tell it to read from environment variables, not hardcoded values.</p>
+
+  <h3>Types of Authentication</h3>
+
+  <p>There are several auth patterns you'll encounter in the wild.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>How It Works</th>
+        <th>Where You'll See It</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>API Key</strong></td>
+        <td>A single secret string sent as a header or query parameter</td>
+        <td>OpenWeatherMap, Anthropic, most developer tools</td>
+      </tr>
+      <tr>
+        <td><strong>Bearer Token</strong></td>
+        <td>A key sent in the <code>Authorization</code> header as <code>Bearer &lt;token&gt;</code></td>
+        <td>Anthropic, GitHub, Stripe</td>
+      </tr>
+      <tr>
+        <td><strong>OAuth 2.0</strong></td>
+        <td>A multi-step process where you log in, approve access, and get a temporary token</td>
+        <td>Google, Twitter/X, Spotify (for user data)</td>
+      </tr>
+      <tr>
+        <td><strong>Basic Auth</strong></td>
+        <td>Username and password encoded and sent in a header</td>
+        <td>Some legacy systems, internal tools</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>For most of your projects, you'll use API keys or bearer tokens. OAuth is more complex and usually needed only when your app accesses <em>other people's</em> accounts (like "Sign in with Google").</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Common Mistake</div>
+    <p>When asking Claude Code to set up API integrations, always say: <strong>"Store the API key in a .env file, read it from environment variables, and make sure .env is in .gitignore."</strong> This one sentence prevents the most common security disaster in software.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Making API Calls -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">9.5</span> Making API Calls</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Understanding what an API is conceptually is one thing. Actually calling one is where it becomes real. There are several ways to make API calls, from simple terminal commands to code libraries. Let's walk through each.</p>
+
+  <h3>Method 1: curl from the Terminal</h3>
+
+  <p><code>curl</code> is a command-line tool that comes pre-installed on macOS and most Linux systems (and is available on Windows too). It lets you make HTTP requests directly from your terminal. It's the quickest way to test an API without writing any code.</p>
+
+  <p>Here's a simple GET request to a free public API that returns a random joke.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'curl-mac')">macOS / Linux</button>
+      <button onclick="switchTab(event, 'curl-win')">Windows (PowerShell)</button>
+    </div>
+    <div id="curl-mac" class="os-tab-content active">
+      <pre><code><span class="syn-prompt">$</span> <span class="syn-function">curl</span> <span class="syn-string">https://official-joke-api.appspot.com/random_joke</span></code></pre>
+    </div>
+    <div id="curl-win" class="os-tab-content">
+      <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-function">curl.exe</span> <span class="syn-string">https://official-joke-api.appspot.com/random_joke</span></code></pre>
+    </div>
+  </div>
+
+  <p>This sends a GET request (the default) and prints the JSON response right in your terminal. No code, no setup, no authentication needed for this particular API.</p>
+
+  <p>Now here's a more realistic example &mdash; calling the Anthropic API with curl. This one uses POST (because you're sending data), includes headers, and sends a JSON body.</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-prompt">$</span> <span class="syn-function">curl</span> <span class="syn-string">https://api.anthropic.com/v1/messages</span> \
+  <span class="syn-flag">-H</span> <span class="syn-string">"content-type: application/json"</span> \
+  <span class="syn-flag">-H</span> <span class="syn-string">"x-api-key: $ANTHROPIC_API_KEY"</span> \
+  <span class="syn-flag">-H</span> <span class="syn-string">"anthropic-version: 2023-06-01"</span> \
+  <span class="syn-flag">-d</span> <span class="syn-string">'{
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 1024,
+    "messages": [
+      {"role": "user", "content": "Explain APIs in one sentence."}
+    ]
+  }'</span></code></pre>
+
+  <p>Let's break this down piece by piece. <code>-H</code> adds a header. The first header says "I'm sending JSON." The second sends your API key (pulled from the <code>$ANTHROPIC_API_KEY</code> environment variable, not hardcoded). The third tells Anthropic which API version to use. <code>-d</code> sends the request body &mdash; the actual data. The body tells Claude which model to use, the maximum length of the response, and the message to respond to.</p>
+
+  <h3>Method 2: In Code (Python)</h3>
+
+  <p>When building real applications, you'll make API calls from code. Here's the same Anthropic API call using Python's <code>requests</code> library &mdash; the most popular HTTP library in Python.</p>
+
+  <div class="code-label">python</div>
+  <pre><code><span class="syn-keyword">import</span> <span class="syn-builtin">os</span>
+<span class="syn-keyword">import</span> <span class="syn-builtin">requests</span>
+
+<span class="syn-comment"># Read API key from environment variable (never hardcode!)</span>
+<span class="syn-variable">api_key</span> <span class="syn-operator">=</span> <span class="syn-builtin">os</span>.<span class="syn-function">getenv</span>(<span class="syn-string">"ANTHROPIC_API_KEY"</span>)
+
+<span class="syn-variable">response</span> <span class="syn-operator">=</span> <span class="syn-builtin">requests</span>.<span class="syn-function">post</span>(
+    <span class="syn-string">"https://api.anthropic.com/v1/messages"</span>,
+    <span class="syn-variable">headers</span><span class="syn-operator">=</span>{
+        <span class="syn-string">"content-type"</span>: <span class="syn-string">"application/json"</span>,
+        <span class="syn-string">"x-api-key"</span>: <span class="syn-variable">api_key</span>,
+        <span class="syn-string">"anthropic-version"</span>: <span class="syn-string">"2023-06-01"</span>,
+    },
+    <span class="syn-variable">json</span><span class="syn-operator">=</span>{
+        <span class="syn-string">"model"</span>: <span class="syn-string">"claude-sonnet-4-20250514"</span>,
+        <span class="syn-string">"max_tokens"</span>: <span class="syn-number">1024</span>,
+        <span class="syn-string">"messages"</span>: [
+            {<span class="syn-string">"role"</span>: <span class="syn-string">"user"</span>, <span class="syn-string">"content"</span>: <span class="syn-string">"Explain APIs in one sentence."</span>}
+        ],
+    }
+)
+
+<span class="syn-comment"># Parse the response</span>
+<span class="syn-variable">data</span> <span class="syn-operator">=</span> <span class="syn-variable">response</span>.<span class="syn-function">json</span>()
+<span class="syn-function">print</span>(<span class="syn-variable">data</span>[<span class="syn-string">"content"</span>][<span class="syn-number">0</span>][<span class="syn-string">"text"</span>])</code></pre>
+
+  <p>This does the same thing as the curl command, but in a structured way that you can build into a larger application. The key concept: <code>requests.post()</code> sends a POST request to the URL with the headers and JSON body you specify. The response comes back, you call <code>.json()</code> to parse it from JSON text into a Python dictionary, and then you access the data you need.</p>
+
+  <h3>Method 3: In Code (JavaScript / Node.js)</h3>
+
+  <p>Here's the equivalent in JavaScript, using the built-in <code>fetch</code> function.</p>
+
+  <div class="code-label">javascript</div>
+  <pre><code><span class="syn-keyword">const</span> <span class="syn-variable">apiKey</span> <span class="syn-operator">=</span> <span class="syn-variable">process</span>.<span class="syn-property">env</span>.<span class="syn-property">ANTHROPIC_API_KEY</span>;
+
+<span class="syn-keyword">const</span> <span class="syn-variable">response</span> <span class="syn-operator">=</span> <span class="syn-keyword">await</span> <span class="syn-function">fetch</span>(<span class="syn-string">"https://api.anthropic.com/v1/messages"</span>, {
+  <span class="syn-property">method</span>: <span class="syn-string">"POST"</span>,
+  <span class="syn-property">headers</span>: {
+    <span class="syn-string">"content-type"</span>: <span class="syn-string">"application/json"</span>,
+    <span class="syn-string">"x-api-key"</span>: <span class="syn-variable">apiKey</span>,
+    <span class="syn-string">"anthropic-version"</span>: <span class="syn-string">"2023-06-01"</span>,
+  },
+  <span class="syn-property">body</span>: <span class="syn-variable">JSON</span>.<span class="syn-function">stringify</span>({
+    <span class="syn-property">model</span>: <span class="syn-string">"claude-sonnet-4-20250514"</span>,
+    <span class="syn-property">max_tokens</span>: <span class="syn-number">1024</span>,
+    <span class="syn-property">messages</span>: [
+      { <span class="syn-property">role</span>: <span class="syn-string">"user"</span>, <span class="syn-property">content</span>: <span class="syn-string">"Explain APIs in one sentence."</span> }
+    ],
+  }),
+});
+
+<span class="syn-keyword">const</span> <span class="syn-variable">data</span> <span class="syn-operator">=</span> <span class="syn-keyword">await</span> <span class="syn-variable">response</span>.<span class="syn-function">json</span>();
+<span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-variable">data</span>.<span class="syn-property">content</span>[<span class="syn-number">0</span>].<span class="syn-property">text</span>);</code></pre>
+
+  <p>Same pattern: specify the URL, method, headers, and body. Parse the JSON response. Access the data. The language is different, but the API concepts are identical.</p>
+
+  <h3>Method 4: Having Claude Code Do It</h3>
+
+  <p>Here's the thing &mdash; you don't need to write any of this yourself. When you tell Claude Code something like "call the OpenWeatherMap API and show me today's weather," it generates all of this code for you. But now you understand <em>what</em> it's generating and <em>why</em>.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Pro Tip</div>
+    <p>When asking Claude Code to make API calls, give it three things: (1) the API documentation URL or the endpoint details, (2) where your API key is stored (e.g., "it's in .env as OPENWEATHER_API_KEY"), and (3) what you want to do with the response. The more specific you are, the better the result.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: The Anthropic API -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">9.6</span> The Anthropic API: Claude Under the Hood</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Every time you use Claude Code, it's making API calls to the Anthropic API behind the scenes. Understanding this API gives you a deeper grasp of what Claude Code is doing, how it uses your context window, and why certain things cost more than others.</p>
+
+  <h3>What Claude Code Does Behind the Scenes</h3>
+
+  <p>When you type a prompt into Claude Code and press Enter, here's a simplified version of what happens:</p>
+
+  <ol>
+    <li>Claude Code packages your prompt, along with the conversation history and any relevant file contents, into a JSON request body</li>
+    <li>It sends a POST request to <code>https://api.anthropic.com/v1/messages</code></li>
+    <li>The Anthropic server processes your request using the Claude model</li>
+    <li>The response streams back as JSON</li>
+    <li>Claude Code parses the response and displays it (or executes tool calls within it)</li>
+  </ol>
+
+  <p>Every single interaction is an API call. There's no magic &mdash; it's POST requests and JSON responses, the same pattern you just learned.</p>
+
+  <h3>The Messages API</h3>
+
+  <p>The core of the Anthropic API is the Messages endpoint. Here's the structure of a request.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"model"</span>: <span class="syn-string">"claude-sonnet-4-20250514"</span>,
+  <span class="syn-property">"max_tokens"</span>: <span class="syn-number">4096</span>,
+  <span class="syn-property">"system"</span>: <span class="syn-string">"You are a helpful assistant that writes Python code."</span>,
+  <span class="syn-property">"messages"</span>: [
+    {
+      <span class="syn-property">"role"</span>: <span class="syn-string">"user"</span>,
+      <span class="syn-property">"content"</span>: <span class="syn-string">"Write a function that reverses a string"</span>
+    }
+  ]
+}</code></pre>
+
+  <p>The <code>model</code> tells the API which version of Claude to use. <code>max_tokens</code> caps the response length. <code>system</code> is the system prompt &mdash; instructions that shape Claude's behavior for the entire conversation. <code>messages</code> is the conversation history, alternating between <code>"user"</code> and <code>"assistant"</code> roles.</p>
+
+  <p>And the response comes back like this.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"id"</span>: <span class="syn-string">"msg_01XFDUDYJgAACzvnptvVoYEL"</span>,
+  <span class="syn-property">"type"</span>: <span class="syn-string">"message"</span>,
+  <span class="syn-property">"role"</span>: <span class="syn-string">"assistant"</span>,
+  <span class="syn-property">"content"</span>: [
+    {
+      <span class="syn-property">"type"</span>: <span class="syn-string">"text"</span>,
+      <span class="syn-property">"text"</span>: <span class="syn-string">"Here's a function that reverses a string..."</span>
+    }
+  ],
+  <span class="syn-property">"model"</span>: <span class="syn-string">"claude-sonnet-4-20250514"</span>,
+  <span class="syn-property">"usage"</span>: {
+    <span class="syn-property">"input_tokens"</span>: <span class="syn-number">25</span>,
+    <span class="syn-property">"output_tokens"</span>: <span class="syn-number">150</span>
+  }
+}</code></pre>
+
+  <p>Notice the <code>usage</code> field at the bottom &mdash; that's how billing works.</p>
+
+  <h3>Tokens and Pricing</h3>
+
+  <div class="definition">
+    <span class="term">Token</span> &mdash; a chunk of text, roughly 3/4 of a word. "Hello world" is about 2 tokens. A full page of English text is about 400-500 tokens. Tokens are how API usage is measured and billed.
+  </div>
+
+  <p>API pricing is split into two categories:</p>
+
+  <ul>
+    <li><strong>Input tokens</strong> &mdash; everything you send TO the API (your prompt, conversation history, system prompt, any files or context). This is the cheaper of the two.</li>
+    <li><strong>Output tokens</strong> &mdash; everything the API sends BACK to you (Claude's response). This costs more because it requires more computation.</li>
+  </ul>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>This is why context window management matters so much. Every time Claude Code reads a file into context, those are input tokens you're paying for. A 1,000-line file might be 5,000+ tokens. If you're sending that with every API call in a long conversation, costs add up. This is the economic reason behind the best practices you learned in earlier levels &mdash; keeping context focused, using CLAUDE.md efficiently, and not dumping entire codebases into every prompt.</p>
+  </div>
+
+  <p>Different Claude models have different pricing tiers. More capable models (like Opus) cost more per token than faster models (like Haiku). Claude Code lets you select which model to use, and now you understand the trade-off: capability vs. cost.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Rate Limits and Error Handling -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">9.7</span> Rate Limits and Error Handling</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>APIs aren't unlimited buffets. They have rules about how fast and how often you can call them. Understanding these limits &mdash; and knowing how to handle failures gracefully &mdash; is the difference between a robust application and one that crashes the moment something unexpected happens.</p>
+
+  <h3>Rate Limits</h3>
+
+  <div class="analogy">
+    <strong>Rate limits are like a "one customer at a time" sign at a small shop.</strong> The shop can only serve so many people per hour. If too many people show up, they have to wait outside. APIs work the same way &mdash; each key gets a certain number of requests per minute/hour/day. Go over, and you'll get a <code>429 Too Many Requests</code> response.
+  </div>
+
+  <p>Common rate limit patterns:</p>
+
+  <ul>
+    <li><strong>Requests per minute (RPM)</strong> &mdash; e.g., 60 requests per minute</li>
+    <li><strong>Requests per day (RPD)</strong> &mdash; e.g., 1,000 requests per day on a free tier</li>
+    <li><strong>Tokens per minute (TPM)</strong> &mdash; common with AI APIs like Anthropic, limiting total tokens processed</li>
+  </ul>
+
+  <p>When you hit a rate limit, the API usually tells you in the response headers how long to wait before retrying.</p>
+
+  <h3>Error Handling: Expecting the Unexpected</h3>
+
+  <p>APIs fail. Servers go down. Networks drop. Keys expire. Your code needs to handle this gracefully instead of crashing. This is called <strong>error handling</strong>.</p>
+
+  <p>Here's a Python example that handles common API errors properly.</p>
+
+  <div class="code-label">python</div>
+  <pre><code><span class="syn-keyword">import</span> <span class="syn-builtin">requests</span>
+<span class="syn-keyword">import</span> <span class="syn-builtin">time</span>
+
+<span class="syn-keyword">def</span> <span class="syn-function">call_api_with_retry</span>(<span class="syn-variable">url</span>, <span class="syn-variable">headers</span>, <span class="syn-variable">payload</span>, <span class="syn-variable">max_retries</span><span class="syn-operator">=</span><span class="syn-number">3</span>):
+    <span class="syn-keyword">for</span> <span class="syn-variable">attempt</span> <span class="syn-keyword">in</span> <span class="syn-function">range</span>(<span class="syn-variable">max_retries</span>):
+        <span class="syn-keyword">try</span>:
+            <span class="syn-variable">response</span> <span class="syn-operator">=</span> <span class="syn-builtin">requests</span>.<span class="syn-function">post</span>(<span class="syn-variable">url</span>, <span class="syn-variable">headers</span><span class="syn-operator">=</span><span class="syn-variable">headers</span>, <span class="syn-variable">json</span><span class="syn-operator">=</span><span class="syn-variable">payload</span>)
+
+            <span class="syn-comment"># Success — return the data</span>
+            <span class="syn-keyword">if</span> <span class="syn-variable">response</span>.<span class="syn-property">status_code</span> <span class="syn-operator">==</span> <span class="syn-number">200</span>:
+                <span class="syn-keyword">return</span> <span class="syn-variable">response</span>.<span class="syn-function">json</span>()
+
+            <span class="syn-comment"># Rate limited — wait and retry</span>
+            <span class="syn-keyword">elif</span> <span class="syn-variable">response</span>.<span class="syn-property">status_code</span> <span class="syn-operator">==</span> <span class="syn-number">429</span>:
+                <span class="syn-variable">wait_time</span> <span class="syn-operator">=</span> <span class="syn-number">2</span> <span class="syn-operator">**</span> <span class="syn-variable">attempt</span>  <span class="syn-comment"># 1s, 2s, 4s (exponential backoff)</span>
+                <span class="syn-function">print</span>(<span class="syn-string">f"Rate limited. Waiting {wait_time}s..."</span>)
+                <span class="syn-builtin">time</span>.<span class="syn-function">sleep</span>(<span class="syn-variable">wait_time</span>)
+
+            <span class="syn-comment"># Server error — maybe temporary, retry</span>
+            <span class="syn-keyword">elif</span> <span class="syn-variable">response</span>.<span class="syn-property">status_code</span> <span class="syn-operator">&gt;=</span> <span class="syn-number">500</span>:
+                <span class="syn-function">print</span>(<span class="syn-string">f"Server error ({response.status_code}). Retrying..."</span>)
+                <span class="syn-builtin">time</span>.<span class="syn-function">sleep</span>(<span class="syn-number">2</span> <span class="syn-operator">**</span> <span class="syn-variable">attempt</span>)
+
+            <span class="syn-comment"># Client error — our fault, don't retry</span>
+            <span class="syn-keyword">else</span>:
+                <span class="syn-function">print</span>(<span class="syn-string">f"Error {response.status_code}: {response.text}"</span>)
+                <span class="syn-keyword">return</span> <span class="syn-keyword">None</span>
+
+        <span class="syn-keyword">except</span> <span class="syn-builtin">requests</span>.<span class="syn-property">exceptions</span>.<span class="syn-property">ConnectionError</span>:
+            <span class="syn-function">print</span>(<span class="syn-string">"Connection failed. Is the internet working?"</span>)
+            <span class="syn-builtin">time</span>.<span class="syn-function">sleep</span>(<span class="syn-number">2</span> <span class="syn-operator">**</span> <span class="syn-variable">attempt</span>)
+
+    <span class="syn-function">print</span>(<span class="syn-string">"All retries failed."</span>)
+    <span class="syn-keyword">return</span> <span class="syn-keyword">None</span></code></pre>
+
+  <p>Let's walk through the key concepts in this code. First, it tries the API call up to 3 times. If it succeeds (200), it returns the data immediately. If rate limited (429), it waits before retrying &mdash; using <strong>exponential backoff</strong> (1 second, then 2, then 4), which is a standard pattern that avoids hammering the server. If the server errors (5xx), it retries since these are often temporary. If it's a client error (4xx other than 429), it stops &mdash; because retrying a bad request won't fix it. And if the network itself is down, it catches that too.</p>
+
+  <div class="definition">
+    <span class="term">Exponential Backoff</span> &mdash; a retry strategy where you wait progressively longer between each retry attempt (1s, 2s, 4s, 8s...). This prevents your code from overwhelming a struggling server with rapid retries.
+  </div>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>When asking Claude Code to build any API integration, <strong>always ask for error handling and retry logic</strong>. Say something like: "Add retry logic with exponential backoff for rate limits and server errors." This single addition makes your applications dramatically more reliable. Without it, a momentary API hiccup crashes your entire app.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Practical Pattern -->
+  <!-- ============================================================ -->
+
+  <h2><span class="section-number">9.8</span> Practical Pattern: Having Claude Code Build API Integrations</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>You now understand how APIs work. But you're using Claude Code &mdash; you don't need to write all the code yourself. The skill is knowing how to <em>ask</em> Claude Code to build API integrations effectively. A vague request gets vague results. A precise request gets production-quality code.</p>
+
+  <h3>The Template Prompt</h3>
+
+  <p>Here is the structure of a solid prompt for API work. When asking Claude Code to build an integration, include the following.</p>
+
+  <div class="code-label">prompt template</div>
+  <pre><code><span class="syn-comment"># What you're telling Claude Code:</span>
+
+<span class="syn-number">1.</span> <span class="syn-keyword">The API:</span> <span class="syn-string">"Connect to the OpenWeatherMap API"</span>
+<span class="syn-number">2.</span> <span class="syn-keyword">The docs:</span> <span class="syn-string">"Documentation is at https://openweathermap.org/api"</span>
+<span class="syn-number">3.</span> <span class="syn-keyword">The key:</span> <span class="syn-string">"My API key is in .env as OPENWEATHER_API_KEY"</span>
+<span class="syn-number">4.</span> <span class="syn-keyword">The goal:</span> <span class="syn-string">"Fetch the 5-day forecast for a given city"</span>
+<span class="syn-number">5.</span> <span class="syn-keyword">The output:</span> <span class="syn-string">"Display each day's high, low, and conditions"</span>
+<span class="syn-number">6.</span> <span class="syn-keyword">Error handling:</span> <span class="syn-string">"Handle rate limits, invalid cities, and network errors"</span></code></pre>
+
+  <p>Here is how that looks as an actual prompt you'd type into Claude Code.</p>
+
+  <div class="code-label">claude code prompt</div>
+  <pre><code>Build a Python script that connects to the OpenWeatherMap API.
+The docs are at https://openweathermap.org/api.
+My API key is in .env as OPENWEATHER_API_KEY.
+
+The script should:
+- Accept a city name as a command-line argument
+- Fetch the 5-day forecast
+- Display each day's date, high temp, low temp, and conditions
+- Format the output as a clean table in the terminal
+
+Include error handling for:
+- Invalid/missing API key
+- City not found (404)
+- Rate limiting (429)
+- Network connectivity issues
+
+Use retry logic with exponential backoff for transient failures.</code></pre>
+
+  <p>This gives Claude Code everything it needs: what API, where the docs are, where the key lives, what to do, what the output should look like, and what errors to handle. Compare this to a vague prompt like "show me the weather" and you'll see why specificity matters.</p>
+
+  <h3>Reviewing Claude Code's API Work</h3>
+
+  <p>When Claude Code generates API integration code, here's what to check:</p>
+
+  <ul>
+    <li><strong>Is the API key read from environment variables?</strong> If you see a hardcoded key string, reject it immediately.</li>
+    <li><strong>Is there error handling?</strong> Look for try/except blocks (Python) or try/catch (JavaScript). If the code just calls the API and assumes it works, ask for error handling.</li>
+    <li><strong>Does it check the status code?</strong> Good code checks <code>response.status_code</code> before trying to parse the response body.</li>
+    <li><strong>Is there retry logic?</strong> For anything that runs unattended (like your newsletter), retry logic is essential.</li>
+    <li><strong>Does it handle the response correctly?</strong> Check that it accesses the right fields in the JSON response, matching the API's actual documentation.</li>
+  </ul>
+
+  <div class="callout tip">
+    <div class="callout-title">Pro Tip</div>
+    <p>Before asking Claude Code to build an API integration, spend 5 minutes reading the API's documentation yourself. You don't need to understand everything &mdash; just look for the endpoint URL, required parameters, and an example response. Then paste the relevant docs section into your prompt. Claude Code can also read documentation URLs directly if you give it access.</p>
+  </div>
+
+  <h3>Common Gotchas</h3>
+
+  <p>These are the mistakes people make most often when working with APIs. Knowing them in advance saves hours of debugging.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Gotcha</th>
+        <th>What Happens</th>
+        <th>How to Fix</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>API key committed to git</td>
+        <td>Key gets stolen, you get billed</td>
+        <td>Use .env + .gitignore. If already committed, rotate the key immediately.</td>
+      </tr>
+      <tr>
+        <td>No error handling</td>
+        <td>App crashes when API is slow or down</td>
+        <td>Always add try/catch and status code checks</td>
+      </tr>
+      <tr>
+        <td>Ignoring rate limits</td>
+        <td>You get blocked (429), app fails repeatedly</td>
+        <td>Add exponential backoff and respect rate limit headers</td>
+      </tr>
+      <tr>
+        <td>Wrong Content-Type header</td>
+        <td>Server can't parse your request (400)</td>
+        <td>Set <code>Content-Type: application/json</code> for JSON bodies</td>
+      </tr>
+      <tr>
+        <td>Not reading the API docs</td>
+        <td>You call endpoints that don't exist or send wrong parameters</td>
+        <td>Skim the docs before prompting Claude Code</td>
+      </tr>
+      <tr>
+        <td>Using HTTP instead of HTTPS</td>
+        <td>API key sent in plain text, security risk</td>
+        <td>Always use <code>https://</code> endpoints</td>
+      </tr>
+      <tr>
+        <td>Hardcoding API URLs</td>
+        <td>URL changes break your entire app</td>
+        <td>Store base URLs in config/environment variables</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT -->
+  <!-- ============================================================ -->
+
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#9989;</span>
+      <h3>Checkpoint Project: The Connector</h3>
+    </div>
+
+    <h4>What to Build</h4>
+    <p>Use Claude Code to build a small application that connects to a <strong>real, public API</strong>, processes the JSON response, and displays formatted output in the terminal (or a simple HTML page). Then add error handling for when things go wrong.</p>
+
+    <p><strong>Choose one of these free APIs</strong> (or another public API you find interesting):</p>
+    <ul>
+      <li><strong>OpenWeatherMap</strong> (<code>openweathermap.org/api</code>) &mdash; free tier, requires signup</li>
+      <li><strong>NewsAPI</strong> (<code>newsapi.org</code>) &mdash; free tier for development, requires signup</li>
+      <li><strong>JSONPlaceholder</strong> (<code>jsonplaceholder.typicode.com</code>) &mdash; no signup needed, fake data for testing</li>
+      <li><strong>Open-Meteo</strong> (<code>open-meteo.com</code>) &mdash; no signup or key needed, real weather data</li>
+    </ul>
+
+    <h4>Requirements</h4>
+    <ol>
+      <li>Sign up for the API and get a key (if the API requires one)</li>
+      <li>Store the key in a <code>.env</code> file, read it from environment variables in code</li>
+      <li>Add <code>.env</code> to your <code>.gitignore</code></li>
+      <li>Tell Claude Code to build the integration using the prompt template from Section 9.8</li>
+      <li>The app must make at least one API call, parse the JSON response, and display specific fields in a readable format</li>
+      <li>Add error handling for: missing API key, network failure, and API errors (4xx/5xx)</li>
+      <li>Intentionally break something (wrong key, wrong URL, disconnect internet) and verify the error handling works</li>
+    </ol>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>Your app successfully calls a real API and displays formatted data</li>
+      <li>The API key is stored in <code>.env</code> and read from environment variables (not hardcoded)</li>
+      <li><code>.env</code> is listed in <code>.gitignore</code></li>
+      <li>Using a wrong or missing API key produces a helpful error message instead of a crash</li>
+      <li>Disconnecting from the internet (or using a bad URL) produces a helpful error message instead of a crash</li>
+      <li>You can explain what <code>GET</code> vs <code>POST</code> means if asked</li>
+      <li>You can look at the JSON response and identify the keys and values you're extracting</li>
+    </ul>
+
+    <h4>Bonus Challenge</h4>
+    <p>Add a second API call from a different service and combine the data. For example: fetch weather from OpenWeatherMap AND fetch a relevant news article from NewsAPI, then display both together. This is how real applications work &mdash; combining data from multiple sources.</p>
+
+    <div class="time-estimate">Estimated time: 60&ndash;90 minutes</div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-08.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-10.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+<script>
+function switchTab(event, tabId) {
+  const tabGroup = event.target.closest('.os-tabs');
+  tabGroup.querySelectorAll('.os-tab-buttons button').forEach(btn => btn.classList.remove('active'));
+  tabGroup.querySelectorAll('.os-tab-content').forEach(content => content.classList.remove('active'));
+  event.target.classList.add('active');
+  tabGroup.querySelector('#' + tabId).classList.add('active');
+}
+</script>
+
+</body>
+</html>

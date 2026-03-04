@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 06: Git — Your Safety Net and Time Machine | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-05.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-07.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 06</div>
+    <h1>Git: Your Safety Net and Time Machine</h1>
+    <p class="level-subtitle">Version control fundamentals, branches, commits, recovering from mistakes, and how Claude Code uses git behind the scenes.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: Why Version Control Exists -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.1</span> Why Version Control Exists</h2>
+
+  <p>You've been building things with Claude Code. Maybe a Resy sniper, an apartment dashboard, a daily newsletter. At some point, something broke. You changed a file, the whole thing stopped working, and you had no way to get back to the version that was fine ten minutes ago.</p>
+
+  <p>Or maybe you wanted to try a completely different approach &mdash; rip out the front end and rebuild it &mdash; but you were terrified of losing the working version. So you made a copy of the folder called <code>my-project-backup-FINAL-v2-REAL</code> and prayed.</p>
+
+  <p>That's the problem version control solves.</p>
+
+  <div class="analogy">
+    <strong>The analogy:</strong> Imagine you're writing a novel. Without version control, you have one copy of your manuscript. Every edit permanently overwrites what was there before. Want to try rewriting chapter 3? Better save a copy first. Want to compare your current draft to last week's? Good luck scrolling through folders named <em>draft_final_FINAL_v3</em>.
+    <br><br>
+    Now imagine you have a magical notebook that remembers every version of every page you've ever written. You can jump back to any point in history. You can create a parallel universe where you try a different ending without touching your main draft. You can merge the good parts back. That magical notebook is git.
+  </div>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Git is not optional. Every professional project uses it. Every time Claude Code makes changes to your project, git is what lets you undo those changes if something goes wrong. Learning git is learning how to be fearless with your code.</p>
+  </div>
+
+  <p>Without version control, one bad change can destroy everything. With it, you can always go back. You can experiment freely. You can collaborate without stepping on each other's work. It's the difference between walking a tightrope with no net and walking one with a massive trampoline underneath you.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: What Git Is (And What It's Not) -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.2</span> What Git Is (And What It's Not)</h2>
+
+  <div class="definition">
+    <p><span class="term">Git</span> is a distributed version control system that tracks changes to your files over time. It runs locally on your computer. It was created in 2005 by Linus Torvalds (the same person who created Linux) because he needed something fast and reliable to manage the Linux kernel &mdash; one of the largest software projects on Earth.</p>
+  </div>
+
+  <p>Here's the critical distinction that trips everyone up:</p>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4>Git</h4>
+      <p>The version control <strong>tool</strong>. Runs on your machine. Tracks your project history locally. Works without internet. Free and open source.</p>
+    </div>
+    <div class="comparison-col">
+      <h4>GitHub</h4>
+      <p>A <strong>website</strong> that hosts git repositories in the cloud. Adds collaboration features (pull requests, issues, etc.). Owned by Microsoft. One of many hosting options.</p>
+    </div>
+  </div>
+
+  <p>Think of it this way: git is the engine, GitHub is a parking garage. You can drive without a parking garage. You can't park without a car. You can use git without GitHub. You can use GitHub alternatives (GitLab, Bitbucket) with the same git knowledge.</p>
+
+  <p>Git won the version control wars because it's fast, it's distributed (every copy is a full backup), and it handles branching brilliantly. Today, there is no serious alternative. This is the one to learn.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: Core Concepts with Analogies -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.3</span> Core Concepts</h2>
+
+  <p>Before you touch a single command, get these five concepts locked into your mental model. Everything else builds on them.</p>
+
+  <h3><span class="section-number">6.3.1</span> Repository (Repo)</h3>
+
+  <div class="definition">
+    <p><span class="term">Repository</span> &mdash; Your project's complete history book. It contains every file, every change, every snapshot ever made. When you "initialize a repo," you're telling git to start watching this folder.</p>
+  </div>
+
+  <div class="analogy">
+    <strong>Analogy:</strong> A repository is like a filing cabinet that not only holds your current documents but also has a magical drawer that contains every previous version of every document, plus notes about who changed what and when.
+  </div>
+
+  <p>Technically, a repo is just your project folder plus a hidden <code>.git</code> directory inside it. That <code>.git</code> folder is where all the history lives. Delete it, and you lose all your history (but keep your current files).</p>
+
+  <h3><span class="section-number">6.3.2</span> Commit</h3>
+
+  <div class="definition">
+    <p><span class="term">Commit</span> &mdash; A snapshot of your project at a specific moment in time. Each commit has a unique ID, a message describing what changed, a timestamp, and a pointer to the previous commit.</p>
+  </div>
+
+  <div class="analogy">
+    <strong>Analogy:</strong> A commit is a photograph of your entire project. You take a photo, label it ("added login page"), and put it in the album. You can always flip back to any photo to see exactly what your project looked like at that moment.
+  </div>
+
+  <p>Commits are the atoms of git. Everything &mdash; branches, merges, reverts &mdash; is built on top of commits. A good commit is small, focused, and has a clear message. "Fixed the bug" is a bad commit message. "Fix crash when user submits empty form on signup page" is a good one.</p>
+
+  <h3><span class="section-number">6.3.3</span> Branch</h3>
+
+  <div class="definition">
+    <p><span class="term">Branch</span> &mdash; A parallel timeline of your project. You create a branch to experiment, build a feature, or fix a bug &mdash; without touching the main version.</p>
+  </div>
+
+  <div class="analogy">
+    <strong>Analogy:</strong> Imagine a choose-your-own-adventure book. At some point, you reach a fork: one path leads to the dragon, another to the castle. A branch lets you explore the dragon path without losing access to the castle path. If the dragon works out, you can merge it back into the main story. If not, you just abandon that branch.
+  </div>
+
+  <p>Your default branch is usually called <code>main</code> (older repos call it <code>master</code>). It represents the "official" version of your project. Feature branches split off from main, and merge back when ready.</p>
+
+  <h3><span class="section-number">6.3.4</span> Staging Area (Index)</h3>
+
+  <div class="definition">
+    <p><span class="term">Staging Area</span> &mdash; The preparation zone between your working files and a commit. You choose exactly which changes to include in your next snapshot.</p>
+  </div>
+
+  <div class="analogy">
+    <strong>Analogy:</strong> You're a photographer setting up a group photo. You don't just snap a picture of whoever happens to be in the room. You arrange people, decide who's in and who's out, then take the photo. The staging area is where you arrange &mdash; the commit is the photo.
+  </div>
+
+  <p>This is what makes git powerful. You might have changed 10 files, but only 3 of those changes are related to the feature you're committing. The staging area lets you commit just those 3 files, keeping the other 7 changes for a separate commit later.</p>
+
+  <h3><span class="section-number">6.3.5</span> Remote</h3>
+
+  <div class="definition">
+    <p><span class="term">Remote</span> &mdash; A copy of your repository hosted somewhere else, typically on a service like GitHub, GitLab, or Bitbucket. It's your backup and your collaboration hub.</p>
+  </div>
+
+  <div class="analogy">
+    <strong>Analogy:</strong> You keep your diary at home (local repo). But you also scan every page and upload it to a secure cloud vault (remote). If your house burns down, the vault still has everything. And if a friend needs to read it, they can access the vault instead of coming to your house.
+  </div>
+
+  <p>You <strong>push</strong> your commits to a remote to back them up and share them. You <strong>pull</strong> from a remote to get changes others have made. The remote is usually named <code>origin</code> by convention.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: Essential Commands -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.4</span> Essential Commands</h2>
+
+  <p>Time to get your hands dirty. Every command below follows the same structure: why you use it, what it does, and what the output means.</p>
+
+  <!-- git init -->
+  <h3><span class="section-number">6.4.1</span> Starting a Repo: <code>git init</code></h3>
+
+  <p>This is how you tell git to start tracking a project. You run this once, at the beginning, inside your project folder.</p>
+
+  <div class="os-tabs" id="os-git-init">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(this, 'mac')">macOS</button>
+      <button onclick="switchTab(this, 'win')">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-os="mac">
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">cd</span> <span class="syn-path">~/projects/my-app</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> init
+<span class="syn-comment">Initialized empty Git repository in /Users/you/projects/my-app/.git/</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-os="win">
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">cd</span> <span class="syn-path">C:/Users/you/projects/my-app</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> init
+<span class="syn-comment">Initialized empty Git repository in C:/Users/you/projects/my-app/.git/</span></code></pre>
+    </div>
+  </div>
+
+  <p>After running this, git creates a hidden <code>.git</code> folder inside your project. That folder <em>is</em> the repository. Your project files haven't changed &mdash; git is just watching now.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>If you clone a project from GitHub (using <code>git clone</code>), you don't need to run <code>git init</code> &mdash; the repo is already initialized.</p>
+  </div>
+
+  <!-- git status -->
+  <h3><span class="section-number">6.4.2</span> Checking the State: <code>git status</code></h3>
+
+  <p>This is the command you'll run most often. It tells you what's changed, what's staged, and what git is tracking.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> status
+<span class="syn-comment">On branch main
+
+Changes not staged for commit:
+  (use "git add &lt;file&gt;..." to update what will be committed)
+        modified:   index.html
+
+Untracked files:
+  (use "git add &lt;file&gt;..." to include in what will be committed)
+        styles.css</span></code></pre>
+
+  <p>This output tells you three things: you're on the <code>main</code> branch, you've modified <code>index.html</code> but haven't staged it yet, and <code>styles.css</code> is a brand new file git hasn't seen before. Git is telling you exactly what to do next &mdash; read its suggestions.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Run <code>git status</code> constantly. Before commits. After commits. When confused. It's the "where am I?" command. If you're ever lost, <code>git status</code> is your compass.</p>
+  </div>
+
+  <!-- git add -->
+  <h3><span class="section-number">6.4.3</span> Staging Changes: <code>git add</code></h3>
+
+  <p>Before you can commit (take a snapshot), you need to tell git which changes to include. That's staging.</p>
+
+  <p>To stage a specific file:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> add <span class="syn-path">index.html</span></code></pre>
+
+  <p>To stage multiple files:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> add <span class="syn-path">index.html</span> <span class="syn-path">styles.css</span> <span class="syn-path">app.js</span></code></pre>
+
+  <p>To stage everything that's changed:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> add <span class="syn-flag">.</span></code></pre>
+
+  <p>The <code>.</code> means "everything in the current directory and below." This is convenient but be careful &mdash; it can accidentally stage files you don't want to commit (like <code>.env</code> files with secrets). When in doubt, stage files individually.</p>
+
+  <!-- git commit -->
+  <h3><span class="section-number">6.4.4</span> Taking the Snapshot: <code>git commit</code></h3>
+
+  <p>Once you've staged your changes, a commit locks them into history with a descriptive message.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> commit <span class="syn-flag">-m</span> <span class="syn-string">"Add navigation bar to homepage"</span>
+<span class="syn-comment">[main a3f7b2c] Add navigation bar to homepage
+ 2 files changed, 45 insertions(+), 3 deletions(-)</span></code></pre>
+
+  <p>The <code>-m</code> flag lets you write the message inline. Without it, git opens a text editor for you to write a longer message (which can be disorienting the first time). The output tells you the branch (<code>main</code>), the commit's short ID (<code>a3f7b2c</code>), your message, and a summary of what changed.</p>
+
+  <div class="callout info">
+    <div class="callout-title">Good Commit Messages</div>
+    <p>Write messages that explain <em>what</em> you did and <em>why</em>. Future you will thank present you.</p>
+    <ul>
+      <li><strong>Bad:</strong> "fixed stuff" / "updates" / "asdfg"</li>
+      <li><strong>Good:</strong> "Fix crash when submitting empty form" / "Add dark mode toggle to settings page"</li>
+    </ul>
+    <p>Start with a verb. Keep it under 72 characters. Be specific.</p>
+  </div>
+
+  <!-- git log -->
+  <h3><span class="section-number">6.4.5</span> Viewing History: <code>git log</code></h3>
+
+  <p>This shows you the timeline of commits &mdash; your project's history.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> log
+<span class="syn-variable">commit a3f7b2c4e8d1a0b5c9f2e7d6a8b3c4d5e6f7a8b9 (HEAD -> main)</span>
+<span class="syn-comment">Author: You &lt;you@email.com&gt;</span>
+<span class="syn-comment">Date:   Mon Mar 3 10:30:00 2026</span>
+
+    Add navigation bar to homepage
+
+<span class="syn-variable">commit b2e4d6f8a0c2e4d6f8a0b2c4d6e8f0a2b4c6d8e0</span>
+<span class="syn-comment">Author: You &lt;you@email.com&gt;</span>
+<span class="syn-comment">Date:   Sun Mar 2 15:20:00 2026</span>
+
+    Initial project setup</code></pre>
+
+  <p>Each commit shows its full ID (a long hex string), the author, the date, and the message. The <code>HEAD -> main</code> label tells you where you currently are. Press <code>q</code> to exit the log viewer.</p>
+
+  <p>For a more compact view, use the one-line format:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> log <span class="syn-flag">--oneline</span>
+<span class="syn-variable">a3f7b2c</span> Add navigation bar to homepage
+<span class="syn-variable">b2e4d6f</span> Initial project setup</code></pre>
+
+  <p>This is much easier to scan when you have a long history. You'll use <code>--oneline</code> constantly.</p>
+
+  <!-- git diff -->
+  <h3><span class="section-number">6.4.6</span> Seeing What Changed: <code>git diff</code></h3>
+
+  <p>Before you commit, you often want to see exactly what you changed. <code>git diff</code> shows the line-by-line differences.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> diff
+<span class="syn-keyword">diff --git a/index.html b/index.html</span>
+<span class="syn-keyword">index 1a2b3c4..5d6e7f8 100644</span>
+<span class="syn-keyword">--- a/index.html</span>
+<span class="syn-keyword">+++ b/index.html</span>
+<span class="syn-variable">@@ -10,6 +10,8 @@</span>
+   &lt;body&gt;
+     &lt;h1&gt;My App&lt;/h1&gt;
+<span class="syn-string">+    &lt;nav&gt;</span>
+<span class="syn-string">+      &lt;a href="/"&gt;Home&lt;/a&gt;</span>
+<span class="syn-string">+    &lt;/nav&gt;</span>
+     &lt;p&gt;Welcome&lt;/p&gt;
+   &lt;/body&gt;</code></pre>
+
+  <p>Lines starting with <code>+</code> (shown in green in most terminals) are additions. Lines starting with <code>-</code> would be deletions. The header tells you which file changed and where in the file the changes are. This is how you review what you (or Claude) did before committing it.</p>
+
+  <p>To see what's already staged (what will go into the next commit):</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> diff <span class="syn-flag">--staged</span></code></pre>
+
+  <p>This shows changes that you've already <code>git add</code>'ed. Useful for a final review before committing.</p>
+
+  <!-- branches -->
+  <h3><span class="section-number">6.4.7</span> Branching: <code>git branch</code>, <code>git switch</code></h3>
+
+  <p>Branches let you work on experiments, features, or fixes in isolation. The main branch stays untouched until you decide to merge.</p>
+
+  <p>To see what branches exist:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> branch
+<span class="syn-string">* main</span>
+  feature/dark-mode
+  fix/login-bug</code></pre>
+
+  <p>The <code>*</code> shows which branch you're currently on. To create a new branch and switch to it:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> switch <span class="syn-flag">-c</span> <span class="syn-string">feature/new-dashboard</span>
+<span class="syn-comment">Switched to a new branch 'feature/new-dashboard'</span></code></pre>
+
+  <p>The <code>-c</code> flag means "create." Without it, <code>git switch</code> only switches to an existing branch. To go back to main:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> switch <span class="syn-string">main</span>
+<span class="syn-comment">Switched to branch 'main'</span></code></pre>
+
+  <div class="callout info">
+    <div class="callout-title">switch vs. checkout</div>
+    <p>Older tutorials use <code>git checkout -b branch-name</code> to create and switch branches. This still works. Git introduced <code>git switch</code> as a clearer, more focused command. Both do the same thing for branching. This guide uses <code>switch</code> because it's easier to remember what it does.</p>
+  </div>
+
+  <!-- merge -->
+  <h3><span class="section-number">6.4.8</span> Merging: <code>git merge</code></h3>
+
+  <p>When your feature branch is ready, you bring its changes back into main.</p>
+
+  <p>First, switch to the branch you want to merge <em>into</em> (usually main):</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> switch <span class="syn-string">main</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> merge <span class="syn-string">feature/new-dashboard</span>
+<span class="syn-comment">Merge made by the 'ort' strategy.
+ dashboard.html | 120 ++++++++++++++++++
+ styles.css     |  15 +++
+ 2 files changed, 135 insertions(+)</span></code></pre>
+
+  <p>This takes all the commits from <code>feature/new-dashboard</code> and replays them onto <code>main</code>. If the same lines were changed in both branches, you'll get a merge conflict (covered in Section 6.8). If the changes don't overlap, git handles everything automatically.</p>
+
+  <p>After merging, you can delete the feature branch since its work is now part of main:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> branch <span class="syn-flag">-d</span> <span class="syn-string">feature/new-dashboard</span>
+<span class="syn-comment">Deleted branch feature/new-dashboard (was a3f7b2c).</span></code></pre>
+
+  <!-- remote, push, pull -->
+  <h3><span class="section-number">6.4.9</span> Working with Remotes: <code>git remote</code>, <code>git push</code>, <code>git pull</code></h3>
+
+  <p>A remote is a copy of your repo somewhere else (usually GitHub). You push your work up and pull others' work down.</p>
+
+  <p>To connect your local repo to a GitHub repository:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> remote add <span class="syn-string">origin</span> <span class="syn-path">https://github.com/your-username/my-app.git</span></code></pre>
+
+  <p>This creates a link named <code>origin</code> pointing to the GitHub URL. You only do this once per project. To verify your remote:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> remote <span class="syn-flag">-v</span>
+<span class="syn-comment">origin  https://github.com/your-username/my-app.git (fetch)
+origin  https://github.com/your-username/my-app.git (push)</span></code></pre>
+
+  <p>To upload your commits to GitHub:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> push <span class="syn-flag">-u</span> <span class="syn-string">origin</span> <span class="syn-string">main</span>
+<span class="syn-comment">Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+To https://github.com/your-username/my-app.git
+   b2e4d6f..a3f7b2c  main -> main</span></code></pre>
+
+  <p>The <code>-u</code> flag sets up tracking so that future pushes can just be <code>git push</code> without specifying the remote and branch. You only need <code>-u</code> the first time.</p>
+
+  <p>To download changes from the remote (for example, changes a collaborator pushed):</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> pull
+<span class="syn-comment">remote: Enumerating objects: 3, done.
+Updating a3f7b2c..d4e5f6a
+Fast-forward
+ README.md | 10 +++++
+ 1 file changed, 10 insertions(+)</span></code></pre>
+
+  <p><code>git pull</code> fetches new commits from the remote and merges them into your current branch. Run it at the start of a work session to make sure you're up to date.</p>
+
+  <!-- stash -->
+  <h3><span class="section-number">6.4.10</span> Temporary Pocket: <code>git stash</code></h3>
+
+  <p>Sometimes you're in the middle of something and need to switch branches, but you're not ready to commit. <code>git stash</code> saves your uncommitted changes in a temporary pocket and gives you a clean working directory.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> stash
+<span class="syn-comment">Saved working directory and index state WIP on main: a3f7b2c Add nav bar</span></code></pre>
+
+  <p>Your changes disappear (they're safely stored). Now you can switch branches, do other work, whatever you need. When you're ready to get your changes back:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> stash pop
+<span class="syn-comment">On branch main
+Changes not staged for commit:
+        modified:   index.html
+
+Dropped refs/stash@{0} (a1b2c3d4e5f6g7h8i9j0)</span></code></pre>
+
+  <p><code>stash pop</code> restores your stashed changes and removes them from the stash. If you want to keep the stash around (in case you need it again), use <code>git stash apply</code> instead.</p>
+
+  <p>To see what's in your stash:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> stash list
+<span class="syn-comment">stash@{0}: WIP on main: a3f7b2c Add nav bar
+stash@{1}: WIP on feature: b4c5d6e Fix layout</span></code></pre>
+
+  <p>You can have multiple stashes. They stack up like a pile of sticky notes.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: How Claude Code Uses Git -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.5</span> How Claude Code Uses Git</h2>
+
+  <p>If you've been using Claude Code, git has been working behind the scenes whether you realized it or not. Understanding this relationship makes you dramatically more effective.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Claude Code automatically creates git commits for changes it makes. Every time Claude edits files, those changes are tracked. This means you can always see what Claude did and undo it if needed.</p>
+  </div>
+
+  <h3>Seeing What Claude Changed</h3>
+
+  <p>After Claude Code finishes a task, you can see exactly what it did by looking at the git log and diff:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> log <span class="syn-flag">--oneline</span> <span class="syn-flag">-5</span>
+<span class="syn-variable">f8e7d6c</span> Add responsive navigation component
+<span class="syn-variable">c5b4a3d</span> Create header styles
+<span class="syn-variable">a3f7b2c</span> Your last manual commit before Claude
+<span class="syn-variable">...</span></code></pre>
+
+  <p>The commits after your last manual commit are Claude's work. To see the full diff of what Claude changed:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> diff <span class="syn-variable">a3f7b2c</span> <span class="syn-variable">HEAD</span></code></pre>
+
+  <p>This shows every change between your last commit and what's current. You're reviewing Claude's work just like you'd review a colleague's pull request.</p>
+
+  <h3>Undoing Claude's Changes</h3>
+
+  <p>If Claude did something you don't like, you have options based on how much you want to undo.</p>
+
+  <p>To undo everything Claude did and go back to your last commit:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> reset <span class="syn-flag">--hard</span> <span class="syn-variable">a3f7b2c</span></code></pre>
+
+  <p>This is the nuclear option &mdash; it removes all of Claude's commits and changes. The <code>a3f7b2c</code> is the commit ID you want to go back to (use <code>git log</code> to find it).</p>
+
+  <p>To keep Claude's commits in history but create a new commit that undoes them:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> revert <span class="syn-variable">f8e7d6c</span></code></pre>
+
+  <p>This is safer &mdash; it creates a new commit that reverses the changes of the specified commit, without rewriting history.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Always commit before giving Claude a big task.</strong> Run <code>git add . && git commit -m "checkpoint before Claude refactor"</code> before asking Claude to make sweeping changes. This gives you a clean rollback point. Think of it as saving your game before the boss fight.</p>
+  </div>
+
+  <h3>The Practical Workflow</h3>
+
+  <ol>
+    <li><strong>Commit your current work</strong> &mdash; create a checkpoint</li>
+    <li><strong>Give Claude the task</strong> &mdash; let it make changes</li>
+    <li><strong>Review with <code>git diff</code></strong> &mdash; see what changed</li>
+    <li><strong>Test the result</strong> &mdash; make sure it works</li>
+    <li><strong>If good:</strong> keep going (Claude already committed)</li>
+    <li><strong>If bad:</strong> reset to your checkpoint</li>
+  </ol>
+
+  <p>This workflow means you can let Claude be bold. Tell it to refactor aggressively, try a completely different approach, rewrite the whole module &mdash; because you always have a safety net.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Recovering from Mistakes -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.6</span> Recovering from Mistakes</h2>
+
+  <p>This is the section you'll bookmark and come back to. Everyone makes mistakes with git &mdash; it's not a matter of if, it's when. The good news: git is designed to let you recover from almost anything.</p>
+
+  <h3><span class="section-number">6.6.1</span> Discard Uncommitted Changes to a File</h3>
+
+  <p>You edited a file and it's a mess. You haven't committed yet. You want to go back to how the file was in the last commit.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> checkout <span class="syn-flag">--</span> <span class="syn-path">index.html</span></code></pre>
+
+  <p>This replaces the file in your working directory with the version from the last commit. The <code>--</code> tells git "this is a file, not a branch name." Your changes to <code>index.html</code> are gone permanently &mdash; there's no undo for this.</p>
+
+  <p>The newer equivalent (clearer naming):</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> restore <span class="syn-path">index.html</span></code></pre>
+
+  <p>Same result, but <code>restore</code> is more intuitive. To discard changes to <em>all</em> files:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> restore <span class="syn-flag">.</span></code></pre>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><code>git restore .</code> throws away all uncommitted changes to tracked files. If you haven't committed or stashed those changes, they're gone. Make sure this is what you want.</p>
+  </div>
+
+  <h3><span class="section-number">6.6.2</span> Unstage a File</h3>
+
+  <p>You ran <code>git add</code> on a file you didn't mean to stage. No problem &mdash; you can unstage it without losing the changes:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> restore <span class="syn-flag">--staged</span> <span class="syn-path">secrets.env</span></code></pre>
+
+  <p>The file is no longer staged, but your changes to it are still in your working directory. Nothing was lost.</p>
+
+  <h3><span class="section-number">6.6.3</span> Undo the Last Commit (Keep Changes)</h3>
+
+  <p>You just committed but the commit message was wrong, or you forgot to include a file. You want to undo the commit but keep all the changes in your working directory.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> reset <span class="syn-flag">--soft</span> <span class="syn-variable">HEAD~1</span></code></pre>
+
+  <p><code>HEAD~1</code> means "one commit before the current one." <code>--soft</code> keeps your changes staged (ready to commit again). <code>--mixed</code> (the default if you omit the flag) keeps the changes but unstages them. Your files are untouched either way &mdash; only the commit is removed.</p>
+
+  <h3><span class="section-number">6.6.4</span> Undo the Last Commit (Throw Away Changes)</h3>
+
+  <p>You committed something and you want it completely gone. The changes, the commit, everything.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> reset <span class="syn-flag">--hard</span> <span class="syn-variable">HEAD~1</span></code></pre>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p><code>--hard</code> is destructive. It removes the commit AND deletes the changes from your working directory. Only use this when you're absolutely sure you want those changes gone.</p>
+  </div>
+
+  <h3><span class="section-number">6.6.5</span> Undo a Commit Without Rewriting History: <code>git revert</code></h3>
+
+  <p>You committed something three commits ago that turned out to be wrong. You can't just remove it from history (especially if you've already pushed). Instead, you create a new commit that undoes the bad one.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> revert <span class="syn-variable">a3f7b2c</span>
+<span class="syn-comment">[main e8f9g0h] Revert "Add broken feature"
+ 2 files changed, 3 deletions(-)</span></code></pre>
+
+  <p>This creates a new commit that is the exact opposite of the specified commit. The original commit stays in history (important if others have already pulled it), but its effects are undone. This is the safe way to undo in a shared project.</p>
+
+  <h3><span class="section-number">6.6.6</span> The Ultimate Safety Net: <code>git reflog</code></h3>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><code>git reflog</code> is the "I messed up badly and I thought everything was lost" command. It records every single thing your HEAD has pointed to &mdash; even things that <code>git log</code> no longer shows. If you accidentally deleted a branch, did a hard reset too far, or something else catastrophic, <code>reflog</code> can save you.</p>
+  </div>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> reflog
+<span class="syn-variable">a3f7b2c</span> HEAD@{0}: reset: moving to HEAD~3
+<span class="syn-variable">f8e7d6c</span> HEAD@{1}: commit: Add dashboard widget
+<span class="syn-variable">c5b4a3d</span> HEAD@{2}: commit: Create API endpoint
+<span class="syn-variable">b2e4d6f</span> HEAD@{3}: commit: Initial setup</span></code></pre>
+
+  <p>The reflog shows you everywhere HEAD has been. See that <code>f8e7d6c</code> commit you accidentally nuked? It's still there. To recover it:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> reset <span class="syn-flag">--hard</span> <span class="syn-variable">f8e7d6c</span></code></pre>
+
+  <p>And you're back. The reflog entries expire after about 90 days, so you have a generous window.</p>
+
+  <h3>Quick Reference: Which Recovery Command?</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Situation</th>
+        <th>Command</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Discard changes to a single file</td>
+        <td><code>git restore &lt;file&gt;</code></td>
+      </tr>
+      <tr>
+        <td>Unstage a file</td>
+        <td><code>git restore --staged &lt;file&gt;</code></td>
+      </tr>
+      <tr>
+        <td>Undo last commit, keep changes</td>
+        <td><code>git reset --soft HEAD~1</code></td>
+      </tr>
+      <tr>
+        <td>Undo last commit, discard changes</td>
+        <td><code>git reset --hard HEAD~1</code></td>
+      </tr>
+      <tr>
+        <td>Undo a specific commit (safe)</td>
+        <td><code>git revert &lt;commit-id&gt;</code></td>
+      </tr>
+      <tr>
+        <td>Recover from almost any disaster</td>
+        <td><code>git reflog</code>, then <code>git reset --hard &lt;id&gt;</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: .gitignore -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.7</span> .gitignore: Telling Git What to Ignore</h2>
+
+  <p>Not everything in your project folder should be tracked. Dependencies, build outputs, secret keys, OS-generated junk &mdash; these don't belong in your repo. A <code>.gitignore</code> file tells git to pretend certain files don't exist.</p>
+
+  <p>Create a <code>.gitignore</code> file in the root of your project:</p>
+
+  <div class="code-label">.gitignore</div>
+<pre><code><span class="syn-comment"># Dependencies</span>
+<span class="syn-path">node_modules/</span>
+<span class="syn-path">venv/</span>
+<span class="syn-path">__pycache__/</span>
+
+<span class="syn-comment"># Environment variables / secrets</span>
+<span class="syn-path">.env</span>
+<span class="syn-path">.env.local</span>
+<span class="syn-path">*.key</span>
+
+<span class="syn-comment"># Build outputs</span>
+<span class="syn-path">dist/</span>
+<span class="syn-path">build/</span>
+<span class="syn-path">.next/</span>
+
+<span class="syn-comment"># OS-generated files</span>
+<span class="syn-path">.DS_Store</span>
+<span class="syn-path">Thumbs.db</span>
+<span class="syn-path">Desktop.ini</span>
+
+<span class="syn-comment"># IDE / editor files</span>
+<span class="syn-path">.vscode/</span>
+<span class="syn-path">.idea/</span>
+<span class="syn-path">*.swp</span>
+
+<span class="syn-comment"># Logs</span>
+<span class="syn-path">*.log</span>
+<span class="syn-path">npm-debug.log*</span></code></pre>
+
+  <p>Each line is a pattern. <code>node_modules/</code> ignores the entire directory. <code>*.log</code> ignores any file ending in <code>.log</code>. <code>.env</code> ignores that specific file. Lines starting with <code>#</code> are comments.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Create a .gitignore before your first commit.</strong> If you commit a file and then add it to .gitignore later, git still tracks it. You'd need to remove it from tracking with <code>git rm --cached &lt;file&gt;</code>. It's much easier to ignore files from the start.</p>
+  </div>
+
+  <p>How the patterns work:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Pattern</th>
+        <th>What It Ignores</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>*.log</code></td>
+        <td>All files ending in .log</td>
+      </tr>
+      <tr>
+        <td><code>build/</code></td>
+        <td>The entire build directory</td>
+      </tr>
+      <tr>
+        <td><code>.env</code></td>
+        <td>A specific file named .env</td>
+      </tr>
+      <tr>
+        <td><code>!important.log</code></td>
+        <td>Exception: do NOT ignore this file (even if *.log matches)</td>
+      </tr>
+      <tr>
+        <td><code>**/temp/</code></td>
+        <td>Any directory named "temp" at any depth</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>GitHub has a great collection of starter .gitignore files for every language and framework at <a href="https://github.com/github/gitignore">github.com/github/gitignore</a>. When Claude Code creates a project for you, ask it to include an appropriate .gitignore.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Common Gotchas -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.8</span> Common Gotchas</h2>
+
+  <p>These are the mistakes that bite everyone. Learn them now so they don't bite you later.</p>
+
+  <h3><span class="section-number">6.8.1</span> Accidentally Committing Secrets</h3>
+
+  <p>This is the number one git mistake with real consequences. If you commit a file containing API keys, passwords, or tokens, and push it to GitHub, those secrets are exposed. Even if you delete the file in a later commit, <em>it's still in the git history</em>.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p>If you accidentally commit and push a secret (like an API key in a <code>.env</code> file), you must <strong>immediately revoke that key</strong> and generate a new one. Don't just delete the file and push again &mdash; the secret is already in the history and bots actively scan GitHub for exposed credentials.</p>
+  </div>
+
+  <p>Prevention:</p>
+  <ul>
+    <li>Add <code>.env</code>, <code>*.key</code>, and credential files to <code>.gitignore</code> before your first commit</li>
+    <li>Use <code>git status</code> before every commit to verify what's being tracked</li>
+    <li>Never hardcode secrets directly in source code &mdash; always use environment variables</li>
+    <li>Ask Claude Code: "Does this project have any secrets that shouldn't be committed?"</li>
+  </ul>
+
+  <h3><span class="section-number">6.8.2</span> Merge Conflicts</h3>
+
+  <p>A merge conflict happens when two branches change the same lines of the same file. Git doesn't know which version to keep, so it asks you to decide.</p>
+
+  <p>When you try to merge and there's a conflict, you'll see something like this in the affected file:</p>
+
+  <div class="code-label">index.html (during conflict)</div>
+<pre><code>&lt;h1&gt;My App&lt;/h1&gt;
+<span class="syn-keyword">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span>
+<span class="syn-string">&lt;p&gt;Welcome to the new version!&lt;/p&gt;</span>
+<span class="syn-keyword">=======</span>
+<span class="syn-variable">&lt;p&gt;Welcome, friend!&lt;/p&gt;</span>
+<span class="syn-keyword">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/greeting</span></code></pre>
+
+  <p>Everything between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> and <code>=======</code> is what's on your current branch. Everything between <code>=======</code> and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> is what's on the incoming branch. To resolve it:</p>
+
+  <ol>
+    <li>Open the file in your editor</li>
+    <li>Delete the conflict markers (<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>)</li>
+    <li>Keep the version you want (or write a combination)</li>
+    <li>Save the file</li>
+    <li>Stage and commit the resolution</li>
+  </ol>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> add <span class="syn-path">index.html</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> commit <span class="syn-flag">-m</span> <span class="syn-string">"Resolve merge conflict in index.html"</span></code></pre>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>You can tell Claude Code to resolve merge conflicts for you. Run Claude Code, point it at the conflicted files, and say "Resolve this merge conflict by keeping the feature branch changes" (or however you want it resolved). This is one of Claude Code's most useful everyday applications.</p>
+  </div>
+
+  <h3><span class="section-number">6.8.3</span> Forgetting to Pull</h3>
+
+  <p>If you're working with a remote (or if you use Claude Code on multiple machines), you can get out of sync. You try to push and get rejected:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> push
+<span class="syn-comment">! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/...'
+hint: Updates were rejected because the remote contains work that you
+hint: do not have locally.</span></code></pre>
+
+  <p>The fix is simple: pull first, then push.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> pull
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> push</code></pre>
+
+  <p>If the pull creates a merge conflict, resolve it (see above), commit, then push.</p>
+
+  <h3><span class="section-number">6.8.4</span> Detached HEAD State</h3>
+
+  <p>This sounds terrifying. It's not. It happens when you check out a specific commit instead of a branch.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> checkout <span class="syn-variable">a3f7b2c</span>
+<span class="syn-comment">Note: switching to 'a3f7b2c'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.</span></code></pre>
+
+  <p>You're looking at the project as it was at that commit. You can browse the code, but you're not on any branch. Any commits you make here will be orphaned when you leave.</p>
+
+  <p>To get out, just switch back to a branch:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> switch <span class="syn-string">main</span></code></pre>
+
+  <p>If you made changes in detached HEAD and want to keep them, create a branch before switching away:</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-prompt">$</span> <span class="syn-keyword">git</span> switch <span class="syn-flag">-c</span> <span class="syn-string">my-experiment</span></code></pre>
+
+  <p>This creates a new branch from your current position, saving your commits.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: First-Time Git Setup -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.9</span> First-Time Git Setup</h2>
+
+  <p>Before you can make commits, git needs to know who you are. This is a one-time setup.</p>
+
+  <div class="os-tabs" id="os-git-setup">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(this, 'mac')">macOS</button>
+      <button onclick="switchTab(this, 'win')">Windows</button>
+    </div>
+    <div class="os-tab-content active" data-os="mac">
+<pre><code><span class="syn-comment"># Install git (if not already installed)</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">xcode-select</span> <span class="syn-flag">--install</span>
+
+<span class="syn-comment"># Set your identity</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> config <span class="syn-flag">--global</span> user.name <span class="syn-string">"Your Name"</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> config <span class="syn-flag">--global</span> user.email <span class="syn-string">"you@example.com"</span>
+
+<span class="syn-comment"># Set default branch name to main</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> config <span class="syn-flag">--global</span> init.defaultBranch <span class="syn-string">main</span>
+
+<span class="syn-comment"># Verify your config</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> config <span class="syn-flag">--list</span></code></pre>
+    </div>
+    <div class="os-tab-content" data-os="win">
+<pre><code><span class="syn-comment"># Install git: download from https://git-scm.com/download/win</span>
+<span class="syn-comment"># Run the installer with default options</span>
+
+<span class="syn-comment"># Set your identity (in Git Bash or any terminal)</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> config <span class="syn-flag">--global</span> user.name <span class="syn-string">"Your Name"</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> config <span class="syn-flag">--global</span> user.email <span class="syn-string">"you@example.com"</span>
+
+<span class="syn-comment"># Set default branch name to main</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> config <span class="syn-flag">--global</span> init.defaultBranch <span class="syn-string">main</span>
+
+<span class="syn-comment"># Verify your config</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> config <span class="syn-flag">--list</span></code></pre>
+    </div>
+  </div>
+
+  <p>The name and email aren't for authentication &mdash; they're labels that get attached to your commits so you (and others) can see who made each change. Use the same email you use on GitHub if you plan to push there.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 10: The Complete Workflow -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">6.10</span> The Complete Workflow, Start to Finish</h2>
+
+  <p>Let's walk through a realistic git workflow from scratch. This ties everything together.</p>
+
+  <div class="code-label">terminal</div>
+<pre><code><span class="syn-comment"># 1. Create and enter your project folder</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">mkdir</span> <span class="syn-path">my-project</span> && <span class="syn-keyword">cd</span> <span class="syn-path">my-project</span>
+
+<span class="syn-comment"># 2. Initialize git</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> init
+
+<span class="syn-comment"># 3. Create a .gitignore first</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">echo</span> <span class="syn-string">".env\nnode_modules/\n.DS_Store"</span> > .gitignore
+
+<span class="syn-comment"># 4. Create your first file</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">echo</span> <span class="syn-string">"&lt;h1&gt;Hello&lt;/h1&gt;"</span> > index.html
+
+<span class="syn-comment"># 5. Check what git sees</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> status
+
+<span class="syn-comment"># 6. Stage everything</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> add <span class="syn-flag">.</span>
+
+<span class="syn-comment"># 7. Make your first commit</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> commit <span class="syn-flag">-m</span> <span class="syn-string">"Initial project setup with gitignore"</span>
+
+<span class="syn-comment"># 8. Create a feature branch</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> switch <span class="syn-flag">-c</span> <span class="syn-string">feature/add-styles</span>
+
+<span class="syn-comment"># 9. Make changes, stage, commit</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">echo</span> <span class="syn-string">"body { color: #333; }"</span> > styles.css
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> add styles.css
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> commit <span class="syn-flag">-m</span> <span class="syn-string">"Add base stylesheet"</span>
+
+<span class="syn-comment"># 10. Switch back to main and merge</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> switch <span class="syn-string">main</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> merge <span class="syn-string">feature/add-styles</span>
+
+<span class="syn-comment"># 11. Clean up the branch</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> branch <span class="syn-flag">-d</span> <span class="syn-string">feature/add-styles</span>
+
+<span class="syn-comment"># 12. Push to GitHub</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> remote add <span class="syn-string">origin</span> <span class="syn-path">https://github.com/you/my-project.git</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">git</span> push <span class="syn-flag">-u</span> <span class="syn-string">origin</span> <span class="syn-string">main</span></code></pre>
+
+  <p>That's the whole loop. Initialize, change, stage, commit, branch, merge, push. Every git workflow is some variation of these steps.</p>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <div class="checkpoint-icon">&#127919;</div>
+      <h3>Checkpoint Project: The Time Traveler</h3>
+    </div>
+
+    <p>Prove you can navigate through time and parallel universes with git. This is a hands-on exercise that covers every major concept from this level.</p>
+
+    <h4>What to Build</h4>
+    <p>Create a small project from scratch and take it through a full git lifecycle. You'll initialize a repo, build a feature across multiple commits, branch off for an experiment, intentionally break something, recover from the damage, and merge your work together.</p>
+
+    <h4>Step-by-Step Instructions</h4>
+    <ol>
+      <li><strong>Initialize a new repo</strong> with a <code>.gitignore</code> and make your first commit.</li>
+      <li><strong>Build a small feature</strong> (a simple HTML page with some CSS) across at least 5 commits on <code>main</code>. Each commit should be focused and have a descriptive message.</li>
+      <li><strong>Create a feature branch</strong> called <code>experiment/new-layout</code>. Make at least 2 commits on this branch that change the look of the page.</li>
+      <li><strong>Switch back to <code>main</code></strong> and intentionally break something &mdash; delete an important file or introduce a bug. Commit the breakage.</li>
+      <li><strong>Recover</strong> using <code>git revert</code> to undo the bad commit without rewriting history.</li>
+      <li><strong>Merge</strong> your <code>experiment/new-layout</code> branch back into <code>main</code>.</li>
+      <li><strong>Use <code>git log --oneline</code></strong> to view the full history and confirm you can read it like a story.</li>
+      <li><strong>Use <code>git reflog</code></strong> to find and verify the commit that broke things is still in the reflog.</li>
+    </ol>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li><code>git log --oneline</code> shows at least 10 commits with clear, descriptive messages</li>
+      <li>Your history includes a commit, a revert of that commit, and a merge commit</li>
+      <li>You can run <code>git reflog</code> and identify the "bad" commit by its message</li>
+      <li>Your <code>.gitignore</code> exists and includes at least 5 patterns</li>
+      <li>You have no uncommitted changes when you're done (<code>git status</code> shows a clean working tree)</li>
+      <li>You can explain the difference between <code>git reset</code> and <code>git revert</code> in your own words</li>
+      <li>You can explain what the staging area is and why it exists</li>
+    </ul>
+
+    <div class="time-estimate">&#9202; Estimated time: 45&ndash;60 minutes</div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-05.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-07.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+<!-- OS Tab Switching Script -->
+<script>
+function switchTab(button, os) {
+  const tabGroup = button.closest('.os-tabs');
+  tabGroup.querySelectorAll('.os-tab-buttons button').forEach(btn => btn.classList.remove('active'));
+  tabGroup.querySelectorAll('.os-tab-content').forEach(content => content.classList.remove('active'));
+  button.classList.add('active');
+  tabGroup.querySelector(`.os-tab-content[data-os="${os}"]`).classList.add('active');
+}
+</script>
+
+</body>
+</html>

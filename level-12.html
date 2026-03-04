@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 12: Subagents — Divide and Conquer | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-11.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-13.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 12</div>
+    <h1>Subagents: Divide and Conquer</h1>
+    <p class="level-subtitle">You've been doing everything yourself. It's time to learn how Claude can spawn other Claudes &mdash; each with its own workspace, its own focus, and its own clean slate &mdash; and get more done in less time.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: What Subagents Are -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.1</span> What Subagents Are</h2>
+
+  <h3>Why This Matters</h3>
+
+  <p>Up until now, every time you've worked with Claude Code, you've been talking to a single Claude instance. One brain, one context window, one conversation. That works well for a lot of tasks &mdash; but it has a ceiling. The moment your project gets complex enough, a single Claude instance starts struggling. It forgets things from earlier in the conversation. It loses track of which files it already read. It tries to hold everything in its head at once and starts dropping details.</p>
+
+  <p>Subagents break through that ceiling. They let Claude delegate work to fresh copies of itself, each one laser-focused on a single job.</p>
+
+  <h3>The Mental Model</h3>
+
+  <div class="analogy">
+    <strong>Analogy: The Manager and the Team.</strong> You're a project manager at a company. You could do every single task yourself &mdash; research the market, write the code, run the tests, draft the documentation. But you'd burn out and miss things. Instead, you hand each task to a team member. Each one works in their own office with their own desk. They can't see what's on each other's desks. When they finish, they walk back to your office and give you a summary of what they found or built. You take those summaries and make the final decisions.
+  </div>
+
+  <p>That's exactly how subagents work. The Claude instance you're talking to (the <strong>parent agent</strong>) spawns new Claude instances (the <strong>subagents</strong>). Each subagent gets its own clean desk &mdash; its own context window &mdash; and works on the specific task it was given. When it finishes, it reports back to the parent with a result. The parent never sees the subagent's full thought process, just the final summary.</p>
+
+  <div class="definition">
+    <p><span class="term">Subagent</span> &mdash; A separate Claude instance spawned by a parent agent to handle a focused task. It has its own context window, can use the same tools (Read, Write, Bash, Grep, etc.), and returns a text result to the parent when done. Also called a "Task" agent, because it's invoked through the Task/Agent tool.</p>
+  </div>
+
+  <div class="definition">
+    <p><span class="term">Parent agent</span> &mdash; The Claude instance you're directly talking to. It orchestrates the work by deciding when to spawn subagents, what to tell them, and how to use their results.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: Why Subagents Exist -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.2</span> Why Subagents Exist</h2>
+
+  <h3>The Context Window Problem</h3>
+
+  <p>Every Claude instance has a context window &mdash; the total amount of information it can hold "in mind" at once. Think of it like your working memory. When you talk to Claude in a long session, asking it to read file after file, review code, make changes, and debug issues, that context window fills up. Once it's full, Claude has to start dropping older information to make room for new stuff. That's when you see symptoms like:</p>
+
+  <ul>
+    <li>Claude "forgets" instructions you gave it earlier</li>
+    <li>It re-reads files it already looked at</li>
+    <li>It loses track of the overall plan</li>
+    <li>It starts contradicting itself</li>
+  </ul>
+
+  <p>Subagents solve this by giving each task a <strong>fresh context window</strong>. The research agent doesn't need to know about your test-writing plans. The test-writing agent doesn't need to hold the entire codebase architecture in its head &mdash; just the specific files it's testing. Each one gets exactly the context it needs and nothing more.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Subagents aren't just about "doing more." They're about <strong>doing each thing better</strong>. A Claude instance with 5% of its context window used on a focused task will outperform one with 80% of its context window cluttered with unrelated history. Clean context = better results.</p>
+  </div>
+
+  <h3>Parallelization</h3>
+
+  <p>The second reason subagents exist is speed. When you have three independent tasks &mdash; research an API, write integration code, write tests &mdash; a single Claude instance does them one at a time, sequentially. Subagents can do all three <em>simultaneously</em>. The parent spawns three subagents, they all work in parallel, and the parent waits for all three to report back. What took 15 minutes sequentially might take 5 minutes in parallel.</p>
+
+  <h3>Failure Isolation</h3>
+
+  <p>If a subagent goes down a wrong path, hits an error, or produces bad output, it only affects that subagent's work. The parent's context stays clean. You can discard the bad result and try again with a different approach &mdash; without having polluted your main conversation.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: How Subagents Work Technically -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.3</span> How Subagents Work Under the Hood</h2>
+
+  <h3>The Lifecycle</h3>
+
+  <p>Here's what happens when Claude uses a subagent, step by step:</p>
+
+  <ol>
+    <li><strong>You give Claude a task</strong> that benefits from delegation (or Claude decides a subtask should be delegated).</li>
+    <li><strong>The parent agent invokes the Task tool</strong> (sometimes called the Agent tool). This is one of Claude's built-in tools, just like Read, Write, or Bash.</li>
+    <li><strong>A new Claude instance spins up.</strong> This is the subagent. It gets its own fresh, empty context window.</li>
+    <li><strong>The subagent receives its instructions</strong> &mdash; the prompt that the parent wrote for it. This is the <em>only</em> context it starts with. It has no knowledge of the parent's conversation history.</li>
+    <li><strong>The subagent works.</strong> It can use all the same tools: Read files, Write files, run Bash commands, use Grep, Glob &mdash; everything. It reads files, thinks, writes code, runs commands, just like the parent would.</li>
+    <li><strong>The subagent finishes and returns a result.</strong> This is a text summary of what it did, what it found, or what it built.</li>
+    <li><strong>The parent receives the result.</strong> It sees <em>only</em> the final text summary, not the subagent's full internal conversation, not every file it read, not every command it ran. Just the result.</li>
+  </ol>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Context isolation is the defining feature.</strong> The subagent cannot see the parent's conversation. The parent cannot see the subagent's internal reasoning. They communicate only through the task prompt (parent &rarr; subagent) and the result summary (subagent &rarr; parent). This is by design &mdash; it's what keeps each context window clean and focused.</p>
+  </div>
+
+  <h3>What the Subagent Can and Can't Do</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Can Do</th>
+        <th>Can't Do</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Read any file on disk</td>
+        <td>See the parent's conversation history</td>
+      </tr>
+      <tr>
+        <td>Write and edit files</td>
+        <td>Know what the parent discussed with you</td>
+      </tr>
+      <tr>
+        <td>Run Bash commands</td>
+        <td>Communicate with other subagents directly</td>
+      </tr>
+      <tr>
+        <td>Use Grep, Glob, and other tools</td>
+        <td>Ask the user follow-up questions</td>
+      </tr>
+      <tr>
+        <td>Spawn its own subagents (nested)</td>
+        <td>Access the parent's in-memory reasoning</td>
+      </tr>
+      <tr>
+        <td>Access the filesystem and project</td>
+        <td>Know that it <em>is</em> a subagent</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>That last row is interesting. A subagent doesn't know it's a subagent. From its perspective, it just received a task and is executing it. This is fine &mdash; it doesn't need to know.</p>
+
+  <h3>Visualizing the Flow</h3>
+
+  <p>Here's how to picture the data flow. The parent sends a prompt down, the subagent does its work, and a result comes back up.</p>
+
+  <div class="code-label">diagram</div>
+<pre><code><span class="syn-comment">┌─────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-keyword">You</span> (the human)                        <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>    "Research the Stripe API and         <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>     build a payment integration"        <span class="syn-comment">│</span>
+<span class="syn-comment">└────────────────┬────────────────────────┘</span>
+                 <span class="syn-comment">│</span>
+                 <span class="syn-comment">▼</span>
+<span class="syn-comment">┌─────────────────────────────────────────┐</span>
+<span class="syn-comment">│</span>  <span class="syn-function">Parent Agent</span> (Claude instance #1)      <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>    Decides to delegate research         <span class="syn-comment">│</span>
+<span class="syn-comment">│</span>    and coding to separate subagents     <span class="syn-comment">│</span>
+<span class="syn-comment">└──────┬──────────────────┬───────────────┘</span>
+       <span class="syn-comment">│                    │</span>
+       <span class="syn-comment">▼                    ▼</span>
+<span class="syn-comment">┌──────────────┐  ┌──────────────────┐</span>
+<span class="syn-comment">│</span> <span class="syn-string">Subagent A</span>   <span class="syn-comment">│  │</span> <span class="syn-string">Subagent B</span>        <span class="syn-comment">│</span>
+<span class="syn-comment">│</span> Research the <span class="syn-comment">│  │</span> Write payment     <span class="syn-comment">│</span>
+<span class="syn-comment">│</span> Stripe API   <span class="syn-comment">│  │</span> integration code  <span class="syn-comment">│</span>
+<span class="syn-comment">│</span> docs         <span class="syn-comment">│  │</span> using research    <span class="syn-comment">│</span>
+<span class="syn-comment">└──────┬───────┘  └────────┬─────────┘</span>
+       <span class="syn-comment">│                    │</span>
+       <span class="syn-comment">▼                    ▼</span>
+  <span class="syn-variable">Result A</span>           <span class="syn-variable">Result B</span>
+  (summary of       (files written,
+   API endpoints,    summary of
+   auth flow)        approach)</code></pre>
+
+  <p>Each subagent works independently. The parent collects their results and decides what to do next &mdash; maybe spawning a third subagent to write tests based on what the first two produced.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: When to Use Subagents vs. Inline -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.4</span> When to Use Subagents vs. Doing It Inline</h2>
+
+  <p>Not everything needs a subagent. Using one when you don't need to adds unnecessary cost and complexity. Here's the decision framework.</p>
+
+  <h3>Use Subagents When...</h3>
+
+  <ul>
+    <li><strong>The task is self-contained.</strong> It doesn't depend on the current conversation context. A subagent can do it with just a prompt and access to the filesystem.</li>
+    <li><strong>The task is research-heavy.</strong> Reading many files, exploring a codebase, understanding how something works &mdash; this fills up context fast. Give it to a subagent so the parent stays clean.</li>
+    <li><strong>You have multiple independent tasks.</strong> If tasks don't depend on each other, subagents can run them in parallel.</li>
+    <li><strong>You're building something modular.</strong> Different features that don't interact can be built by different subagents simultaneously.</li>
+    <li><strong>You want failure isolation.</strong> If a task might go wrong, using a subagent means the failure doesn't pollute your main context.</li>
+  </ul>
+
+  <h3>Keep It Inline When...</h3>
+
+  <ul>
+    <li><strong>The task is simple.</strong> If it takes 10 seconds, spawning a subagent is overhead for no benefit.</li>
+    <li><strong>The task needs conversation context.</strong> If the task depends on decisions you discussed with Claude earlier in the conversation, a subagent won't have that context.</li>
+    <li><strong>Steps are sequential and interdependent.</strong> If step 2 can't start until step 1's result is fully integrated into the working plan, subagents don't help.</li>
+    <li><strong>You're iterating on something interactively.</strong> "Make this button bigger. No, a little smaller. Change the color." This is a conversation &mdash; keep it inline.</li>
+  </ul>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>The decision rule:</strong> If the task can be described in a single, self-contained prompt and doesn't need your conversation history, it's a good subagent candidate. If it needs back-and-forth with you or depends on nuanced context from earlier in the conversation, keep it inline.</p>
+  </div>
+
+  <h3>Decision Framework: Quick Reference</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Subagent?</th>
+        <th>Why</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"Read all 40 files in /src and tell me how auth works"</td>
+        <td>Yes</td>
+        <td>Research-heavy, self-contained, would fill parent context</td>
+      </tr>
+      <tr>
+        <td>"Add a console.log to line 15 of app.js"</td>
+        <td>No</td>
+        <td>Trivially simple, overhead isn't worth it</td>
+      </tr>
+      <tr>
+        <td>"Write tests for utils.js"</td>
+        <td>Yes</td>
+        <td>Self-contained, focused scope, clean context helps quality</td>
+      </tr>
+      <tr>
+        <td>"Based on what we just discussed, update the schema"</td>
+        <td>No</td>
+        <td>Depends on conversation context the subagent won't have</td>
+      </tr>
+      <tr>
+        <td>"Build the login page and the dashboard page"</td>
+        <td>Yes (x2)</td>
+        <td>Two independent features, can be parallelized</td>
+      </tr>
+      <tr>
+        <td>"Review this PR for security issues"</td>
+        <td>Yes</td>
+        <td>Self-contained analysis task, benefits from clean focus</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Scoping Subagent Work Effectively -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.5</span> Scoping Subagent Work Effectively</h2>
+
+  <p>The quality of a subagent's output is almost entirely determined by the quality of the prompt the parent gives it. Remember: the subagent starts with a blank context. The <em>only</em> thing it knows is what you tell it. This means vague prompts produce vague results.</p>
+
+  <h3>The Four Elements of a Good Subagent Prompt</h3>
+
+  <ol>
+    <li><strong>Clear objective.</strong> What should the subagent accomplish? State it plainly.</li>
+    <li><strong>Scope boundaries.</strong> What files or directories should it focus on? What should it ignore?</li>
+    <li><strong>Definition of done.</strong> How does the subagent know it's finished? What should its output look like?</li>
+    <li><strong>Relevant context.</strong> Any information the subagent needs that it can't find in the filesystem &mdash; conventions, decisions, constraints.</li>
+  </ol>
+
+  <h3>Good vs. Bad Subagent Prompts</h3>
+
+  <p>Let's look at real examples. The difference between a productive subagent and a useless one almost always comes down to the prompt.</p>
+
+  <h4>Example 1: Research Task</h4>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4 style="color: #C4612A;">Bad Prompt</h4>
+      <p>"Look at the codebase and tell me about authentication."</p>
+      <p class="text-small text-muted">Too vague. Which files? What aspect of auth? What format should the answer be in?</p>
+    </div>
+    <div class="comparison-col">
+      <h4 style="color: #5B9E4B;">Good Prompt</h4>
+      <p>"Read all files in /src/auth/ and /src/middleware/. Explain: (1) how user login works end-to-end, (2) what token format is used, (3) how sessions are managed, (4) any security concerns you see. Return a structured summary."</p>
+    </div>
+  </div>
+
+  <p>The good prompt tells the subagent exactly where to look, what to find, and how to report it. The bad prompt forces the subagent to guess what you care about.</p>
+
+  <h4>Example 2: Code Writing Task</h4>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4 style="color: #C4612A;">Bad Prompt</h4>
+      <p>"Write tests for the project."</p>
+      <p class="text-small text-muted">Which project? Which files? What testing framework? What kind of tests?</p>
+    </div>
+    <div class="comparison-col">
+      <h4 style="color: #5B9E4B;">Good Prompt</h4>
+      <p>"Write unit tests for /src/utils/validators.js using Jest. Cover all exported functions. Include edge cases for empty inputs and invalid types. Put tests in /tests/utils/validators.test.js."</p>
+    </div>
+  </div>
+
+  <p>Again &mdash; the good prompt specifies the file, the framework, the scope, and the output location. The subagent has everything it needs to do excellent work.</p>
+
+  <h4>Example 3: Code Review Task</h4>
+
+  <div class="comparison">
+    <div class="comparison-col">
+      <h4 style="color: #C4612A;">Bad Prompt</h4>
+      <p>"Review this code."</p>
+      <p class="text-small text-muted">What code? Review for what &mdash; bugs, style, performance, security?</p>
+    </div>
+    <div class="comparison-col">
+      <h4 style="color: #5B9E4B;">Good Prompt</h4>
+      <p>"Review the file /src/api/payments.js. Focus on: (1) security vulnerabilities, especially around input validation and SQL injection, (2) error handling gaps, (3) any hardcoded secrets. Return a list of issues with line numbers and severity ratings."</p>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-title">Common Mistake</div>
+    <p><strong>Don't give a subagent context it can only get from your conversation.</strong> If you discussed with Claude that "we're using Postgres, not MySQL" but that information isn't in the codebase, the subagent won't know it. Either include that context in the prompt or make sure it's discoverable in the project files (like in CLAUDE.md).</p>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">Pro Tip</div>
+    <p>Put important project context in your CLAUDE.md file. Subagents automatically read CLAUDE.md when they start (just like the parent does). This is the best way to share context across all agents without repeating yourself in every prompt.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Practical Patterns -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.6</span> Practical Subagent Patterns</h2>
+
+  <p>Here are the patterns you'll use most often. Each one shows you the prompt you'd give Claude, which triggers the subagent delegation.</p>
+
+  <h3>Pattern 1: The Research Agent</h3>
+
+  <p>Use this when you need Claude to understand a large or unfamiliar codebase (or part of one) without cluttering your main context. The research agent reads everything, synthesizes it, and hands you back a clean summary.</p>
+
+  <p>You'd prompt your main Claude session like this.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">Use a subagent to research the authentication system. Have it read
+all files in /src/auth/, /src/middleware/, and /src/routes/auth.js.
+It should return a summary covering:
+- How login/logout works end to end
+- What tokens are used and how they're validated
+- Where sessions are stored
+- Any security concerns it spots</span></code></pre>
+
+  <p>Claude will spawn a subagent with those instructions. The subagent will read the files, reason about the auth system, and return a clean summary. Your main context stays uncluttered &mdash; you never had to read those files yourself in the main session.</p>
+
+  <h3>Pattern 2: The Code Review Agent</h3>
+
+  <p>Dedicated code review is one of the best uses for subagents. The reviewer gets a clean context focused entirely on finding problems.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">Use a subagent to review /src/api/payments.js for bugs and
+security issues. It should check for:
+- Input validation gaps
+- SQL injection or NoSQL injection risks
+- Hardcoded credentials or secrets
+- Unhandled error cases
+- Race conditions
+
+Have it return issues with line numbers and severity (high/medium/low).</span></code></pre>
+
+  <p>The code review subagent will focus exclusively on that file, examining it with fresh eyes and a clean context window. This often catches issues that the parent would miss because its context is full of other concerns.</p>
+
+  <h3>Pattern 3: The Test Writing Agent</h3>
+
+  <p>Test writing is a perfect subagent task because it's self-contained &mdash; the subagent just needs the source file and the testing framework conventions.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">Use a subagent to write comprehensive tests for /src/utils/dateHelpers.js.
+It should:
+- Use Jest as the testing framework
+- Cover every exported function
+- Include happy path, edge cases, and error cases
+- Write tests to /tests/utils/dateHelpers.test.js
+- Make sure the tests are runnable with "npx jest"</span></code></pre>
+
+  <p>The subagent reads the source file, understands the functions, and writes complete tests. It returns a summary of what it wrote and how many test cases it created.</p>
+
+  <h3>Pattern 4: Parallel Feature Development</h3>
+
+  <p>When you have multiple independent features to build, subagents can build them simultaneously. This is where you get real speedups.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">I need three things built in parallel. Use separate subagents for each:
+
+1. Build a user profile page at /src/pages/Profile.jsx that displays
+   user info from the /api/users/:id endpoint. Use the existing
+   component patterns from /src/pages/Dashboard.jsx.
+
+2. Build an email notification service at /src/services/emailNotifier.js
+   that sends welcome emails and password reset emails using the
+   Resend SDK. Config is in /src/config/email.js.
+
+3. Build a rate limiter middleware at /src/middleware/rateLimiter.js
+   that limits each IP to 100 requests per minute. Use express-rate-limit.</span></code></pre>
+
+  <p>Three subagents spin up, each focused on one feature. They all work at the same time. The parent waits for all three to finish, then reports the combined results. What might take 20 minutes sequentially could take 7 minutes in parallel.</p>
+
+  <div class="callout info">
+    <div class="callout-title">Note</div>
+    <p>Parallel subagents work best when the features are truly independent &mdash; they don't modify the same files, and they don't depend on each other's output. If feature B needs the code from feature A, you need to run them sequentially, not in parallel.</p>
+  </div>
+
+  <h3>Pattern 5: The Documentation Agent</h3>
+
+  <p>Documentation is a great delegation target because it's read-heavy (lots of files to understand) but the output is self-contained.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">Use a subagent to generate API documentation. Have it:
+- Read all route files in /src/routes/
+- For each endpoint, document: method, path, request body,
+  response format, authentication requirements, and error codes
+- Write the documentation to /docs/api-reference.md in a
+  clean, consistent format
+- Include example request/response pairs</span></code></pre>
+
+  <p>The documentation agent will methodically read every route file, extract the endpoint details, and produce a comprehensive API reference. The parent's context stays clean for the next task.</p>
+
+  <h3>Pattern 6: The Investigation Agent</h3>
+
+  <p>When something is broken and you don't know where the bug is, you can send a subagent to investigate. It can grep through the codebase, read logs, and track down the issue without cluttering your main session.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">Use a subagent to investigate why the /api/orders endpoint returns
+a 500 error when the cart has more than 10 items. Have it:
+- Read /src/routes/orders.js and trace the request flow
+- Check /src/services/orderProcessor.js for array handling
+- Look at the database schema in /src/models/Order.js
+- Run the test suite with "npm test -- orders" and check for failures
+- Return: the root cause, the file and line number, and a suggested fix</span></code></pre>
+
+  <p>The investigation agent works like a detective &mdash; it follows the trail, runs commands, reads files, and reports back with findings. You get the answer without having to load all those files into your own context.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Reading and Using Subagent Results -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.7</span> Reading and Using Subagent Results</h2>
+
+  <p>When a subagent finishes, the parent gets back a text summary. Understanding how to work with these results is important.</p>
+
+  <h3>What You Get Back</h3>
+
+  <p>The subagent's result is a text block &mdash; think of it as a report. It typically includes:</p>
+
+  <ul>
+    <li>A summary of what the subagent did</li>
+    <li>Key findings or outputs</li>
+    <li>Files that were created or modified</li>
+    <li>Any issues encountered</li>
+  </ul>
+
+  <p>The parent does <em>not</em> get:</p>
+
+  <ul>
+    <li>The subagent's full internal chain of thought</li>
+    <li>Every file the subagent read</li>
+    <li>Every command it ran</li>
+    <li>Its intermediate reasoning or dead ends</li>
+  </ul>
+
+  <p>This is a feature, not a limitation. If the parent received everything the subagent did, it would defeat the purpose of context isolation &mdash; the parent's context would be just as full as if it had done the work itself.</p>
+
+  <h3>How to Use Results Effectively</h3>
+
+  <p>Once a subagent reports back, you have several options.</p>
+
+  <p><strong>Use the result as-is.</strong> If the subagent's research answered your question or its code is good, you're done. Move on.</p>
+
+  <p><strong>Follow up with another subagent.</strong> If the first subagent's research uncovered something that needs deeper investigation, spawn a new subagent with more specific instructions based on what you learned.</p>
+
+  <p>For example, you might say to Claude in your main session.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">The research subagent found that auth uses JWT tokens stored in
+cookies. Now use another subagent to review the JWT implementation
+in /src/auth/jwt.js for security issues, specifically checking
+if tokens are properly validated and if expiration is enforced.</span></code></pre>
+
+  <p>This is a sequential pattern: research first, then act on the findings. Each subagent gets a clean context for its specific job.</p>
+
+  <p><strong>Verify the subagent's work.</strong> Just because a subagent says it wrote working code doesn't mean you should trust it blindly. You can ask Claude to review what the subagent produced.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">The subagent wrote tests in /tests/utils/validators.test.js.
+Run them with "npx jest tests/utils/validators.test.js" and
+tell me if they all pass. If any fail, fix them.</span></code></pre>
+
+  <p>This verification step catches issues without needing another subagent &mdash; the parent can handle it directly since it's a quick task.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p><strong>Chain subagents, don't overload them.</strong> It's better to use three focused subagents in sequence (research &rarr; implement &rarr; test) than one subagent asked to do all three. Each link in the chain gets a clean context for its specific job. The parent acts as the coordinator, passing relevant findings from one stage to the next.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Cost and Performance Considerations -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.8</span> Cost and Performance Considerations</h2>
+
+  <p>Subagents aren't free. Every subagent is a separate Claude API call with its own token usage. You need to think about cost and performance.</p>
+
+  <h3>Understanding the Cost</h3>
+
+  <p>Every subagent has its own full conversation with the model. It reads files (input tokens), reasons about them (thinking tokens), and produces output (output tokens). If you spawn 5 subagents that each read 20 files, you're paying for all of that &mdash; five separate sessions' worth of tokens.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Token Cost</th>
+        <th>Time</th>
+        <th>Quality</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Single agent does everything</td>
+        <td>Lower total tokens</td>
+        <td>Slower (sequential)</td>
+        <td>Degrades as context fills</td>
+      </tr>
+      <tr>
+        <td>3 focused subagents</td>
+        <td>Higher total tokens</td>
+        <td>Faster (parallel)</td>
+        <td>Higher (clean contexts)</td>
+      </tr>
+      <tr>
+        <td>10 micro-subagents</td>
+        <td>Highest total tokens</td>
+        <td>Fastest (if parallel)</td>
+        <td>Diminishing returns</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Optimizing Cost</h3>
+
+  <ul>
+    <li><strong>Don't use subagents for trivial tasks.</strong> If the task takes Claude 5 seconds inline, the overhead of spawning a subagent isn't worth it.</li>
+    <li><strong>Be specific about scope.</strong> "Read all files in the project" costs way more than "Read /src/auth/login.js and /src/auth/middleware.js." Tell the subagent exactly which files to read.</li>
+    <li><strong>Don't over-parallelize.</strong> Three subagents for three independent tasks makes sense. Fifteen subagents for fifteen tiny tasks probably doesn't. Find the right granularity.</li>
+    <li><strong>Use subagents for high-value tasks.</strong> Research across 30 files? Worth the cost. Renaming a variable? Definitely not.</li>
+  </ul>
+
+  <div class="callout warning">
+    <div class="callout-title">Watch Out</div>
+    <p>Subagent costs can add up fast on Max plans or API usage. If you're spawning many subagents on complex tasks, keep an eye on your usage. Each subagent is a full Claude session &mdash; treat them like you'd treat deploying real people to tasks. You wouldn't hire five people to change a lightbulb.</p>
+  </div>
+
+  <h3>Performance Tips</h3>
+
+  <ul>
+    <li><strong>Parallel where possible.</strong> If three subagents don't depend on each other, let them run simultaneously.</li>
+    <li><strong>Sequential where necessary.</strong> If the test-writing subagent needs to know the code structure that the code-writing subagent just created, run them in order.</li>
+    <li><strong>Keep subagent prompts focused.</strong> A subagent that knows exactly what to do finishes faster than one that has to figure it out.</li>
+    <li><strong>CLAUDE.md is your friend.</strong> Putting project conventions in CLAUDE.md means every subagent automatically gets project context without you repeating it in every prompt.</li>
+  </ul>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: Triggering Subagents in Practice -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.9</span> How You Actually Trigger Subagent Usage</h2>
+
+  <p>You don't need to call a special API or write code to use subagents. You trigger them through natural language in your Claude Code session. Claude decides whether to use a subagent based on your prompt.</p>
+
+  <h3>Explicit Triggers</h3>
+
+  <p>The most reliable way to get Claude to use subagents is to tell it directly. These phrases clearly signal that you want delegation.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-comment"># Direct subagent requests that Claude understands:</span>
+
+<span class="syn-string">"Use a subagent to..."</span>
+<span class="syn-string">"Delegate this to a subagent..."</span>
+<span class="syn-string">"Spawn a separate agent to..."</span>
+<span class="syn-string">"Use the Task tool to..."</span>
+<span class="syn-string">"Have a subagent research..."</span>
+<span class="syn-string">"In parallel, use subagents to..."</span></code></pre>
+
+  <p>When you use phrases like these, Claude knows you want it to use the Task/Agent tool rather than doing the work inline.</p>
+
+  <h3>Implicit Triggers</h3>
+
+  <p>Claude will also sometimes decide to use subagents on its own when the task naturally calls for it &mdash; especially if you ask it to do multiple independent things at once, or if a research task would be too large for the current context. But if you want to be sure, be explicit.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>If Claude is doing something inline that you think should be a subagent, just tell it: "Stop. Use a subagent for this instead." You're the manager &mdash; you decide the team structure.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 10: Advanced Patterns -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.10</span> Advanced Patterns</h2>
+
+  <h3>Nested Subagents</h3>
+
+  <p>Subagents can spawn their own subagents. This creates a tree structure where the top-level parent delegates to mid-level agents, which in turn delegate specific pieces of their own work. This happens automatically when a subagent decides a subtask warrants delegation.</p>
+
+  <p>For example, you ask Claude to "build a complete user management module." Claude spawns a subagent for the backend and another for the frontend. The backend subagent might itself spawn a sub-subagent to research the database schema while it works on the API routes.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Be Careful</div>
+    <p>Nesting can get expensive fast. Each level of nesting multiplies the number of Claude sessions. In most cases, one level of delegation (parent &rarr; subagent) is enough. Only let nesting happen naturally &mdash; don't force deep hierarchies.</p>
+  </div>
+
+  <h3>The Scout-Then-Act Pattern</h3>
+
+  <p>This is one of the most useful two-stage patterns. Send a scout subagent first to map the terrain, then use its findings to dispatch targeted action subagents.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">Step 1: Use a subagent to scan the entire /src directory and
+create a map of all modules, their dependencies, and which
+ones have tests vs. which ones don't.
+
+Step 2: Based on what it finds, use subagents to write tests
+for the modules that don't have any yet.</span></code></pre>
+
+  <p>The scout gives the parent an informed view of the project, so the parent can make smart decisions about what to delegate next. This is far more efficient than blindly spawning subagents without understanding the codebase first.</p>
+
+  <h3>Shared State Through the Filesystem</h3>
+
+  <p>Subagents can't talk to each other directly, but they can communicate indirectly through files. If subagent A writes a file, subagent B can read it &mdash; as long as A finishes before B starts.</p>
+
+  <p>This is how sequential subagent chains work in practice.</p>
+
+  <div class="code-label">prompt</div>
+<pre><code><span class="syn-variable">1. Use a subagent to research the OpenWeather API and write
+   a summary to /docs/weather-api-notes.md including
+   endpoints, auth method, and rate limits.
+
+2. Then use another subagent to read /docs/weather-api-notes.md
+   and build a weather service at /src/services/weather.js
+   that fetches the 5-day forecast.
+
+3. Then use a third subagent to write tests for
+   /src/services/weather.js.</span></code></pre>
+
+  <p>Each subagent reads the output of the previous one from the filesystem. The parent orchestrates the sequence, kicking off each next stage after the previous one completes.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 11: Common Mistakes -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">12.11</span> Common Mistakes and Gotchas</h2>
+
+  <ol>
+    <li>
+      <p><strong>Assuming the subagent knows your conversation history.</strong> It doesn't. Every subagent starts from zero. If you've been discussing design decisions with Claude for 20 minutes, none of that transfers. Include relevant decisions in the subagent's prompt, or better yet, put them in CLAUDE.md.</p>
+    </li>
+    <li>
+      <p><strong>Over-delegating.</strong> Not every task needs a subagent. "Delete this file" or "add a comment to line 5" should be done inline. Subagents have overhead &mdash; use them for tasks that justify it.</p>
+    </li>
+    <li>
+      <p><strong>Vague subagent prompts.</strong> The number one cause of bad subagent results. "Review the code" is almost useless. "Review /src/api/payments.js for SQL injection and unhandled errors, return issues with line numbers" is excellent.</p>
+    </li>
+    <li>
+      <p><strong>Parallel subagents that conflict.</strong> If two subagents try to modify the same file at the same time, you'll get race conditions or one overwriting the other. Only parallelize subagents that work on different files.</p>
+    </li>
+    <li>
+      <p><strong>Not verifying subagent output.</strong> Just because a subagent says "I wrote comprehensive tests" doesn't mean the tests pass or are comprehensive. Always verify critical output &mdash; run the tests, read the generated code, check the documentation.</p>
+    </li>
+    <li>
+      <p><strong>Spawning too many subagents at once.</strong> Five parallel subagents each reading large files can be expensive and slow. Start with 2-3 and see how it goes before scaling up.</p>
+    </li>
+  </ol>
+
+  <!-- ============================================================ -->
+  <!-- Checkpoint Project -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-icon">&#127937;</span>
+      <h3>Checkpoint Project: The Delegation</h3>
+    </div>
+
+    <h4>What to Build</h4>
+    <p>You're going to orchestrate a multi-subagent workflow. Pick a real API you're interested in (e.g., OpenWeather, NASA's APOD API, or the PokeAPI &mdash; all free, no credit card needed). Then prompt Claude Code to use three separate subagents to handle distinct parts of the integration:</p>
+    <ul>
+      <li><strong>Subagent 1 (Research):</strong> Research the API &mdash; read its documentation, identify useful endpoints, figure out authentication, note rate limits. Write its findings to a file (e.g., <code>/docs/api-research.md</code>).</li>
+      <li><strong>Subagent 2 (Implementation):</strong> Based on the research file, write integration code that calls the API, handles errors, and returns structured data. Save it to a service file (e.g., <code>/src/services/apiClient.js</code>).</li>
+      <li><strong>Subagent 3 (Testing):</strong> Write unit tests for the integration code the second subagent created. Use a real testing framework (Jest, pytest, or whatever fits your project).</li>
+    </ul>
+
+    <h4>Success Criteria</h4>
+    <ul>
+      <li>You explicitly instructed Claude to use subagents (using "use a subagent to..." or similar phrasing), and it did &mdash; you can see Task tool invocations in the output.</li>
+      <li>The research subagent produced a written summary file with actual API details (not generic filler).</li>
+      <li>The implementation subagent read the research file and wrote code that correctly calls the API. The code runs without syntax errors.</li>
+      <li>The test subagent wrote tests that actually test the implementation. At least 3 tests pass when you run them.</li>
+      <li>Context isolation worked: neither the implementation subagent nor the test subagent had access to your earlier conversation &mdash; they relied on the filesystem (the research file, the implementation file) for their context.</li>
+      <li>You verified the results yourself: you ran the integration code, ran the tests, and confirmed they work.</li>
+    </ul>
+
+    <h4>How You Know Context Isolation Worked</h4>
+    <p>If the subagents relied on files written by previous subagents (not on conversation history), isolation worked. You can confirm this by checking that the implementation subagent read <code>api-research.md</code> (it will show Read tool calls in its output) rather than "just knowing" the API details from the parent conversation.</p>
+
+    <div class="time-estimate">
+      <span>&#9202;</span> Estimated time: 60&ndash;90 minutes
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-11.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-13.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+</body>
+</html>

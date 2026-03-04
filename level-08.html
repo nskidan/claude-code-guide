@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Level 8: Configuration and Customization Deep Dive | Claude Code Mastery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Top Navigation -->
+  <nav class="level-nav">
+    <a href="level-07.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-09.html">Next &rarr;</a>
+  </nav>
+
+  <!-- Level Header -->
+  <div class="level-header">
+    <div class="level-number">Level 08</div>
+    <h1>Configuration and Customization Deep Dive</h1>
+    <p class="level-subtitle">Claude Code out of the box is good. Claude Code configured to your project, your workflow, and your preferences is a different tool entirely. This is where you stop being a guest and start being the owner.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: Why Configuration Matters -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">8.1</span> Why Configuration Matters</h2>
+
+  <p>You have been using Claude Code to build real things. You have created projects, written CLAUDE.md files, navigated git, and read code. But every time you start a session, you are probably doing the same ritual: approving the same tools, typing the same setup instructions, watching Claude ask permission for things you always say yes to.</p>
+
+  <p>That repetition is not just annoying. It costs you time, burns through your context window, and breaks your flow. Configuration eliminates it.</p>
+
+  <div class="analogy">
+    <strong>Think of it this way:</strong> Buying a house gives you shelter. But configuring that house &mdash; setting the thermostat, stocking the kitchen, hanging your tools in the garage, programming the garage door opener &mdash; is what makes it a place where you actually get things done efficiently. Claude Code out of the box is the house. Configuration is making it your home.
+  </div>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>A properly configured Claude Code setup can save you 10&ndash;30 seconds per interaction in permission prompts alone. Over a full day of development, that adds up to 20&ndash;40 minutes of recovered focus time &mdash; not counting the cognitive cost of context-switching every time you have to read and approve a tool use.</p>
+  </div>
+
+  <p>Configuration touches three big areas:</p>
+  <ol>
+    <li><strong>Permissions</strong> &mdash; what Claude is allowed to do without asking you</li>
+    <li><strong>Behavior</strong> &mdash; how Claude operates (which model, what environment, what shortcuts)</li>
+    <li><strong>Workflow</strong> &mdash; custom commands that encode your repeated patterns into one-word triggers</li>
+  </ol>
+
+  <p>By the end of this level, you will have a fully customized Claude Code environment. Let's build it piece by piece.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: The .claude/ Directory -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">8.2</span> The .claude/ Directory</h2>
+
+  <p>Every Claude Code configuration has a home, and that home is the <code>.claude/</code> directory. There are actually two of them, and understanding the difference is critical.</p>
+
+  <div class="definition">
+    <p><span class="term">User-level configuration</span> &mdash; Settings stored in <code>~/.claude/</code> (your home directory). These apply to every project you open in Claude Code. Think of these as your personal preferences.</p>
+  </div>
+
+  <div class="definition">
+    <p><span class="term">Project-level configuration</span> &mdash; Settings stored in <code>.claude/</code> inside your project directory (next to your <code>CLAUDE.md</code>). These apply only to that specific project. Think of these as the project's rules.</p>
+  </div>
+
+  <div class="analogy">
+    <strong>The analogy:</strong> User-level config is like your personal tool belt that you carry to every job site. Project-level config is like the site-specific safety rules posted at the entrance. Both apply when you're working on that site, but the site rules only matter there.
+  </div>
+
+  <p>Here is what lives inside each:</p>
+
+  <p>The following shows a typical user-level directory structure in your home folder.</p>
+
+  <div class="code-label">Directory Structure</div>
+  <pre><code><span class="syn-path">~/.claude/</span>
+  <span class="syn-property">settings.json</span>       <span class="syn-comment"># Your global preferences and permissions</span>
+  <span class="syn-property">commands/</span>           <span class="syn-comment"># Your personal custom slash commands</span>
+    <span class="syn-property">review.md</span>         <span class="syn-comment"># Example: /review command available everywhere</span>
+    <span class="syn-property">standup.md</span>        <span class="syn-comment"># Example: /standup command available everywhere</span></code></pre>
+
+  <p>These files travel with you. Any project you open will inherit these settings and commands.</p>
+
+  <p>The following shows a typical project-level directory structure.</p>
+
+  <div class="code-label">Directory Structure</div>
+  <pre><code><span class="syn-path">your-project/</span>
+  <span class="syn-path">.claude/</span>
+    <span class="syn-property">settings.json</span>     <span class="syn-comment"># Project-specific permissions and config</span>
+    <span class="syn-property">commands/</span>         <span class="syn-comment"># Project-specific slash commands</span>
+      <span class="syn-property">deploy.md</span>       <span class="syn-comment"># Example: /deploy only makes sense for this project</span>
+      <span class="syn-property">test.md</span>         <span class="syn-comment"># Example: /test runs this project's test suite</span>
+  <span class="syn-property">CLAUDE.md</span>           <span class="syn-comment"># Project instructions (you already know this one)</span>
+  <span class="syn-property">src/</span>                <span class="syn-comment"># Your source code</span>
+  <span class="syn-comment">...</span></code></pre>
+
+  <p>Project-level settings are meant to be committed to git. When a teammate clones your repo, they get the same Claude Code configuration you have. That is a big deal for team consistency.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>When both user-level and project-level settings exist, they get merged. Project-level settings take precedence for anything that conflicts. So if your global settings allow a tool but the project settings deny it, the project wins.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: settings.json Deep Dive -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">8.3</span> settings.json Deep Dive</h2>
+
+  <p>The <code>settings.json</code> file is the single most important configuration file for Claude Code. It controls permissions, environment, and behavior. Let's break it apart completely.</p>
+
+  <h3>Where It Lives</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Scope</th>
+        <th>Location</th>
+        <th>Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Global (user)</td>
+        <td><code>~/.claude/settings.json</code></td>
+        <td>Your personal defaults for all projects</td>
+      </tr>
+      <tr>
+        <td>Project (shared)</td>
+        <td><code>.claude/settings.json</code></td>
+        <td>Project rules, committed to git</td>
+      </tr>
+      <tr>
+        <td>Project (local)</td>
+        <td><code>.claude/settings.local.json</code></td>
+        <td>Your personal overrides for this project (gitignored)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The local settings file (<code>settings.local.json</code>) is for when you need project-specific settings that should not be shared with the team &mdash; like your own API keys or personal tool preferences.</p>
+
+  <h3>The Complete Settings Reference</h3>
+
+  <p>Here is a fully annotated <code>settings.json</code> showing every key setting you should know about. Read through it carefully &mdash; each comment explains what the setting does and when you would use it.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-comment">// Tools Claude can use WITHOUT asking you first</span>
+  <span class="syn-property">"permissions"</span>: {
+    <span class="syn-property">"allow"</span>: [
+      <span class="syn-string">"Bash(git log:*)"</span>,          <span class="syn-comment">// Any git log command</span>
+      <span class="syn-string">"Bash(git diff:*)"</span>,         <span class="syn-comment">// Any git diff command</span>
+      <span class="syn-string">"Bash(git status)"</span>,          <span class="syn-comment">// Check repo status</span>
+      <span class="syn-string">"Bash(npm test:*)"</span>,          <span class="syn-comment">// Run tests</span>
+      <span class="syn-string">"Bash(npm run lint:*)"</span>,      <span class="syn-comment">// Run linter</span>
+      <span class="syn-string">"Read"</span>,                       <span class="syn-comment">// Read any file</span>
+      <span class="syn-string">"Glob"</span>,                       <span class="syn-comment">// Search for files by pattern</span>
+      <span class="syn-string">"Grep"</span>,                       <span class="syn-comment">// Search file contents</span>
+      <span class="syn-string">"Edit"</span>,                       <span class="syn-comment">// Edit files</span>
+      <span class="syn-string">"Write"</span>                       <span class="syn-comment">// Write new files</span>
+    ],
+    <span class="syn-property">"deny"</span>: [
+      <span class="syn-string">"Bash(rm -rf:*)"</span>,            <span class="syn-comment">// Never let Claude delete recursively</span>
+      <span class="syn-string">"Bash(git push:*)"</span>,          <span class="syn-comment">// Always ask before pushing</span>
+      <span class="syn-string">"Bash(git reset --hard:*)"</span>,  <span class="syn-comment">// Never hard reset without asking</span>
+      <span class="syn-string">"Bash(curl:*)"</span>               <span class="syn-comment">// No network requests without approval</span>
+    ]
+  },
+
+  <span class="syn-comment">// Environment variables available to Claude's Bash commands</span>
+  <span class="syn-property">"env"</span>: {
+    <span class="syn-property">"NODE_ENV"</span>: <span class="syn-string">"development"</span>,
+    <span class="syn-property">"DEBUG"</span>: <span class="syn-string">"true"</span>
+  }
+}</code></pre>
+
+  <p>A few things to notice in this configuration. The <code>permissions.allow</code> list uses a pattern system where the colon and asterisk (<code>:*</code>) means "this command followed by anything." So <code>Bash(git log:*)</code> permits <code>git log</code>, <code>git log --oneline</code>, <code>git log -5</code>, and any other variation. Without the <code>:*</code>, only the exact command matches.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>The <code>permissions.allow</code> and <code>permissions.deny</code> lists are the single biggest quality-of-life improvement you can make. Pre-approving safe, read-only tools like <code>Read</code>, <code>Glob</code>, and <code>Grep</code> means Claude can freely explore your codebase without interrupting you. Denying destructive commands like <code>rm -rf</code> and <code>git push</code> means you always get a say before something irreversible happens.</p>
+  </div>
+
+  <h3>Understanding Permission Patterns</h3>
+
+  <p>The permission pattern syntax deserves a closer look because it is more powerful than it first appears. Here is how patterns work.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Pattern</th>
+        <th>What It Matches</th>
+        <th>Example Match</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>"Read"</code></td>
+        <td>The Read tool, any arguments</td>
+        <td>Reading any file</td>
+      </tr>
+      <tr>
+        <td><code>"Bash(git status)"</code></td>
+        <td>Only the exact command <code>git status</code></td>
+        <td><code>git status</code> and nothing else</td>
+      </tr>
+      <tr>
+        <td><code>"Bash(git log:*)"</code></td>
+        <td><code>git log</code> followed by anything</td>
+        <td><code>git log --oneline -10</code></td>
+      </tr>
+      <tr>
+        <td><code>"Bash(npm:*)"</code></td>
+        <td>Any npm command</td>
+        <td><code>npm install</code>, <code>npm test</code>, etc.</td>
+      </tr>
+      <tr>
+        <td><code>"mcp__server_name"</code></td>
+        <td>Any tool from an MCP server</td>
+        <td>All tools exposed by that server</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The deny list always wins. If something appears in both <code>allow</code> and <code>deny</code>, it is denied. Think of deny as the override that cannot be beaten.</p>
+
+  <h3>A Real-World Project settings.json</h3>
+
+  <p>Let's look at a practical example. Say you are building a Node.js web application. Here is a project-level <code>.claude/settings.json</code> that makes sense for that context.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"permissions"</span>: {
+    <span class="syn-property">"allow"</span>: [
+      <span class="syn-comment">// File operations — let Claude explore freely</span>
+      <span class="syn-string">"Read"</span>,
+      <span class="syn-string">"Edit"</span>,
+      <span class="syn-string">"Write"</span>,
+      <span class="syn-string">"Glob"</span>,
+      <span class="syn-string">"Grep"</span>,
+
+      <span class="syn-comment">// Git read operations — safe to run anytime</span>
+      <span class="syn-string">"Bash(git status)"</span>,
+      <span class="syn-string">"Bash(git log:*)"</span>,
+      <span class="syn-string">"Bash(git diff:*)"</span>,
+      <span class="syn-string">"Bash(git branch:*)"</span>,
+      <span class="syn-string">"Bash(git show:*)"</span>,
+
+      <span class="syn-comment">// Project commands — safe to run</span>
+      <span class="syn-string">"Bash(npm test:*)"</span>,
+      <span class="syn-string">"Bash(npm run lint:*)"</span>,
+      <span class="syn-string">"Bash(npm run build:*)"</span>,
+      <span class="syn-string">"Bash(npx tsc:*)"</span>,
+
+      <span class="syn-comment">// Directory listing</span>
+      <span class="syn-string">"Bash(ls:*)"</span>,
+      <span class="syn-string">"Bash(cat:*)"</span>
+    ],
+    <span class="syn-property">"deny"</span>: [
+      <span class="syn-comment">// Destructive operations — always ask first</span>
+      <span class="syn-string">"Bash(rm:*)"</span>,
+      <span class="syn-string">"Bash(git push:*)"</span>,
+      <span class="syn-string">"Bash(git reset:*)"</span>,
+      <span class="syn-string">"Bash(git checkout -- :*)"</span>,
+      <span class="syn-string">"Bash(npm publish:*)"</span>,
+
+      <span class="syn-comment">// Network operations — review before running</span>
+      <span class="syn-string">"Bash(curl:*)"</span>,
+      <span class="syn-string">"Bash(wget:*)"</span>
+    ]
+  },
+  <span class="syn-property">"env"</span>: {
+    <span class="syn-property">"NODE_ENV"</span>: <span class="syn-string">"development"</span>
+  }
+}</code></pre>
+
+  <p>This configuration creates a clear division: Claude can read anything, write code, run tests, and check git status without interrupting you. But it has to ask before pushing to remote, deleting files, or making network requests. That is the sweet spot for most development work.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: Permission Modes -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">8.4</span> Permission Modes</h2>
+
+  <p>Claude Code offers a spectrum of permission levels. Think of it as a dial that goes from "ask me about everything" to "handle it yourself." Understanding where to set that dial is one of the most important configuration decisions you will make.</p>
+
+  <div class="analogy">
+    <strong>The analogy:</strong> Imagine hiring an assistant. On day one, you want them to check with you before doing anything &mdash; "Should I open this drawer? Should I move this file?" After a few weeks, you trust them to handle routine tasks on their own and only check in for big decisions. After a year, they run the entire office and you only hear about truly important things. Permission modes let you calibrate that trust level.
+  </div>
+
+  <h3>The Permission Spectrum</h3>
+
+  <h4>1. Default Mode (Maximum Supervision)</h4>
+
+  <p>When you have no <code>settings.json</code> at all, Claude asks permission for virtually every tool use. Every file edit, every bash command, every write operation gets a prompt.</p>
+
+  <p><strong>When to use this:</strong> Your first day with Claude Code, or when working on a project with extremely sensitive data.</p>
+
+  <p><strong>The downside:</strong> You spend more time clicking "approve" than thinking about your project.</p>
+
+  <h4>2. Selective Allow List (Balanced Control)</h4>
+
+  <p>You pre-approve specific tools and command patterns while leaving everything else requiring approval. This is the configuration shown in Section 8.3.</p>
+
+  <p><strong>When to use this:</strong> Most of the time. This is the right default for almost everyone after you have basic comfort with Claude Code.</p>
+
+  <p><strong>The sweet spot:</strong> Allow all read operations plus your project's safe commands (tests, linting, building). Deny destructive operations. Everything else asks.</p>
+
+  <h4>3. Broad Automation (Minimal Supervision)</h4>
+
+  <p>You pre-approve nearly everything, including file writes and most bash commands, keeping only a small deny list for truly dangerous operations.</p>
+
+  <p>The following settings.json shows what a broad automation configuration looks like.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"permissions"</span>: {
+    <span class="syn-property">"allow"</span>: [
+      <span class="syn-string">"Read"</span>,
+      <span class="syn-string">"Edit"</span>,
+      <span class="syn-string">"Write"</span>,
+      <span class="syn-string">"Glob"</span>,
+      <span class="syn-string">"Grep"</span>,
+      <span class="syn-string">"Bash(*)"</span>            <span class="syn-comment">// Allow ALL bash commands...</span>
+    ],
+    <span class="syn-property">"deny"</span>: [
+      <span class="syn-string">"Bash(rm -rf:*)"</span>,    <span class="syn-comment">// ...except these specific ones</span>
+      <span class="syn-string">"Bash(git push --force:*)"</span>,
+      <span class="syn-string">"Bash(npm publish:*)"</span>,
+      <span class="syn-string">"Bash(sudo:*)"</span>
+    ]
+  }
+}</code></pre>
+
+  <p>Notice the <code>"Bash(*)"</code> pattern &mdash; that asterisk matches every bash command. The deny list then carves out exceptions. This is powerful but risky. Claude could run commands you did not anticipate.</p>
+
+  <p><strong>When to use this:</strong> When you are experienced, working on a non-critical project, and you want maximum speed. Or when running Claude in headless mode (covered in Level 13).</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p>Broad automation is tempting, but start with the selective allow list first. Get comfortable with what Claude actually tries to run over a few sessions. Then gradually expand your allow list based on real patterns you observe. Going straight to <code>Bash(*)</code> is like giving a new assistant your house keys on day one.</p>
+  </div>
+
+  <h4>4. The --dangerously-skip-permissions Flag</h4>
+
+  <p>Claude Code also has a command-line flag that bypasses <em>all</em> permission checks entirely.</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-prompt">$</span> <span class="syn-function">claude</span> <span class="syn-flag">--dangerously-skip-permissions</span></code></pre>
+
+  <p>The flag name tells you everything you need to know. This is for CI/CD pipelines and automated systems, not for daily development. It removes every safety check. Do not use it unless you fully understand what you are doing and have other safeguards in place (like running in a sandboxed container).</p>
+
+  <h3>How to Decide What to Allow</h3>
+
+  <p>Use this decision framework when building your permission list:</p>
+
+  <ol>
+    <li><strong>Can this command destroy data?</strong> If yes &rarr; deny list (e.g., <code>rm</code>, <code>git reset --hard</code>)</li>
+    <li><strong>Does this command send data outside your machine?</strong> If yes &rarr; deny list (e.g., <code>git push</code>, <code>curl</code>, <code>npm publish</code>)</li>
+    <li><strong>Is this command read-only?</strong> If yes &rarr; allow list (e.g., <code>git log</code>, <code>ls</code>, <code>cat</code>)</li>
+    <li><strong>Is this command part of your standard development loop?</strong> If yes &rarr; allow list (e.g., <code>npm test</code>, <code>npm run build</code>)</li>
+    <li><strong>Everything else?</strong> Leave it to the default (asks for permission)</li>
+  </ol>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>The most impactful first step: add <code>"Read"</code>, <code>"Glob"</code>, and <code>"Grep"</code> to your allow list. Just these three let Claude freely explore and understand your codebase without interruption. You will feel the difference immediately &mdash; Claude's responses become more informed because it can look at related files on its own instead of asking you for permission to read each one.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: Model Selection -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">8.5</span> Model Selection</h2>
+
+  <p>Claude Code does not lock you into one model. You can switch between different Claude models depending on what you need: faster responses for simple tasks, deeper reasoning for complex ones.</p>
+
+  <h3>Switching Models</h3>
+
+  <p>You can change the model mid-session using the <code>/model</code> slash command directly in Claude Code.</p>
+
+  <div class="code-label">Claude Code Command</div>
+  <pre><code><span class="syn-prompt">&gt;</span> <span class="syn-function">/model</span></code></pre>
+
+  <p>This brings up a model selector where you can choose from available models. You can also set a model preference from the command line when starting Claude Code.</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-prompt">$</span> <span class="syn-function">claude</span> <span class="syn-flag">--model</span> <span class="syn-string">claude-sonnet-4-20250514</span></code></pre>
+
+  <p>This starts Claude Code using that specific model for the session.</p>
+
+  <h3>When to Use Which Model</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Best For</th>
+        <th>Tradeoff</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Opus</strong></td>
+        <td>Complex architecture decisions, large refactors, tricky debugging</td>
+        <td>Slower, more expensive, deepest reasoning</td>
+      </tr>
+      <tr>
+        <td><strong>Sonnet</strong> (default)</td>
+        <td>General development, most coding tasks, a balance of speed and quality</td>
+        <td>Good balance of speed, cost, and capability</td>
+      </tr>
+      <tr>
+        <td><strong>Haiku</strong></td>
+        <td>Quick questions, simple edits, file searches, boilerplate</td>
+        <td>Fastest, cheapest, less capable on complex tasks</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="analogy">
+    <strong>Think of models like tools in a workshop:</strong> You do not use a sledgehammer to hang a picture frame, and you do not use a tack hammer to demolish a wall. Haiku is your quick-grab screwdriver, Sonnet is your power drill, and Opus is the heavy machinery you bring out when the job demands it.
+  </div>
+
+  <h3>Cost Implications</h3>
+
+  <p>Model choice directly affects your bill. Opus can cost 5&ndash;10x more per token than Haiku. For a day of heavy development:</p>
+
+  <ul>
+    <li><strong>Haiku-heavy usage:</strong> Might cost a few dollars</li>
+    <li><strong>Sonnet-heavy usage:</strong> Might cost $10&ndash;30</li>
+    <li><strong>Opus-heavy usage:</strong> Could easily be $50+</li>
+  </ul>
+
+  <p>The smart strategy is to use Sonnet as your daily driver and switch to Opus only when you are stuck on something genuinely hard &mdash; a complex system design, a nasty bug that resists simpler analysis, or a large-scale refactor across many files.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>You can also toggle "fast mode" within Claude Code by typing <code>/fast</code>. This does not change the model &mdash; it uses the same model with faster output streaming. Use it when you want speed and the task is not deeply complex.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: Custom Slash Commands -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">8.6</span> Custom Slash Commands</h2>
+
+  <p>Slash commands are one of Claude Code's most underused features. They let you create reusable prompts that you trigger with a single <code>/</code> command. If you find yourself typing the same kind of instruction repeatedly, a slash command eliminates that entirely.</p>
+
+  <div class="definition">
+    <p><span class="term">Slash command</span> &mdash; A Markdown file stored in a <code>commands/</code> directory that becomes a triggerable prompt. When you type <code>/commandname</code> in Claude Code, it loads the contents of that file as a prompt.</p>
+  </div>
+
+  <h3>Where Slash Commands Live</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Scope</th>
+        <th>Location</th>
+        <th>Available When</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Personal (global)</td>
+        <td><code>~/.claude/commands/</code></td>
+        <td>Every project</td>
+      </tr>
+      <tr>
+        <td>Project (shared)</td>
+        <td><code>.claude/commands/</code></td>
+        <td>Only this project</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The command name comes from the filename. A file named <code>review.md</code> becomes the <code>/review</code> command. A file named <code>fix-tests.md</code> becomes <code>/fix-tests</code>.</p>
+
+  <h3>Creating Your First Slash Command</h3>
+
+  <p>Let's create four practical slash commands that you will actually use. For each one, I will show you the file to create and explain what it does.</p>
+
+  <h4>Command 1: /review &mdash; Code Review</h4>
+
+  <p>This command tells Claude to review the current changes in your project like a senior developer would. Create this file at the appropriate location depending on whether you want it globally or per-project.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'review-mac')">macOS</button>
+      <button onclick="switchTab(event, 'review-win')">Windows</button>
+    </div>
+    <div id="review-mac" class="os-tab-content active">
+<pre><code><span class="syn-prompt">$</span> <span class="syn-function">mkdir</span> <span class="syn-flag">-p</span> <span class="syn-path">~/.claude/commands</span></code></pre>
+    </div>
+    <div id="review-win" class="os-tab-content">
+<pre><code><span class="syn-prompt">&gt;</span> <span class="syn-function">mkdir</span> <span class="syn-path">%USERPROFILE%\.claude\commands</span></code></pre>
+    </div>
+  </div>
+
+  <p>After creating the directory, create the file <code>review.md</code> inside it with the following content.</p>
+
+  <div class="code-label">markdown</div>
+  <pre><code>Review the current git diff for this project. For each changed file:
+
+1. Summarize what changed and why it likely changed
+2. Flag any potential bugs, edge cases, or error handling gaps
+3. Note any code style inconsistencies
+4. Suggest improvements if applicable
+
+Start by running `git diff` to see the current changes. If there are
+staged changes, also run `git diff --staged`.
+
+Be direct. If the code is fine, say so briefly. Focus your attention
+on things that could actually cause problems.</code></pre>
+
+  <p>Now when you type <code>/review</code> in Claude Code, it loads this entire prompt automatically. Claude will run <code>git diff</code>, analyze the output, and give you a structured code review. No more typing out review instructions every time.</p>
+
+  <h4>Command 2: /test &mdash; Run and Analyze Tests</h4>
+
+  <p>This command runs your project's tests and helps you understand failures. Create <code>test.md</code> in your project's <code>.claude/commands/</code> directory since test commands are project-specific.</p>
+
+  <div class="code-label">bash</div>
+  <pre><code><span class="syn-prompt">$</span> <span class="syn-function">mkdir</span> <span class="syn-flag">-p</span> <span class="syn-path">.claude/commands</span></code></pre>
+
+  <p>Then create <code>.claude/commands/test.md</code> with the following content.</p>
+
+  <div class="code-label">markdown</div>
+  <pre><code>Run the test suite for this project using `npm test`.
+
+After the tests complete:
+1. If all tests pass, report the count and say "All clear"
+2. If tests fail:
+   a. List each failing test by name
+   b. Explain WHY each test is failing (read the test code if needed)
+   c. Suggest a fix for each failure
+   d. Ask me if I want you to implement the fixes
+
+Do not modify any code unless I explicitly ask you to.</code></pre>
+
+  <p>The last line is important. This command is diagnostic by default &mdash; it reports problems without changing anything. You stay in control of when fixes happen.</p>
+
+  <h4>Command 3: /deploy &mdash; Deployment Checklist</h4>
+
+  <p>This command runs through a pre-deployment checklist. Create <code>.claude/commands/deploy.md</code> in your project directory.</p>
+
+  <div class="code-label">markdown</div>
+  <pre><code>Run through a pre-deployment checklist for this project:
+
+1. Run `git status` — are there uncommitted changes? If yes, STOP and
+   tell me to commit first.
+2. Run `npm run build` — does the build succeed?
+3. Run `npm test` — do all tests pass?
+4. Run `npm run lint` — are there any linting errors?
+5. Check if the current branch is up to date with the remote:
+   run `git fetch` then `git status` again.
+
+Report the result of each check as PASS or FAIL.
+
+If everything passes, show me the git log of commits that will be
+deployed (commits ahead of main/master).
+
+Do NOT actually deploy anything. This is a pre-flight check only.</code></pre>
+
+  <p>This is a read-only safety check. It verifies everything is in order before you deploy, without actually triggering a deployment. You can run <code>/deploy</code> with confidence that nothing will change.</p>
+
+  <h4>Command 4: /explain &mdash; Explain a File or Function</h4>
+
+  <p>This is a great personal command to keep in your global commands directory. Create <code>~/.claude/commands/explain.md</code>.</p>
+
+  <div class="code-label">markdown</div>
+  <pre><code>I'm going to give you a file path or function name. Please:
+
+1. Read the file or find the function in the codebase
+2. Explain what it does in plain English, as if explaining to someone
+   who can read code but didn't write this code
+3. Explain HOW it works — walk through the logic step by step
+4. Identify the inputs (what does it need?) and outputs (what does it
+   produce?)
+5. Note any dependencies — what other files or functions does it
+   rely on?
+6. Flag anything unusual, clever, or potentially confusing
+
+Use clear, direct language. No jargon without explanation.
+
+$ARGUMENTS</code></pre>
+
+  <p>Notice the <code>$ARGUMENTS</code> placeholder at the bottom. This is a special variable in slash commands. When you type <code>/explain src/utils/parser.js</code>, the <code>$ARGUMENTS</code> gets replaced with <code>src/utils/parser.js</code>. This makes the command flexible &mdash; you can point it at any file.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Custom slash commands are the bridge between "using Claude Code" and "having Claude Code work the way you think." The best slash commands are the ones that encode your repeated patterns. If you catch yourself typing similar instructions three or more times, stop and make it a slash command. It takes two minutes to create and saves hours over time.</p>
+  </div>
+
+  <h3>Slash Command Best Practices</h3>
+
+  <ul>
+    <li><strong>Be specific about what NOT to do.</strong> Commands like "do not modify code" or "do not push" prevent unintended side effects.</li>
+    <li><strong>Use <code>$ARGUMENTS</code></strong> to make commands flexible and reusable across different targets.</li>
+    <li><strong>Keep project commands in <code>.claude/commands/</code></strong> and commit them to git. Your teammates will thank you.</li>
+    <li><strong>Keep personal commands in <code>~/.claude/commands/</code></strong> for workflows only you care about.</li>
+    <li><strong>Name them clearly.</strong> <code>/review</code>, <code>/test</code>, <code>/deploy</code> are good. <code>/do-stuff</code> is not.</li>
+  </ul>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: Environment Variables -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">8.7</span> Environment Variables for Claude Code</h2>
+
+  <p>Claude Code uses several environment variables to control its behavior, API connections, and provider configuration. Some of these you have probably already set (like your API key). Others you may not know about.</p>
+
+  <h3>Core Environment Variables</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Variable</th>
+        <th>Purpose</th>
+        <th>Example Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>ANTHROPIC_API_KEY</code></td>
+        <td>Your API key for direct Anthropic access</td>
+        <td><code>sk-ant-api03-...</code></td>
+      </tr>
+      <tr>
+        <td><code>CLAUDE_CODE_USE_BEDROCK</code></td>
+        <td>Use AWS Bedrock as the API provider</td>
+        <td><code>1</code></td>
+      </tr>
+      <tr>
+        <td><code>CLAUDE_CODE_USE_VERTEX</code></td>
+        <td>Use Google Cloud Vertex AI as provider</td>
+        <td><code>1</code></td>
+      </tr>
+      <tr>
+        <td><code>ANTHROPIC_MODEL</code></td>
+        <td>Override the default model</td>
+        <td><code>claude-sonnet-4-20250514</code></td>
+      </tr>
+      <tr>
+        <td><code>CLAUDE_CODE_MAX_TOKENS</code></td>
+        <td>Max output tokens per response</td>
+        <td><code>16384</code></td>
+      </tr>
+      <tr>
+        <td><code>HTTP_PROXY</code> / <code>HTTPS_PROXY</code></td>
+        <td>Route requests through a proxy</td>
+        <td><code>http://proxy.company.com:8080</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Setting Environment Variables</h3>
+
+  <p>How you set these depends on your operating system and how persistent you want them to be. Here are the approaches for both platforms.</p>
+
+  <h4>Temporary (Current Session Only)</h4>
+
+  <p>Use this when you want to test a configuration without making it permanent.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'env-temp-mac')">macOS / Linux</button>
+      <button onclick="switchTab(event, 'env-temp-win')">Windows</button>
+    </div>
+    <div id="env-temp-mac" class="os-tab-content active">
+<pre><code><span class="syn-comment"># Set for this terminal session</span>
+<span class="syn-prompt">$</span> <span class="syn-keyword">export</span> <span class="syn-variable">ANTHROPIC_API_KEY</span>=<span class="syn-string">"sk-ant-api03-your-key-here"</span>
+
+<span class="syn-comment"># Or set for just one command</span>
+<span class="syn-prompt">$</span> <span class="syn-variable">ANTHROPIC_MODEL</span>=<span class="syn-string">"claude-opus-4-20250514"</span> <span class="syn-function">claude</span></code></pre>
+    </div>
+    <div id="env-temp-win" class="os-tab-content">
+<pre><code><span class="syn-comment">REM Command Prompt — set for this session</span>
+<span class="syn-prompt">&gt;</span> <span class="syn-keyword">set</span> <span class="syn-variable">ANTHROPIC_API_KEY</span>=<span class="syn-string">sk-ant-api03-your-key-here</span>
+
+<span class="syn-comment"># PowerShell — set for this session</span>
+<span class="syn-prompt">PS&gt;</span> <span class="syn-variable">$env:ANTHROPIC_API_KEY</span> = <span class="syn-string">"sk-ant-api03-your-key-here"</span></code></pre>
+    </div>
+  </div>
+
+  <p>Temporary variables disappear when you close the terminal. They are good for quick experiments.</p>
+
+  <h4>Permanent (Survives Restarts)</h4>
+
+  <p>Use this for variables you always want set, like your API key.</p>
+
+  <div class="os-tabs">
+    <div class="os-tab-buttons">
+      <button class="active" onclick="switchTab(event, 'env-perm-mac')">macOS / Linux</button>
+      <button onclick="switchTab(event, 'env-perm-win')">Windows</button>
+    </div>
+    <div id="env-perm-mac" class="os-tab-content active">
+<pre><code><span class="syn-comment"># Add to your shell profile (usually ~/.zshrc or ~/.bashrc)</span>
+<span class="syn-prompt">$</span> <span class="syn-function">echo</span> <span class="syn-string">'export ANTHROPIC_API_KEY="sk-ant-api03-your-key-here"'</span> &gt;&gt; <span class="syn-path">~/.zshrc</span>
+
+<span class="syn-comment"># Reload your shell to pick up the change</span>
+<span class="syn-prompt">$</span> <span class="syn-function">source</span> <span class="syn-path">~/.zshrc</span></code></pre>
+    </div>
+    <div id="env-perm-win" class="os-tab-content">
+<pre><code><span class="syn-comment"># PowerShell — set permanently for your user</span>
+<span class="syn-prompt">PS&gt;</span> [<span class="syn-builtin">System.Environment</span>]::<span class="syn-function">SetEnvironmentVariable</span>(
+    <span class="syn-string">"ANTHROPIC_API_KEY"</span>,
+    <span class="syn-string">"sk-ant-api03-your-key-here"</span>,
+    <span class="syn-string">"User"</span>
+)
+
+<span class="syn-comment"># Or use the GUI:</span>
+<span class="syn-comment"># Settings &gt; System &gt; About &gt; Advanced system settings</span>
+<span class="syn-comment"># &gt; Environment Variables &gt; New (under User variables)</span></code></pre>
+    </div>
+  </div>
+
+  <p>For Windows, the PowerShell method sets the variable in the Windows registry, so it persists across restarts. The GUI method achieves the same thing with a visual interface.</p>
+
+  <h3>Using the env Setting in settings.json</h3>
+
+  <p>You can also set environment variables directly in your <code>settings.json</code> so they are available to Claude's bash commands without cluttering your shell profile.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"env"</span>: {
+    <span class="syn-property">"NODE_ENV"</span>: <span class="syn-string">"development"</span>,
+    <span class="syn-property">"DEBUG"</span>: <span class="syn-string">"true"</span>,
+    <span class="syn-property">"DATABASE_URL"</span>: <span class="syn-string">"postgres://localhost:5432/myapp_dev"</span>
+  }
+}</code></pre>
+
+  <p>These variables are injected into every Bash command Claude runs but do not affect your normal terminal sessions. This is useful for project-specific variables that Claude needs but that you do not want globally on your machine.</p>
+
+  <div class="callout warning">
+    <div class="callout-title">Warning</div>
+    <p>Never put secret API keys or passwords in <code>.claude/settings.json</code> if you commit that file to git. Use <code>settings.local.json</code> (which should be gitignored) for secrets, or set them as environment variables in your shell profile.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: Prompt Caching -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">8.8</span> Prompt Caching</h2>
+
+  <p>Every time you send a message to Claude Code, you are sending your entire conversation history, your CLAUDE.md contents, and other context. Without caching, Claude processes all of that from scratch every single time. Prompt caching changes that.</p>
+
+  <div class="definition">
+    <p><span class="term">Prompt caching</span> &mdash; A feature where Claude's API remembers recently processed context. When you send a follow-up message, the parts of the prompt that haven't changed (like your CLAUDE.md and earlier conversation) are loaded from cache instead of being reprocessed. This is faster and cheaper.</p>
+  </div>
+
+  <div class="analogy">
+    <strong>The analogy:</strong> Imagine reading a 300-page book every time someone asks you a question about it. Without caching, that is what Claude does &mdash; re-reads the entire conversation from page one. With caching, Claude remembers where it left off and only reads the new pages. Same understanding, fraction of the time and cost.
+  </div>
+
+  <h3>How Caching Works in Practice</h3>
+
+  <p>Prompt caching in Claude Code happens automatically. You do not need to enable it or configure it. Here is what happens behind the scenes:</p>
+
+  <ol>
+    <li><strong>First message:</strong> Claude processes everything from scratch. Full cost, full latency.</li>
+    <li><strong>Second message:</strong> The system prompt, CLAUDE.md, and the first exchange are cached. Only the new message is processed fresh. Reduced cost and latency.</li>
+    <li><strong>Subsequent messages:</strong> The growing conversation history stays cached. Each new message only adds a small incremental cost.</li>
+  </ol>
+
+  <h3>The Cost Savings</h3>
+
+  <p>Cached tokens are significantly cheaper than freshly processed tokens:</p>
+
+  <ul>
+    <li><strong>Cache write:</strong> 25% more expensive than base price (one-time cost to store in cache)</li>
+    <li><strong>Cache read:</strong> 90% cheaper than base price (every subsequent use)</li>
+  </ul>
+
+  <p>In a typical session where your CLAUDE.md is 2,000 tokens and you exchange 20 messages, the savings compound dramatically. You might pay full price for the first message, but by message 20, most of your context is being read from cache at 90% discount.</p>
+
+  <div class="callout high-impact">
+    <div class="callout-title">High Impact</div>
+    <p>Prompt caching is why longer sessions are more cost-efficient than starting fresh sessions frequently. If you start a new Claude Code session for every small task, you pay full price for context processing each time. If you keep a session running and iterate within it, the cache makes each subsequent interaction cheaper and faster. Prefer longer sessions with multiple follow-ups over many short sessions.</p>
+  </div>
+
+  <h3>When Caching Kicks In</h3>
+
+  <p>Caching activates when your prompt exceeds a minimum token threshold (typically around 1,024 tokens for the cacheable portion). Since most Claude Code sessions include CLAUDE.md, system prompts, and tool definitions, you usually hit this threshold immediately.</p>
+
+  <p>Cache entries have a time-to-live (TTL) of about 5 minutes. If you wait longer than 5 minutes between messages, the cache may expire and the next message will need to rebuild it. This is another reason to work in focused bursts rather than leaving long gaps between interactions.</p>
+
+  <h3>How to Maximize Cache Benefits</h3>
+
+  <ul>
+    <li><strong>Keep your CLAUDE.md stable.</strong> If you edit it mid-session, the cache for it is invalidated and rebuilt. Write it before starting work, not during.</li>
+    <li><strong>Work in focused sessions.</strong> Stay in one session for related tasks rather than starting new ones.</li>
+    <li><strong>Don't restart Claude Code unnecessarily.</strong> Each restart means a cold cache.</li>
+    <li><strong>Use the <code>/compact</code> command wisely.</strong> It summarizes your conversation to free up context space, but the new summary replaces cached content, triggering a cache rebuild.</li>
+  </ul>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 9: Putting It All Together -->
+  <!-- ============================================================ -->
+  <h2><span class="section-number">8.9</span> Putting It All Together</h2>
+
+  <p>Configuration is not a one-time setup. It evolves as you learn your patterns. Here is a practical workflow for building your configuration over time:</p>
+
+  <h3>Week 1: Start Minimal</h3>
+
+  <p>Begin with just these three in your global <code>settings.json</code>.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"permissions"</span>: {
+    <span class="syn-property">"allow"</span>: [
+      <span class="syn-string">"Read"</span>,
+      <span class="syn-string">"Glob"</span>,
+      <span class="syn-string">"Grep"</span>
+    ]
+  }
+}</code></pre>
+
+  <p>This alone makes a noticeable difference. Claude can explore your codebase freely without asking you to approve every file read.</p>
+
+  <h3>Week 2: Add Your Safe Commands</h3>
+
+  <p>After a week, you will notice patterns. You always approve <code>git status</code>. You always approve <code>npm test</code>. Add those.</p>
+
+  <div class="code-label">json</div>
+  <pre><code>{
+  <span class="syn-property">"permissions"</span>: {
+    <span class="syn-property">"allow"</span>: [
+      <span class="syn-string">"Read"</span>,
+      <span class="syn-string">"Glob"</span>,
+      <span class="syn-string">"Grep"</span>,
+      <span class="syn-string">"Edit"</span>,
+      <span class="syn-string">"Write"</span>,
+      <span class="syn-string">"Bash(git status)"</span>,
+      <span class="syn-string">"Bash(git log:*)"</span>,
+      <span class="syn-string">"Bash(git diff:*)"</span>,
+      <span class="syn-string">"Bash(npm test:*)"</span>,
+      <span class="syn-string">"Bash(npm run lint:*)"</span>
+    ],
+    <span class="syn-property">"deny"</span>: [
+      <span class="syn-string">"Bash(rm:*)"</span>,
+      <span class="syn-string">"Bash(git push:*)"</span>
+    ]
+  }
+}</code></pre>
+
+  <p>Now add an explicit deny list for things you never want auto-approved.</p>
+
+  <h3>Week 3: Create Slash Commands</h3>
+
+  <p>By now, you have typed similar instructions enough times to know your patterns. Create slash commands for them. Start with <code>/review</code> and <code>/test</code> &mdash; those two cover the most ground.</p>
+
+  <h3>Ongoing: Refine Per Project</h3>
+
+  <p>Each new project gets its own <code>.claude/settings.json</code> and <code>.claude/commands/</code> directory. A Python project needs different commands than a Node.js project. A data pipeline has different safe operations than a web app. Let each project's configuration reflect its unique needs.</p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip</div>
+    <p>When you start a new project, copy a <code>.claude/</code> directory from a similar project as a starting point and then adjust it. Don't start from zero every time.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- CHECKPOINT PROJECT -->
+  <!-- ============================================================ -->
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <div class="checkpoint-icon">&#127919;</div>
+      <h3>Checkpoint Project: The Control Room</h3>
+    </div>
+
+    <p>Time to put everything from this level into practice. You are going to create a fully customized Claude Code configuration for a project &mdash; either an existing project you have built or a new one.</p>
+
+    <h4>What to Build</h4>
+    <p>A complete Claude Code configuration setup for a project, including:</p>
+    <ul>
+      <li>A project-level <code>.claude/settings.json</code> with thoughtfully chosen permissions</li>
+      <li>At least two custom slash commands in <code>.claude/commands/</code></li>
+      <li>A global <code>~/.claude/settings.json</code> with your personal defaults (if you don't have one already)</li>
+      <li>At least one global slash command in <code>~/.claude/commands/</code></li>
+      <li>A document (plain text or markdown) explaining every configuration choice you made and why</li>
+    </ul>
+
+    <h4>Success Criteria</h4>
+    <ol>
+      <li><strong>Project settings.json works:</strong> Launch Claude Code in your project directory. Verify that pre-approved tools (like <code>Read</code>, <code>Glob</code>, <code>Grep</code>) work without permission prompts. Verify that denied tools (like <code>rm</code> or <code>git push</code>) still require approval or are blocked.</li>
+      <li><strong>Slash commands execute correctly:</strong> Type each of your custom commands (<code>/review</code>, <code>/test</code>, or whatever you named them) and confirm they produce the expected behavior. Fix any that don't work as intended.</li>
+      <li><strong>Model switching works:</strong> Use the <code>/model</code> command to switch to a different model, run a simple task, then switch back. Note the difference in speed.</li>
+      <li><strong>Environment variables are set:</strong> Confirm your <code>ANTHROPIC_API_KEY</code> is set permanently (not just for the current session) by opening a new terminal and running Claude Code. It should work without you re-entering the key.</li>
+      <li><strong>Configuration is documented:</strong> Your explanation document covers each setting in your <code>settings.json</code>, each slash command, and your reasoning for the permission choices you made. Someone else reading it should understand your setup without additional explanation.</li>
+      <li><strong>Deny list is intentional:</strong> Your deny list contains at least three patterns, and your document explains what risk each one prevents.</li>
+      <li><strong>Directory structure is correct:</strong> Run <code>ls -la .claude/</code> (or <code>dir .claude\</code> on Windows) in your project directory and <code>ls -la ~/.claude/</code> to confirm everything is in the right place.</li>
+    </ol>
+
+    <h4>Stretch Goals</h4>
+    <ul>
+      <li>Create a slash command that uses <code>$ARGUMENTS</code> to accept dynamic input</li>
+      <li>Set up a <code>settings.local.json</code> with a setting that differs from your shared <code>settings.json</code></li>
+      <li>Time your workflow before and after configuration &mdash; measure how many permission prompts you skip in a 10-minute session</li>
+    </ul>
+
+    <div class="time-estimate">Estimated time: 45&ndash;60 minutes</div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="level-nav bottom">
+    <a href="level-07.html">&larr; Previous</a>
+    <a href="index.html">Contents</a>
+    <a href="level-09.html">Next &rarr;</a>
+  </nav>
+
+</div>
+
+<script>
+function switchTab(event, tabId) {
+  const tabContainer = event.target.closest('.os-tabs');
+  tabContainer.querySelectorAll('.os-tab-buttons button').forEach(btn => btn.classList.remove('active'));
+  tabContainer.querySelectorAll('.os-tab-content').forEach(content => content.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+</script>
+
+</body>
+</html>

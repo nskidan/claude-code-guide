@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Claude Code Mastery: From Zero to Autonomous Agent Teams</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Claude Code Mastery</h1>
+    <p class="subtitle">From Zero to Autonomous Agent Teams &mdash; a structured, hands-on guide for builders who learn by doing.</p>
+  </div>
+
+  <hr>
+
+  <p>This guide takes you from "what even is a terminal?" to running fully autonomous agent teams that build software in parallel &mdash; without requiring a computer science degree. Each level introduces one core concept, explains it with intuition first, and ends with a checkpoint project that proves you're ready to move on.</p>
+
+  <p><strong>How to use this guide:</strong> Go in order. Don't skip levels. Every checkpoint project is designed so that completing it means you genuinely understand the material &mdash; not just that you copied commands.</p>
+
+  <!-- Foundation Tier -->
+  <div class="toc-tier">
+    <div class="tier-label">Foundation Tier</div>
+    <ul class="toc-list">
+      <li>
+        <a href="level-01.html">
+          <span class="toc-level-num">01</span>
+          <span class="toc-level-title">The Terminal: Your New Home Base</span>
+        </a>
+        <div class="toc-level-desc">What a shell is, navigating the filesystem, PATH, environment variables, and the differences between shells.</div>
+      </li>
+      <li>
+        <a href="level-02.html">
+          <span class="toc-level-num">02</span>
+          <span class="toc-level-title">How Claude Code Actually Works</span>
+        </a>
+        <div class="toc-level-desc">The tool-use loop, the context window, how Claude reads and writes files, and what happens when you press Enter.</div>
+      </li>
+      <li>
+        <a href="level-03.html">
+          <span class="toc-level-num">03</span>
+          <span class="toc-level-title">File Systems and Project Structure</span>
+        </a>
+        <div class="toc-level-desc">Directory trees, naming conventions, common project layouts, and why organization matters at scale.</div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Practitioner Tier -->
+  <div class="toc-tier">
+    <div class="tier-label">Practitioner Tier</div>
+    <ul class="toc-list">
+      <li>
+        <a href="level-04.html">
+          <span class="toc-level-num">04</span>
+          <span class="toc-level-title">CLAUDE.md: The Most Important File You'll Ever Write</span>
+        </a>
+        <div class="toc-level-desc">What CLAUDE.md is, where it lives, how Claude reads it, and how to write one that transforms your results.</div>
+      </li>
+      <li>
+        <a href="level-05.html">
+          <span class="toc-level-num">05</span>
+          <span class="toc-level-title">Prompt Engineering for Claude Code</span>
+        </a>
+        <div class="toc-level-desc">How prompting in Claude Code differs from chat, plan mode, task decomposition, and the art of iteration.</div>
+      </li>
+      <li>
+        <a href="level-06.html">
+          <span class="toc-level-num">06</span>
+          <span class="toc-level-title">Git: Your Safety Net and Time Machine</span>
+        </a>
+        <div class="toc-level-desc">Version control fundamentals, branches, commits, recovering from mistakes, and how Claude Code uses git.</div>
+      </li>
+      <li>
+        <a href="level-07.html">
+          <span class="toc-level-num">07</span>
+          <span class="toc-level-title">Reading Code Without Writing It</span>
+        </a>
+        <div class="toc-level-desc">Understanding programming languages conceptually, reading code as structured English, and reviewing Claude's output.</div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Intermediate Tier -->
+  <div class="toc-tier">
+    <div class="tier-label">Intermediate Tier</div>
+    <ul class="toc-list">
+      <li>
+        <a href="level-08.html">
+          <span class="toc-level-num">08</span>
+          <span class="toc-level-title">Configuration and Customization Deep Dive</span>
+        </a>
+        <div class="toc-level-desc">settings.json, environment variables, permission modes, model selection, custom slash commands, and the .claude/ directory.</div>
+      </li>
+      <li>
+        <a href="level-09.html">
+          <span class="toc-level-num">09</span>
+          <span class="toc-level-title">APIs: How Software Talks to Software</span>
+        </a>
+        <div class="toc-level-desc">What an API is, REST basics, authentication, JSON, the Anthropic API, and making Claude Code call external services.</div>
+      </li>
+      <li>
+        <a href="level-10.html">
+          <span class="toc-level-num">10</span>
+          <span class="toc-level-title">MCP: Giving Claude Code Superpowers</span>
+        </a>
+        <div class="toc-level-desc">Model Context Protocol explained, installing MCP servers, practical integrations, and building your own server.</div>
+      </li>
+      <li>
+        <a href="level-11.html">
+          <span class="toc-level-num">11</span>
+          <span class="toc-level-title">Hooks: Automation at Every Step</span>
+        </a>
+        <div class="toc-level-desc">Lifecycle event listeners, hook types, auto-formatting, quality gates, and when hooks help vs. hurt.</div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Advanced Tier -->
+  <div class="toc-tier">
+    <div class="tier-label">Advanced Tier</div>
+    <ul class="toc-list">
+      <li>
+        <a href="level-12.html">
+          <span class="toc-level-num">12</span>
+          <span class="toc-level-title">Subagents: Divide and Conquer</span>
+        </a>
+        <div class="toc-level-desc">Isolated Claude instances, the Task tool, context isolation, scoping work, and practical delegation patterns.</div>
+      </li>
+      <li>
+        <a href="level-13.html">
+          <span class="toc-level-num">13</span>
+          <span class="toc-level-title">Headless Mode and Scripting</span>
+        </a>
+        <div class="toc-level-desc">Running Claude Code non-interactively, piping I/O, automated pipelines, and scheduled execution.</div>
+      </li>
+      <li>
+        <a href="level-14.html">
+          <span class="toc-level-num">14</span>
+          <span class="toc-level-title">The Claude Code SDK</span>
+        </a>
+        <div class="toc-level-desc">Programmatic agent spawning, streaming, conversation management, and building custom tooling.</div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Mastery Tier -->
+  <div class="toc-tier">
+    <div class="tier-label">Mastery Tier</div>
+    <ul class="toc-list">
+      <li>
+        <a href="level-15.html">
+          <span class="toc-level-num">15</span>
+          <span class="toc-level-title">Agent Teams: Parallel Minds</span>
+        </a>
+        <div class="toc-level-desc">Lead + teammates, shared task lists, inter-agent communication, team hooks, and cost management.</div>
+      </li>
+      <li>
+        <a href="level-16.html">
+          <span class="toc-level-num">16</span>
+          <span class="toc-level-title">Building Fully Autonomous Coding Systems</span>
+        </a>
+        <div class="toc-level-desc">Combining everything: CLAUDE.md, hooks, subagents, teams, MCP, and headless execution into end-to-end autonomy.</div>
+      </li>
+      <li>
+        <a href="level-17.html">
+          <span class="toc-level-num">17</span>
+          <span class="toc-level-title">The Frontier: What's Next</span>
+        </a>
+        <div class="toc-level-desc">Emerging patterns, staying current, the discipline of managing AI workers, and building your own playbook.</div>
+      </li>
+    </ul>
+  </div>
+
+  <hr>
+
+  <p class="text-center text-muted text-small">Built for builders who learn by doing. No CS degree required.</p>
+
+</div>
+
+</body>
+</html>
