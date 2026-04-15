@@ -119,13 +119,13 @@
       <span class="code-label">prompt</span>
       <pre><code>Add a search bar to the dashboard page
 (src/pages/Dashboard.jsx). It should
-filter the apartment listings that are
-already displayed in the ApartmentList
-component by address or neighborhood
-name. Client-side filtering only &mdash;
-don't add any API calls. Keep the
-existing sort functionality working.</code></pre>
-      <p class="text-small text-muted">Context (which file, which component). Intent (filter apartments by address/neighborhood). Constraints (client-side only, preserve sort). Clear scope.</p>
+filter the expenses that are already
+displayed in the ExpenseList component
+by vendor name or category. Client-side
+filtering only &mdash; don't add any API
+calls. Keep the existing sort
+functionality working.</code></pre>
+      <p class="text-small text-muted">Context (which file, which component). Intent (filter expenses by vendor/category). Constraints (client-side only, preserve sort). Clear scope.</p>
     </div>
   </div>
 
@@ -135,23 +135,23 @@ existing sort functionality working.</code></pre>
 
   <span class="code-label">prompt</span>
   <pre><code><span class="syn-comment"># Context</span>
-The file src/api/reservations.js handles all API calls
-for the Resy sniper. Right now it has one giant function
-called makeReservation() that's about 200 lines long.
+The file src/api/flights.js handles all API calls
+for the flight deal tracker. Right now it has one giant
+function called checkFlights() that's about 200 lines long.
 
 <span class="syn-comment"># Intent</span>
-Refactor makeReservation() into smaller, focused functions.
+Refactor checkFlights() into smaller, focused functions.
 Each function should handle one step: authentication,
-finding available slots, selecting the best slot, and
-booking it.
+fetching current fares, comparing against target prices,
+and sending alerts.
 
 <span class="syn-comment"># Constraints</span>
-Don't change the function signature of makeReservation() &mdash;
+Don't change the function signature of checkFlights() &mdash;
 other files import it. Don't change the API endpoints or
 authentication flow. Keep all existing error handling.
 
 <span class="syn-comment"># Success criteria</span>
-After refactoring, the existing test in tests/reservations.test.js
+After refactoring, the existing test in tests/flights.test.js
 should still pass without modifications.</code></pre>
 
   <p>This prompt is clear enough that Claude can execute it confidently. It knows what file to work in, what the goal is, what not to break, and how to verify success. You've eliminated guesswork.</p>
@@ -167,13 +167,13 @@ should still pass without modifications.</code></pre>
     <div class="comparison-col">
       <h4>Too Vague</h4>
       <span class="code-label">prompt</span>
-      <pre><code>Fix the bug in my newsletter code</code></pre>
+      <pre><code>Fix the bug in my market brief code</code></pre>
       <p class="text-small text-muted">What bug? Where? What's the expected behavior? Claude will read your entire project trying to find "a bug," and may "fix" things that aren't broken.</p>
     </div>
     <div class="comparison-col">
       <h4>Specific and Actionable</h4>
       <span class="code-label">prompt</span>
-      <pre><code>The newsletter send function in
+      <pre><code>The market brief send function in
 src/email/send.js throws a timeout
 error when the recipient list has
 more than 50 addresses. Add batching
@@ -202,7 +202,7 @@ src/index.js are cryptic single
 letters (x, y, n). Rename them
 to be descriptive. The function
 calculates a running total of
-daily newsletter signups.</code></pre>
+daily brief subscribers.</code></pre>
       <p class="text-small text-muted">Describes the problem and the goal, gives Claude context about what the code does, and lets it figure out the right names. Claude is better at naming than you'd think.</p>
     </div>
   </div>
@@ -303,7 +303,7 @@ password" flow for now. Implement the rest.</code></pre>
 
   <h3>Why "Build Me an Entire App" Fails</h3>
 
-  <p>When you give Claude Code a massive prompt like "build me a full-stack apartment dashboard with login, data visualization, alerts, and email notifications," several things go wrong:</p>
+  <p>When you give Claude Code a massive prompt like "build me a full-stack expense dashboard with login, data visualization, alerts, and email notifications," several things go wrong:</p>
 
   <ol>
     <li><strong>Context overload.</strong> Claude has to hold the entire architecture in its context window while making hundreds of micro-decisions. Quality degrades on later files because earlier context gets compressed.</li>
@@ -314,17 +314,17 @@ password" flow for now. Implement the rest.</code></pre>
 
   <h3>A Real Decomposition Example</h3>
 
-  <p>Let's say you want to add a notification system to your apartment dashboard. Here's how you'd decompose it into a sequence of Claude Code prompts.</p>
+  <p>Let's say you want to add a budget alert system to your expense dashboard. Here's how you'd decompose it into a sequence of Claude Code prompts.</p>
 
   <p><strong>Phase 1: Plan the feature.</strong></p>
 
   <span class="code-label">prompt</span>
-  <pre><code>I want to add email notifications to my apartment
-dashboard. When a new listing matches the user's
-saved search criteria, they should get an email.
-Don't implement anything yet &mdash; just plan the
-approach. What components do I need? What's the
-data flow?</code></pre>
+  <pre><code>I want to add budget alerts to my expense
+dashboard. When spending in a category exceeds
+the user's budget threshold, they should get
+an email. Don't implement anything yet &mdash; just
+plan the approach. What components do I need?
+What's the data flow?</code></pre>
 
   <p>Review the plan. Ask questions. Adjust. Then move on.</p>
 
@@ -332,10 +332,11 @@ data flow?</code></pre>
 
   <span class="code-label">prompt</span>
   <pre><code>Based on the plan above, implement just the database
-model for saved searches. Add a SavedSearch model with
-fields for: user ID, neighborhood (string), max price
-(number), min bedrooms (number), and active status
-(boolean). Add it to the existing Prisma schema.</code></pre>
+model for budget alerts. Add a BudgetAlert model with
+fields for: user ID, category (string), max amount
+(number), period (string — "weekly" or "monthly"),
+and active status (boolean). Add it to the existing
+Prisma schema.</code></pre>
 
   <p>Verify the schema looks right. Run the migration. Then continue.</p>
 
@@ -343,11 +344,11 @@ fields for: user ID, neighborhood (string), max price
 
   <span class="code-label">prompt</span>
   <pre><code>Now create a function in src/services/matcher.js that
-takes a new apartment listing and returns all saved
-searches that match it. A match means: the listing's
-neighborhood matches the saved search, the price is
-at or below max_price, and bedrooms are at or above
-min_bedrooms. Write tests for this function.</code></pre>
+takes a new expense and returns all budget alerts
+that it might trigger. A match means: the expense's
+category matches the alert's category, and total
+spending for that category in the current period is
+at or above max_amount. Write tests for this function.</code></pre>
 
   <p>Run the tests. Fix any issues. Then continue.</p>
 
@@ -366,12 +367,12 @@ with a test.</code></pre>
 
   <span class="code-label">prompt</span>
   <pre><code>Now wire the matcher and notifier together. In the
-existing function that processes new listings
-(src/jobs/processListings.js), add a step after
-saving the listing that runs it through the matcher
-and sends notifications for any matches. Add error
-handling so a failed notification doesn't stop
-listing processing.</code></pre>
+existing function that processes new expenses
+(src/jobs/processExpenses.js), add a step after
+saving the expense that runs it through the matcher
+and sends notifications for any triggered alerts.
+Add error handling so a failed notification doesn't
+stop expense processing.</code></pre>
 
   <p>Each phase is focused, verifiable, and builds on confirmed working code from the previous phase. If Phase 3 has a bug, you catch it before it corrupts Phases 4 and 5.</p>
 
@@ -587,8 +588,8 @@ database schema we settled on</code></pre>
       <h4>The Fix</h4>
       <span class="code-label">prompt</span>
       <pre><code>The dashboard page loads slowly because
-it fetches all listings on mount. Add
-pagination: load 20 listings at a time
+it fetches all expenses on mount. Add
+pagination: load 20 expenses at a time
 with a "Load More" button.</code></pre>
       <p class="text-small text-muted">Specific problem, specific solution, specific numbers.</p>
     </div>
@@ -630,7 +631,7 @@ listings page where prices show as NaN.</code></pre>
     <div class="comparison-col">
       <h4>The Fix</h4>
       <span class="code-label">prompt</span>
-      <pre><code>The sendNewsletter() function in
+      <pre><code>The sendBrief() function in
 src/email/send.js returns success
 but the emails never arrive. The
 Resend dashboard shows the API calls
@@ -663,7 +664,7 @@ returning empty results.</code></pre>
   <p>Before Claude makes changes, ask it to explain what it's going to do. This catches bad approaches before they become bad code.</p>
 
   <span class="code-label">prompt</span>
-  <pre><code>I need to add real-time price alerts to the apartment
+  <pre><code>I need to add real-time budget alerts to the expense
 dashboard. Before you write any code, explain your
 approach: what libraries you'd use, how you'd structure
 the real-time connection, and how you'd handle the
@@ -676,10 +677,10 @@ case where the user has the app open on multiple tabs.</code></pre>
   <p>For complex debugging or analysis, explicitly asking Claude to think through the problem step by step produces better results than letting it jump to a solution.</p>
 
   <span class="code-label">prompt</span>
-  <pre><code>The reservation sniper is timing out intermittently.
+  <pre><code>The flight tracker is timing out intermittently.
 Think through this step by step: trace the request
-flow from the cron trigger through the API call to
-Resy, identify every point where a timeout could
+flow from the cron trigger through the airline fare
+API call, identify every point where a timeout could
 occur, and then suggest the most likely cause based
 on the error logs in src/logs/.</code></pre>
 
@@ -789,7 +790,7 @@ src/api/routes/.</code></pre>
     </div>
 
     <h4>What to Build</h4>
-    <p>Pick one of your existing projects &mdash; the Resy sniper, the apartment dashboard, or the daily newsletter &mdash; and choose a significant feature you originally built in a single, unstructured Claude Code session. Now rebuild that feature from scratch using the structured prompting techniques from this level.</p>
+    <p>Pick one of your existing projects &mdash; the flight deal tracker, the expense dashboard, or the market morning brief &mdash; and choose a significant feature you originally built in a single, unstructured Claude Code session. Now rebuild that feature from scratch using the structured prompting techniques from this level.</p>
 
     <p>The process:</p>
     <ol>

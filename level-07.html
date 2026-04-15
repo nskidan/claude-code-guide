@@ -31,7 +31,7 @@
 
   <h2><span class="section-number">7.1</span> Why This Matters for You</h2>
 
-  <p>You've already built things with Claude Code. The Resy sniper, the apartment dashboard, the daily newsletter. Claude wrote the code. You described what you wanted. It worked &mdash; mostly.</p>
+  <p>You've already built things with Claude Code. The flight deal tracker, the expense dashboard, the market morning brief. Claude wrote the code. You described what you wanted. It worked &mdash; mostly.</p>
 
   <p>But here's the thing: when something breaks at 2 AM, or when Claude generates 200 lines of code and asks "does this look right?", you need to be able to answer. Not by running it and praying. By actually <em>reading</em> what's there and forming a judgment.</p>
 
@@ -166,18 +166,18 @@
   </div>
 
   <div class="code-label">python</div>
-<pre><code><span class="syn-variable">restaurants</span> <span class="syn-operator">=</span> [<span class="syn-string">"Carbone"</span>, <span class="syn-string">"Don Angie"</span>, <span class="syn-string">"I Sodi"</span>]
+<pre><code><span class="syn-variable">routes</span> <span class="syn-operator">=</span> [<span class="syn-string">"JFK-LAX"</span>, <span class="syn-string">"EWR-MIA"</span>, <span class="syn-string">"LGA-ORD"</span>]
 
-<span class="syn-keyword">for</span> <span class="syn-variable">restaurant</span> <span class="syn-keyword">in</span> <span class="syn-variable">restaurants</span>:
-    <span class="syn-function">print</span>(<span class="syn-string">f"Checking availability at </span><span class="syn-variable">{restaurant}</span><span class="syn-string">"</span>)</code></pre>
+<span class="syn-keyword">for</span> <span class="syn-variable">route</span> <span class="syn-keyword">in</span> <span class="syn-variable">routes</span>:
+    <span class="syn-function">print</span>(<span class="syn-string">f"Checking fares for </span><span class="syn-variable">{route}</span><span class="syn-string">"</span>)</code></pre>
 
-  <p>This says: "For each restaurant in the list of restaurants, print a message." The loop runs three times &mdash; once for "Carbone," once for "Don Angie," once for "I Sodi."</p>
+  <p>This says: "For each route in the list of routes, print a message." The loop runs three times &mdash; once for "JFK-LAX," once for "EWR-MIA," once for "LGA-ORD."</p>
 
   <div class="code-label">javascript</div>
-<pre><code><span class="syn-keyword">const</span> <span class="syn-variable">restaurants</span> <span class="syn-operator">=</span> [<span class="syn-string">"Carbone"</span>, <span class="syn-string">"Don Angie"</span>, <span class="syn-string">"I Sodi"</span>];
+<pre><code><span class="syn-keyword">const</span> <span class="syn-variable">routes</span> <span class="syn-operator">=</span> [<span class="syn-string">"JFK-LAX"</span>, <span class="syn-string">"EWR-MIA"</span>, <span class="syn-string">"LGA-ORD"</span>];
 
-<span class="syn-keyword">for</span> (<span class="syn-keyword">const</span> <span class="syn-variable">restaurant</span> <span class="syn-keyword">of</span> <span class="syn-variable">restaurants</span>) {
-    <span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-string">`Checking availability at </span><span class="syn-variable">${restaurant}</span><span class="syn-string">`</span>);
+<span class="syn-keyword">for</span> (<span class="syn-keyword">const</span> <span class="syn-variable">route</span> <span class="syn-keyword">of</span> <span class="syn-variable">routes</span>) {
+    <span class="syn-variable">console</span>.<span class="syn-function">log</span>(<span class="syn-string">`Checking fares for </span><span class="syn-variable">${route}</span><span class="syn-string">`</span>);
 }</code></pre>
 
   <p>Same logic. JavaScript uses <code>of</code> instead of <code>in</code>, and wraps the loop header in parentheses with curly braces for the body. The backtick strings with <code>${}</code> are JavaScript's way of inserting variables into text (Python uses <code>f""</code> strings).</p>
@@ -282,34 +282,29 @@
   <!-- Example 2 -->
   <h3>Example 2: Filtering a List (Medium)</h3>
 
-  <p>This function takes a list of restaurant reservations and returns only the ones for tonight.</p>
+  <p>This function takes a list of flight deals and returns only the ones below a target price.</p>
 
   <div class="code-label">python</div>
-<pre><code><span class="syn-keyword">from</span> <span class="syn-variable">datetime</span> <span class="syn-keyword">import</span> <span class="syn-variable">date</span>
+<pre><code><span class="syn-keyword">def</span> <span class="syn-function">get_deals_below_target</span>(<span class="syn-variable">flights</span>, <span class="syn-variable">max_price</span>):
+    <span class="syn-variable">deals</span> <span class="syn-operator">=</span> []
 
-<span class="syn-keyword">def</span> <span class="syn-function">get_tonight_reservations</span>(<span class="syn-variable">reservations</span>):
-    <span class="syn-variable">today</span> <span class="syn-operator">=</span> <span class="syn-variable">date</span>.<span class="syn-function">today</span>()
-    <span class="syn-variable">tonight</span> <span class="syn-operator">=</span> []
+    <span class="syn-keyword">for</span> <span class="syn-variable">flight</span> <span class="syn-keyword">in</span> <span class="syn-variable">flights</span>:
+        <span class="syn-keyword">if</span> <span class="syn-variable">flight</span>[<span class="syn-string">"price"</span>] <span class="syn-operator">&lt;=</span> <span class="syn-variable">max_price</span>:
+            <span class="syn-variable">deals</span>.<span class="syn-function">append</span>(<span class="syn-variable">flight</span>)
 
-    <span class="syn-keyword">for</span> <span class="syn-variable">res</span> <span class="syn-keyword">in</span> <span class="syn-variable">reservations</span>:
-        <span class="syn-keyword">if</span> <span class="syn-variable">res</span>[<span class="syn-string">"date"</span>] <span class="syn-operator">==</span> <span class="syn-variable">today</span>:
-            <span class="syn-variable">tonight</span>.<span class="syn-function">append</span>(<span class="syn-variable">res</span>)
-
-    <span class="syn-keyword">return</span> <span class="syn-variable">tonight</span></code></pre>
+    <span class="syn-keyword">return</span> <span class="syn-variable">deals</span></code></pre>
 
   <p>Line-by-line translation:</p>
   <ul>
-    <li><strong>Line 1:</strong> Borrow the "date" tool from the datetime cookbook.</li>
-    <li><strong>Line 3:</strong> Define a recipe called "get_tonight_reservations" that takes a list of reservations.</li>
-    <li><strong>Line 4:</strong> Ask the computer "what is today's date?" and store it.</li>
-    <li><strong>Line 5:</strong> Create an empty list called "tonight" &mdash; this will hold our results.</li>
-    <li><strong>Line 7:</strong> Go through each reservation in the list, one at a time...</li>
-    <li><strong>Line 8:</strong> If this reservation's date matches today's date...</li>
-    <li><strong>Line 9:</strong> Add it to the "tonight" list.</li>
-    <li><strong>Line 11:</strong> When done checking all reservations, send back the list of tonight's reservations.</li>
+    <li><strong>Line 1:</strong> Define a recipe called "get_deals_below_target" that takes a list of flights and a maximum price.</li>
+    <li><strong>Line 2:</strong> Create an empty list called "deals" &mdash; this will hold our results.</li>
+    <li><strong>Line 4:</strong> Go through each flight in the list, one at a time...</li>
+    <li><strong>Line 5:</strong> If this flight's price is at or below the target price...</li>
+    <li><strong>Line 6:</strong> Add it to the "deals" list.</li>
+    <li><strong>Line 8:</strong> When done checking all flights, send back the list of deals.</li>
   </ul>
 
-  <p>Notice the pattern: get today's date, create an empty results list, loop through all items, keep the ones that match, return the results. This "filter" pattern is one of the most common things you'll see in code.</p>
+  <p>Notice the pattern: create an empty results list, loop through all items, keep the ones that match, return the results. This "filter" pattern is one of the most common things you'll see in code.</p>
 
   <!-- Example 3 -->
   <h3>Example 3: Fetching Data from an API (Advanced)</h3>

@@ -437,7 +437,7 @@
 
   <p>Every type of project has a conventional structure &mdash; a standard way of organizing files that most developers follow. These aren't rules enforced by the computer. They're conventions that evolved because they work. When you follow them, anyone (including Claude Code) can immediately understand your project. When you don't, you create confusion.</p>
 
-  <p>You've probably already seen this in your own projects. When you asked Claude Code to build your Resy sniper or your apartment dashboard, it created files in specific folders with specific names. It wasn't arbitrary &mdash; it was following conventions.</p>
+  <p>You've probably already seen this in your own projects. When you asked Claude Code to build your flight deal tracker or your expense dashboard, it created files in specific folders with specific names. It wasn't arbitrary &mdash; it was following conventions.</p>
 
   <h3>Layout 1: Simple Web Project (HTML/CSS/JS)</h3>
 
@@ -470,15 +470,15 @@
 
   <h3>Layout 2: Node.js / Python Application</h3>
 
-  <p>When you move beyond simple web pages into applications that run a server, process data, or talk to APIs (like your daily newsletter project likely does), the structure gets a bit more involved.</p>
+  <p>When you move beyond simple web pages into applications that run a server, process data, or talk to APIs (like your market morning brief project likely does), the structure gets a bit more involved.</p>
 
   <div class="code-label">Directory Tree — Node.js</div>
-<pre><code>newsletter-app/
+<pre><code>market-brief/
 ├── src/                    <span class="syn-comment"># Source code — the actual application</span>
 │   ├── index.js            <span class="syn-comment"># Entry point — where the app starts</span>
-│   ├── routes/             <span class="syn-comment"># URL handlers (what happens when you visit /api/news)</span>
-│   │   └── news.js
-│   ├── services/           <span class="syn-comment"># Business logic (fetching, filtering, sending)</span>
+│   ├── routes/             <span class="syn-comment"># URL handlers (what happens when you visit /api/brief)</span>
+│   │   └── brief.js        <span class="syn-comment"># Send the morning brief</span>
+│   ├── services/           <span class="syn-comment"># Business logic (fetching, ranking, sending)</span>
 │   │   ├── fetcher.js
 │   │   └── emailer.js
 │   └── utils/              <span class="syn-comment"># Helper functions used everywhere</span>
@@ -496,12 +496,12 @@
   <p>And the Python equivalent:</p>
 
   <div class="code-label">Directory Tree — Python</div>
-<pre><code>newsletter-app/
+<pre><code>market-brief/
 ├── src/                    <span class="syn-comment"># Source code</span>
 │   ├── __init__.py         <span class="syn-comment"># Makes this directory a Python "package"</span>
 │   ├── main.py             <span class="syn-comment"># Entry point</span>
-│   ├── fetcher.py          <span class="syn-comment"># Fetch news from sources</span>
-│   ├── emailer.py          <span class="syn-comment"># Send the newsletter</span>
+│   ├── fetcher.py          <span class="syn-comment"># Fetch data from financial APIs</span>
+│   ├── emailer.py          <span class="syn-comment"># Send the morning brief</span>
 │   └── utils.py            <span class="syn-comment"># Helper functions</span>
 ├── tests/
 │   └── test_fetcher.py
@@ -523,15 +523,15 @@
   <p>Bigger projects have multiple pieces that work together. Maybe a web frontend, a backend API, and a shared database. This is closer to what production software looks like.</p>
 
   <div class="code-label">Directory Tree</div>
-<pre><code>apartment-tracker/
+<pre><code>expense-tracker/
 ├── frontend/               <span class="syn-comment"># The web UI your users see</span>
 │   ├── src/
 │   │   ├── components/     <span class="syn-comment"># Reusable UI pieces</span>
-│   │   │   ├── ListingCard.jsx
+│   │   │   ├── ExpenseCard.jsx
 │   │   │   └── FilterBar.jsx
 │   │   ├── pages/          <span class="syn-comment"># Full page views</span>
 │   │   │   ├── Home.jsx
-│   │   │   └── Favorites.jsx
+│   │   │   └── Reports.jsx
 │   │   ├── App.jsx         <span class="syn-comment"># Root component</span>
 │   │   └── index.js        <span class="syn-comment"># Entry point</span>
 │   ├── public/
@@ -540,12 +540,12 @@
 ├── backend/                <span class="syn-comment"># The server that handles data and logic</span>
 │   ├── src/
 │   │   ├── routes/
-│   │   │   ├── listings.js
+│   │   │   ├── expenses.js
 │   │   │   └── users.js
 │   │   ├── models/         <span class="syn-comment"># Database schemas</span>
-│   │   │   └── listing.js
+│   │   │   └── expense.js
 │   │   ├── services/
-│   │   │   └── scraper.js
+│   │   │   └── importer.js
 │   │   └── index.js
 │   ├── .env
 │   └── package.json
@@ -572,7 +572,7 @@
 
   <h3>What Happens Without Structure</h3>
 
-  <p>When a project is small &mdash; a few files, a single purpose &mdash; organization doesn't seem important. You can find everything because there's not much to find. But projects grow. Your Resy sniper started as maybe one or two files. What happens when you want to add notification support, a web dashboard, user accounts, and scheduled runs?</p>
+  <p>When a project is small &mdash; a few files, a single purpose &mdash; organization doesn't seem important. You can find everything because there's not much to find. But projects grow. Your flight deal tracker started as maybe one or two files. What happens when you want to add notification support, a web dashboard, user accounts, and scheduled runs?</p>
 
   <p>Without structure, here's what happens:</p>
 

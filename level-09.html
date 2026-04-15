@@ -22,7 +22,7 @@
   <div class="level-header">
     <div class="level-number">Level 09</div>
     <h1>APIs: How Software Talks to Software</h1>
-    <p class="level-subtitle">Every interesting thing you've built with Claude Code &mdash; the Resy sniper, the apartment dashboard, the newsletter &mdash; either already uses APIs or would be dramatically better with them. This level teaches you what's actually happening when software talks to other software.</p>
+    <p class="level-subtitle">Every interesting thing you've built with Claude Code &mdash; the flight deal tracker, the expense dashboard, the market morning brief &mdash; either already uses APIs or would be dramatically better with them. This level teaches you what's actually happening when software talks to other software.</p>
   </div>
 
   <!-- ============================================================ -->
@@ -33,7 +33,7 @@
 
   <h3>Why This Matters</h3>
 
-  <p>When you asked Claude Code to build your Resy sniper, it didn't hack into Resy's database. It used Resy's <strong>API</strong> &mdash; a controlled, documented way to interact with Resy's system. Without understanding APIs, you're building in the dark. With understanding, you can connect your projects to almost any service on the internet: weather data, stock prices, email providers, AI models, payment processors, maps, social media, and thousands more.</p>
+  <p>When you asked Claude Code to build your flight deal tracker, it didn't hack into the airline's database. It used the airline's <strong>API</strong> &mdash; a controlled, documented way to interact with their system. Without understanding APIs, you're building in the dark. With understanding, you can connect your projects to almost any service on the internet: weather data, stock prices, email providers, AI models, payment processors, maps, social media, and thousands more.</p>
 
   <h3>The Restaurant Analogy</h3>
 
@@ -132,7 +132,7 @@
     </tbody>
   </table>
 
-  <p>Most of the time when you're starting out, you'll use <code>GET</code> (to read data) and <code>POST</code> (to send data). The Resy sniper probably used <code>POST</code> to make reservations and <code>GET</code> to check availability.</p>
+  <p>Most of the time when you're starting out, you'll use <code>GET</code> (to read data) and <code>POST</code> (to send data). The flight deal tracker probably used <code>GET</code> to check current fares and <code>POST</code> to place a booking hold.</p>
 
   <h3>Status Codes: What Happened</h3>
 
@@ -268,7 +268,7 @@
 
   <h3>Real-World JSON: A Weather API Response</h3>
 
-  <p>Here's what a real weather API response might look like. This is the kind of data your apartment dashboard could receive.</p>
+  <p>Here's what a real weather API response might look like. This is the kind of data your expense dashboard could receive.</p>
 
   <div class="code-label">json</div>
   <pre><code>{
@@ -748,7 +748,7 @@ Use retry logic with exponential backoff for transient failures.</code></pre>
     <li><strong>Is the API key read from environment variables?</strong> If you see a hardcoded key string, reject it immediately.</li>
     <li><strong>Is there error handling?</strong> Look for try/except blocks (Python) or try/catch (JavaScript). If the code just calls the API and assumes it works, ask for error handling.</li>
     <li><strong>Does it check the status code?</strong> Good code checks <code>response.status_code</code> before trying to parse the response body.</li>
-    <li><strong>Is there retry logic?</strong> For anything that runs unattended (like your newsletter), retry logic is essential.</li>
+    <li><strong>Is there retry logic?</strong> For anything that runs unattended (like your market brief), retry logic is essential.</li>
     <li><strong>Does it handle the response correctly?</strong> Check that it accesses the right fields in the JSON response, matching the API's actual documentation.</li>
   </ul>
 

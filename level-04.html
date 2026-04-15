@@ -43,7 +43,7 @@
     <p><strong>CLAUDE.md is the single highest-leverage thing you can do with Claude Code.</strong> Nothing else &mdash; not prompt engineering, not model selection, not fancy workflows &mdash; will improve your results as dramatically as a well-written CLAUDE.md. A mediocre prompt with a great CLAUDE.md will beat a great prompt with no CLAUDE.md every single time.</p>
   </div>
 
-  <p>Think about your own experience. You've built your Resy sniper, the apartment dashboard, your daily newsletter. Every time you started a new conversation, you probably spent the first few exchanges re-explaining what the project is, what tech stack you're using, and how things are organized. Maybe Claude made a decision you didn't want &mdash; like creating a new file instead of editing an existing one, or using the wrong framework &mdash; and you had to course-correct.</p>
+  <p>Think about your own experience. You've built your flight deal tracker, the expense dashboard, your market morning brief. Every time you started a new conversation, you probably spent the first few exchanges re-explaining what the project is, what tech stack you're using, and how things are organized. Maybe Claude made a decision you didn't want &mdash; like creating a new file instead of editing an existing one, or using the wrong framework &mdash; and you had to course-correct.</p>
 
   <p>All of that overhead disappears with a good CLAUDE.md. Claude reads it before you say a single word, and it shapes every decision Claude makes throughout the conversation.</p>
 
@@ -148,9 +148,10 @@
 
   <div class="code-label">markdown</div>
 <pre><code><span class="syn-keyword">## Project</span>
-A daily newsletter aggregator that scrapes 12 news sources, ranks stories
-by relevance using an LLM, and sends a personalized morning email via SendGrid.
-Target audience: busy professionals who want curated news in 5 minutes.</code></pre>
+A market morning brief that pulls from 8 financial APIs (indices, earnings,
+economic calendar), ranks stories by relevance using an LLM, and sends
+a digest email via SendGrid.
+Target audience: busy professionals who want curated market intel in 5 minutes.</code></pre>
 
   <p>Notice how the description includes the <em>what</em>, the <em>how</em> (at a high level), and the <em>who</em>. This helps Claude make judgment calls: should error messages be technical or friendly? (Friendly &mdash; it's for non-technical users.) Should the code prioritize speed or readability? (Both, but delivery timing matters.)</p>
 
@@ -160,7 +161,7 @@ Target audience: busy professionals who want curated news in 5 minutes.</code></
 
   <div class="code-label">markdown</div>
 <pre><code><span class="syn-keyword">## File Structure</span>
-<span class="syn-string">- src/scrapers/</span>       <span class="syn-comment"># One file per news source (e.g., hackernews.ts, reuters.ts)</span>
+<span class="syn-string">- src/feeds/</span>          <span class="syn-comment"># One file per data source (e.g., sp500.ts, earnings.ts, econ-calendar.ts)</span>
 <span class="syn-string">- src/ranker/</span>         <span class="syn-comment"># LLM-based story ranking logic</span>
 <span class="syn-string">- src/email/</span>          <span class="syn-comment"># Email template and SendGrid integration</span>
 <span class="syn-string">- src/config/</span>         <span class="syn-comment"># Environment config, constants</span>
@@ -488,11 +489,11 @@ Design is minimal, fast-loading, no JavaScript frameworks.
   <p>This is for a more complex project &mdash; something like the kind of app you might build next.</p>
 
   <div class="code-label">markdown</div>
-<pre><code><span class="syn-comment"># Apartment Dashboard — CLAUDE.md</span>
+<pre><code><span class="syn-comment"># Expense Report Dashboard — CLAUDE.md</span>
 
 <span class="syn-keyword">## Project</span>
-A real-time apartment listing dashboard that scrapes rental sites,
-stores listings in a database, and displays them with filters.
+An expense report dashboard that imports receipts from email and bank feeds,
+categorizes spending with an LLM, and displays analytics with filters and charts.
 Built for personal use — single user, runs locally.
 
 <span class="syn-keyword">## Tech Stack</span>
@@ -504,11 +505,11 @@ Built for personal use — single user, runs locally.
 - Package manager: pnpm
 
 <span class="syn-keyword">## File Structure</span>
-<span class="syn-string">- client/src/components/</span>   → React components (one per file)
+<span class="syn-string">- client/src/components/</span>   → React components (one per file, e.g., ExpenseCard, CategoryChart)
 <span class="syn-string">- client/src/hooks/</span>        → Custom React hooks
 <span class="syn-string">- client/src/pages/</span>        → Route-level page components
 <span class="syn-string">- server/src/routes/</span>       → Express route handlers
-<span class="syn-string">- server/src/scrapers/</span>     → One scraper per rental site
+<span class="syn-string">- server/src/importers/</span>    → One importer per data source (email, bank CSV, manual upload)
 <span class="syn-string">- server/src/db/</span>           → Database schema and queries
 <span class="syn-string">- shared/types/</span>            → TypeScript types shared between client and server
 
@@ -538,14 +539,14 @@ Built for personal use — single user, runs locally.
 
   <h3>Example 3: Automation / Script-Heavy Project</h3>
 
-  <p>This is for something like a scraper or automation project &mdash; similar to your Resy sniper.</p>
+  <p>This is for something like a scraper or automation project &mdash; similar to your flight deal tracker.</p>
 
   <div class="code-label">markdown</div>
-<pre><code><span class="syn-comment"># Resy Sniper — CLAUDE.md</span>
+<pre><code><span class="syn-comment"># Flight Deal Tracker — CLAUDE.md</span>
 
 <span class="syn-keyword">## Project</span>
-An automated reservation sniper for Resy.
-Monitors target restaurants, detects new openings, and books instantly.
+An automated flight deal tracker.
+Monitors airline fare APIs for saved routes, alerts on price drops, and can auto-book.
 Runs as a cron job on a VPS. Speed is the #1 priority.
 
 <span class="syn-keyword">## Tech Stack</span>
@@ -557,20 +558,20 @@ Runs as a cron job on a VPS. Speed is the #1 priority.
 - No web framework — this is a pure CLI/cron tool
 
 <span class="syn-keyword">## File Structure</span>
-<span class="syn-string">- src/sniper.py</span>          → Main entry point
-<span class="syn-string">- src/resy_client.py</span>     → Resy API wrapper
+<span class="syn-string">- src/tracker.py</span>         → Main entry point
+<span class="syn-string">- src/flight_client.py</span>   → Airline fare API wrapper
 <span class="syn-string">- src/notifier.py</span>        → Pushover notification sender
 <span class="syn-string">- src/config_loader.py</span>   → YAML config parser
-<span class="syn-string">- config/targets.yaml</span>    → Restaurant targets and preferences
+<span class="syn-string">- config/routes.yaml</span>     → Saved routes and price targets
 <span class="syn-string">- config/credentials.yaml</span> → API keys (gitignored)
 <span class="syn-string">- tests/</span>                 → pytest tests
 
 <span class="syn-keyword">## Critical Rules</span>
 - NEVER make real API calls in tests — always mock httpx
 - NEVER hardcode API keys, tokens, or credentials anywhere
-- NEVER change the booking logic without explicit instruction — this spends real money
+- NEVER change the booking logic without explicit instruction — this triggers real purchases
 - All HTTP requests must have timeout=10 and retry logic (3 attempts)
-- Log every booking attempt with timestamp, restaurant, and result
+- Log every booking attempt with timestamp, route, and result
 - Config changes go in YAML files, not in Python code
 
 <span class="syn-keyword">## Code Style</span>
@@ -585,7 +586,7 @@ Runs as a cron job on a VPS. Speed is the #1 priority.
 - Mock all external API calls
 - Test config loading with sample YAML fixtures in tests/fixtures/</code></pre>
 
-  <p>The most important line in this entire file is: "NEVER change the booking logic without explicit instruction &mdash; this spends real money." That's the kind of rule that prevents real-world damage. Context about <em>consequences</em> helps Claude understand what's at stake and act more carefully.</p>
+  <p>The most important line in this entire file is: "NEVER change the booking logic without explicit instruction &mdash; this triggers real purchases." That's the kind of rule that prevents real-world damage. Context about <em>consequences</em> helps Claude understand what's at stake and act more carefully.</p>
 
   <!-- ============================================================ -->
   <!-- SECTION 8: Iterating on Your CLAUDE.md -->
@@ -682,7 +683,7 @@ Runs as a cron job on a VPS. Speed is the #1 priority.
     </div>
 
     <h4>What to Build</h4>
-    <p>Write a production-quality <code>CLAUDE.md</code> for one of your existing projects &mdash; your Resy sniper, apartment dashboard, or daily newsletter. Then stress-test it: start a brand new Claude Code conversation in that project directory, give Claude a vague instruction (like "add a new feature" or "fix the styling" or "write a test"), and see if Claude follows your rules <strong>without any extra prompting</strong>.</p>
+    <p>Write a production-quality <code>CLAUDE.md</code> for one of your existing projects &mdash; your flight deal tracker, expense dashboard, or market morning brief. Then stress-test it: start a brand new Claude Code conversation in that project directory, give Claude a vague instruction (like "add a new feature" or "fix the styling" or "write a test"), and see if Claude follows your rules <strong>without any extra prompting</strong>.</p>
 
     <h4>Requirements</h4>
     <ul>
